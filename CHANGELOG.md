@@ -18,6 +18,7 @@
 
 ### Changed
 
+- Match list and task-editor actions to the Save/Cancel button treatment; delete uses the neutral button with red text.
 - Show each group's due-task count as a red `N offen` pill.
 - Display attachment counts as `N Dateien` and remove added sizing/padding from text action buttons.
 - Keep popup titles visible while their content scrolls.
