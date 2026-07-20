@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.18
+
+- Der globale Eintrag „Gruppe hinzufügen“ wurde durch „Task hinzufügen“ ersetzt.
+- Der Task-Editor unterstützt Gruppen-Autovervollständigung, das Erstellen neuer Gruppen und die Fallback-Gruppe „Tasks“ bei leerer Eingabe.
+- Die Gruppenzuweisung bestehender Tasks kann geändert werden; ihre Home-Assistant-Entität wird dem passenden virtuellen Gerät zugeordnet.
+
 ## 0.2.17
 
 - Tasks ohne Gruppenzuweisung werden der automatisch angelegten Fallback-Gruppe „Tasks“ zugeordnet.

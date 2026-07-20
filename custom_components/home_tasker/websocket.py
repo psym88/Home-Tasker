@@ -25,6 +25,10 @@ TASK_FIELDS = {
     vol.Optional("weekdays", default=[]): [vol.All(vol.Coerce(int), vol.Range(min=0, max=6))],
     vol.Optional("day_of_month"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=1, max=31)), "last", None),
 }
+TASK_GROUP_FIELDS = {
+    vol.Optional("group_id"): vol.Any(str, None),
+    vol.Optional("group_name"): TEXT,
+}
 
 
 @callback
@@ -89,7 +93,7 @@ async def ws_group_delete(hass, connection, msg, store):
     await store.async_delete_group(msg["group_id"]); connection.send_result(msg["id"]); updated(hass)
 
 
-@websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/create", vol.Optional("group_id"): vol.Any(str, None), **TASK_FIELDS})
+@websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/create", **TASK_GROUP_FIELDS, **TASK_FIELDS})
 @websocket_api.require_admin
 @websocket_api.async_response
 @require_store
@@ -98,7 +102,7 @@ async def ws_task_create(hass, connection, msg, store):
     connection.send_result(msg["id"], await store.async_add_task(msg)); updated(hass)
 
 
-@websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/update", vol.Required("task_id"): str, **{vol.Optional(k.schema): v for k, v in TASK_FIELDS.items()}})
+@websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/update", vol.Required("task_id"): str, **TASK_GROUP_FIELDS, **{vol.Optional(k.schema): v for k, v in TASK_FIELDS.items()}})
 @websocket_api.require_admin
 @websocket_api.async_response
 @require_store

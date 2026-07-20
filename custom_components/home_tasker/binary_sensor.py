@@ -42,6 +42,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry[HomeTaskerDa
             if home_tasker_ids and home_tasker_ids.isdisjoint(group_ids):
                 device_registry.async_remove_device(device.id)
 
+        groups = {group["id"]: group for group in store.groups}
+        tasks = {task["id"]: task for task in store.tasks}
+        for task_id, entity in entities.items():
+            if entity.entity_id is None or entity.entity_id not in entity_registry.entities:
+                continue
+            group = groups.get(tasks[task_id]["group_id"])
+            if group is None:
+                continue
+            device = device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, group["id"])},
+                name=group["name"],
+                manufacturer=group.get("manufacturer"),
+                model=group.get("model"),
+            )
+            registry_entry = entity_registry.async_get(entity.entity_id)
+            if registry_entry and registry_entry.device_id != device.id:
+                entity_registry.async_update_entity(entity.entity_id, device_id=device.id)
+
         new = [TaskSensor(store, task_id) for task_id in task_ids - set(entities)]
         entities.update((entity._task_id, entity) for entity in new)
         if new:

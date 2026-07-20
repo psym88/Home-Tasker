@@ -56,6 +56,50 @@ class HomeTaskerStore:
     async def _save(self) -> None:
         await self._store.async_save(self._data)
 
+    def _resolve_task_group(
+        self, group_id: str | None, group_name: str | None, now: str
+    ) -> str:
+        """Resolve an existing group or create one inside the mutation lock."""
+        if group_id:
+            return self._find("groups", group_id)["id"]
+
+        name = (group_name or "").strip()
+        fallback = not name
+        if fallback:
+            name = FALLBACK_GROUP_NAME
+            group = next(
+                (item for item in self._data["groups"] if item.get("is_fallback")),
+                None,
+            )
+        else:
+            group = None
+
+        if group is None:
+            normalized = name.casefold()
+            group = next(
+                (
+                    item
+                    for item in self._data["groups"]
+                    if item.get("name", "").strip().casefold() == normalized
+                ),
+                None,
+            )
+        if group is None:
+            group = {
+                "id": uuid4().hex,
+                "name": name,
+                "manufacturer": None,
+                "model": None,
+                "icon": None,
+                "description": None,
+                "created_at": now,
+                "updated_at": now,
+            }
+            self._data["groups"].append(group)
+        if fallback or name.casefold() == FALLBACK_GROUP_NAME.casefold():
+            group["is_fallback"] = True
+        return group["id"]
+
     async def async_add_group(self, payload: dict[str, Any]) -> dict[str, Any]:
         async with self._lock:
             now = _now()
@@ -94,39 +138,9 @@ class HomeTaskerStore:
         due = date.fromisoformat(payload["due_date"])
         async with self._lock:
             now = _now()
-            group_id = payload.get("group_id")
-            if group_id:
-                self._find("groups", group_id)
-            else:
-                group = next(
-                    (item for item in self._data["groups"] if item.get("is_fallback")),
-                    None,
-                )
-                if group is None:
-                    group = next(
-                        (
-                            item for item in self._data["groups"]
-                            if item.get("name", "").strip().casefold()
-                            == FALLBACK_GROUP_NAME.casefold()
-                        ),
-                        None,
-                    )
-                if group is None:
-                    group = {
-                        "id": uuid4().hex,
-                        "name": FALLBACK_GROUP_NAME,
-                        "manufacturer": None,
-                        "model": None,
-                        "icon": None,
-                        "description": None,
-                        "is_fallback": True,
-                        "created_at": now,
-                        "updated_at": now,
-                    }
-                    self._data["groups"].append(group)
-                else:
-                    group["is_fallback"] = True
-                group_id = group["id"]
+            group_id = self._resolve_task_group(
+                payload.get("group_id"), payload.get("group_name"), now
+            )
             task = {
                 "id": uuid4().hex,
                 **{k: payload.get(k) for k in ("name", "description", "due_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month")},
@@ -143,6 +157,10 @@ class HomeTaskerStore:
     async def async_update_task(self, task_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         async with self._lock:
             task = self._find("tasks", task_id)
+            if "group_id" in payload or "group_name" in payload:
+                task["group_id"] = self._resolve_task_group(
+                    payload.get("group_id"), payload.get("group_name"), _now()
+                )
             for key in ("name", "description", "due_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month"):
                 if key in payload:
                     task[key] = payload[key]
