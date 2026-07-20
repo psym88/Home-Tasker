@@ -12,7 +12,7 @@ from uuid import uuid4
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 
-from .const import STORAGE_KEY, STORAGE_VERSION
+from .const import FALLBACK_GROUP_NAME, STORAGE_KEY, STORAGE_VERSION
 from .scheduler import next_due
 
 
@@ -91,13 +91,46 @@ class HomeTaskerStore:
             await self._save()
 
     async def async_add_task(self, payload: dict[str, Any]) -> dict[str, Any]:
+        due = date.fromisoformat(payload["due_date"])
         async with self._lock:
-            self._find("groups", payload["group_id"])
             now = _now()
-            due = date.fromisoformat(payload["due_date"])
+            group_id = payload.get("group_id")
+            if group_id:
+                self._find("groups", group_id)
+            else:
+                group = next(
+                    (item for item in self._data["groups"] if item.get("is_fallback")),
+                    None,
+                )
+                if group is None:
+                    group = next(
+                        (
+                            item for item in self._data["groups"]
+                            if item.get("name", "").strip().casefold()
+                            == FALLBACK_GROUP_NAME.casefold()
+                        ),
+                        None,
+                    )
+                if group is None:
+                    group = {
+                        "id": uuid4().hex,
+                        "name": FALLBACK_GROUP_NAME,
+                        "manufacturer": None,
+                        "model": None,
+                        "icon": None,
+                        "description": None,
+                        "is_fallback": True,
+                        "created_at": now,
+                        "updated_at": now,
+                    }
+                    self._data["groups"].append(group)
+                else:
+                    group["is_fallback"] = True
+                group_id = group["id"]
             task = {
                 "id": uuid4().hex,
-                **{k: payload.get(k) for k in ("group_id", "name", "description", "due_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month")},
+                **{k: payload.get(k) for k in ("name", "description", "due_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month")},
+                "group_id": group_id,
                 "anchor_day": due.day,
                 "schedule_anchor": payload["due_date"],
                 "created_at": now,

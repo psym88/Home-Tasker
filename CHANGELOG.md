@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.17
+
+- Tasks ohne Gruppenzuweisung werden der automatisch angelegten Fallback-Gruppe „Tasks“ zugeordnet.
+- Die Fallback-Gruppe bleibt ein normales virtuelles Home-Assistant-Gerät, damit Task-Entitäten für Automationen verfügbar sind.
+
 ## 0.2.16
 
 - Der Editor ist mit Abstand zum oberen Bildschirmrand fixiert, damit aufklappende Bereiche ihn nicht mehr vertikal verschieben.

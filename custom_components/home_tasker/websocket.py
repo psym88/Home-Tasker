@@ -89,7 +89,7 @@ async def ws_group_delete(hass, connection, msg, store):
     await store.async_delete_group(msg["group_id"]); connection.send_result(msg["id"]); updated(hass)
 
 
-@websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/create", vol.Required("group_id"): str, **TASK_FIELDS})
+@websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/create", vol.Optional("group_id"): vol.Any(str, None), **TASK_FIELDS})
 @websocket_api.require_admin
 @websocket_api.async_response
 @require_store
