@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.20
+
+- Tasks können in der Listenansicht per Drag-and-drop auf eine andere Gruppenzeile verschoben werden.
+- Auf Touch-Geräten startet das Verschieben durch kurzes Gedrückthalten einer Task-Zeile.
+- Das Ziel wird hervorgehoben und nach dem Verschieben aufgeklappt.
+
 ## 0.2.19
 
 - Beim Wechsel der Task-Gruppe wird die Entity-ID passend zum neuen virtuellen Gerät kollisionsfrei neu generiert.
