@@ -18,6 +18,8 @@
 
 ### Changed
 
+- Show each group's due-task count as a red `N offen` pill.
+- Display attachment counts as `N Dateien` and remove added sizing/padding from text action buttons.
 - Keep popup titles visible while their content scrolls.
 - Render mobile-friendly HA-themed native action buttons with 44-pixel touch targets.
 - Removed recurrence filter chips and all list action icons.

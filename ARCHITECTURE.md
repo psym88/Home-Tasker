@@ -21,6 +21,7 @@ Home Tasker deliberately starts with a small surface. The integration is local-o
 - `frontend/panel.js`: dependency-free list and the group/task dialogs
 
 The list has no recurrence filters or icon actions. Group actions appear at the bottom of expanded groups; clicking a task opens its editor, where completion and deletion are available.
+Group headers show the number of due tasks as a red `N offen` pill.
 Actions use native buttons styled with Home Assistant theme variables instead of unstable internal frontend components. Popup titles remain sticky while the dialog body scrolls.
 
 Uploads live under `<config>/home_tasker/uploads`; metadata is stored in the versioned Home Assistant Store.
