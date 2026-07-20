@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.26
+
+- Jede Task-Zeile besitzt rechts eine Aktion mit `mdi:check-circle-outline` und einer Bestätigung vor dem Erledigen.
+- Dateianhänge werden am Ende der Task-Pills einzeln mit Dateinamen und als authentifizierte Links angezeigt.
+- Der „Erledigt“-Button wurde aus dem Task-Editor entfernt.
+- Der Bestätigungsdialog unterstützt nun sowohl destruktive als auch erfolgreiche Aktionen.
+
 ## 0.2.25
 
 - Zugeordnete Home-Assistant-Benutzer werden als zusätzliche Pille in der Task-Zeile angezeigt.
