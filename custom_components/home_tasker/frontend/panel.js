@@ -1,4 +1,4 @@
-const VERSION = "0.2.18";
+const VERSION = "0.2.19";
 const L = { addTask:"Task hinzufügen", fixed:"Aufgabendatum", sliding:"Erledigungsdatum", daily:"Täglich", weekly:"Wöchentlich", monthly:"Monatlich", save:"Speichern", cancel:"Abbrechen", files:"Dateien", history:"Verlauf", noFiles:"Keine Dateien", noHistory:"Noch kein Verlauf" };
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 

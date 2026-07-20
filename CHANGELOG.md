@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.19
+
+- Beim Wechsel der Task-Gruppe wird die Entity-ID passend zum neuen virtuellen Gerät kollisionsfrei neu generiert.
+- Die stabile Unique-ID der Entität bleibt dabei erhalten.
+
 ## 0.2.18
 
 - Der globale Eintrag „Gruppe hinzufügen“ wurde durch „Task hinzufügen“ ersetzt.

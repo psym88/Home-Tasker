@@ -59,7 +59,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry[HomeTaskerDa
             )
             registry_entry = entity_registry.async_get(entity.entity_id)
             if registry_entry and registry_entry.device_id != device.id:
-                entity_registry.async_update_entity(entity.entity_id, device_id=device.id)
+                moved_entry = entity_registry.async_update_entity(
+                    entity.entity_id, device_id=device.id
+                )
+                new_entity_id = entity_registry.async_regenerate_entity_id(moved_entry)
+                if new_entity_id != moved_entry.entity_id:
+                    entity_registry.async_update_entity(
+                        moved_entry.entity_id, new_entity_id=new_entity_id
+                    )
 
         new = [TaskSensor(store, task_id) for task_id in task_ids - set(entities)]
         entities.update((entity._task_id, entity) for entity in new)
