@@ -17,13 +17,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry[HomeTaskerDa
     store = entry.runtime_data.store
     known: set[str] = set()
 
-    def sync() -> None:
+    async def sync() -> None:
         new = [TaskSensor(store, task["id"]) for task in store.tasks if task["id"] not in known]
         known.update(entity._task_id for entity in new)
         if new:
             async_add_entities(new)
 
-    sync()
+    await sync()
     entry.async_on_unload(async_dispatcher_connect(hass, SIGNAL_UPDATED, sync))
 
 
@@ -71,4 +71,3 @@ class TaskSensor(BinarySensorEntity):
 
     async def async_added_to_hass(self) -> None:
         self.async_on_remove(async_dispatcher_connect(self.hass, SIGNAL_UPDATED, self.async_write_ha_state))
-

@@ -13,7 +13,7 @@ from .helpers import get_store
 
 TEXT = vol.Any(str, None)
 GROUP_FIELDS = {vol.Required("name"): str, vol.Optional("manufacturer"): TEXT, vol.Optional("model"): TEXT, vol.Optional("icon"): TEXT, vol.Optional("description"): TEXT}
-TASK_FIELDS = {vol.Required("name"): str, vol.Optional("description"): TEXT, vol.Required("due_date"): str, vol.Required("recurrence_mode"): vol.In(("fixed", "sliding")), vol.Required("interval"): vol.All(vol.Coerce(int), vol.Range(min=1)), vol.Required("interval_unit"): vol.In(("day", "week", "month", "year"))}
+TASK_FIELDS = {vol.Required("name"): str, vol.Optional("description"): TEXT, vol.Required("due_date"): str, vol.Required("recurrence_mode"): vol.In(("fixed", "sliding", "weekly")), vol.Required("interval"): vol.All(vol.Coerce(int), vol.Range(min=1)), vol.Required("interval_unit"): vol.In(("day", "week", "month", "year"))}
 
 
 @callback
@@ -132,4 +132,3 @@ async def ws_attachment_delete(hass, connection, msg, store):
 
 
 COMMANDS = (ws_list, ws_group_create, ws_group_update, ws_group_delete, ws_task_create, ws_task_update, ws_task_delete, ws_task_complete, ws_history_list, ws_history_delete, ws_attachment_delete)
-

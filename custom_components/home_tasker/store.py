@@ -95,6 +95,8 @@ class HomeTaskerStore:
             self._find("groups", payload["group_id"])
             now = _now()
             due = date.fromisoformat(payload["due_date"])
+            if payload["recurrence_mode"] == "weekly":
+                payload = {**payload, "interval": 1, "interval_unit": "week"}
             task = {
                 "id": uuid4().hex,
                 **{k: payload.get(k) for k in ("group_id", "name", "description", "due_date", "recurrence_mode", "interval", "interval_unit")},
@@ -112,6 +114,9 @@ class HomeTaskerStore:
             for key in ("name", "description", "due_date", "recurrence_mode", "interval", "interval_unit"):
                 if key in payload:
                     task[key] = payload[key]
+            if task["recurrence_mode"] == "weekly":
+                task["interval"] = 1
+                task["interval_unit"] = "week"
             if "due_date" in payload:
                 task["anchor_day"] = date.fromisoformat(payload["due_date"]).day
             task["updated_at"] = _now()
