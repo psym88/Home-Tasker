@@ -19,6 +19,7 @@
 
 ### Changed
 
+- Centered task icons in a padded leading column, hid zero-count open pills, and replaced group edit/delete text actions with icons.
 - Removed the task-row indent and total-task pill, and shortened the open-task pill to its number.
 - Added expansion chevrons to group rows and the original Home Assistant entity icon to each task row.
 - Moved group editing to the right side of the group header and group deletion to the lower-left corner of the group editor.
