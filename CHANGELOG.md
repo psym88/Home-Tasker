@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.24
+
+- Browser-`confirm()`-Abfragen wurden für Gruppen und Tasks entfernt.
+- Löschvorgänge verwenden einen gemeinsamen HA-nahen Bestätigungsdialog innerhalb des Panels.
+- Abbrechen, Außenklick und Escape schließen die Abfrage ohne Löschung; die destruktive Bestätigung ist deutlich rot markiert.
+
 ## 0.2.23
 
 - Die Browser-`datalist` für Gruppen wurde durch eine eigene HA-nahe Combobox ersetzt.
