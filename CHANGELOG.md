@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.28
+
+- Das Entitäts-Icon wurde aus den Task-Zeilen entfernt.
+- Task-Name und Metadaten beginnen nun direkt am linken Innenrand der Zeile.
+
 ## 0.2.27
 
 - Task-Metadaten sind klar aufgeteilt: Aufgabendatum und Zuordnung stehen gemeinsam, Dateianhänge in einer eigenen Zeile.
