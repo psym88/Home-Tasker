@@ -17,6 +17,10 @@
 
 ### Changed
 
+- Removed recurrence filter chips and all list action icons.
+- Made task rows open the editor and moved task completion/deletion into that editor.
+- Moved group edit/delete actions to the bottom of expanded groups and added list hover states.
+- Replaced the attachment icon pill with a text label.
 - Compacted the list and task editor.
 - Separated files and history into distinct task-editor sections and removed the group icon field from the editor.
 - Replaced the temporary weekly type with a Todoist-style recurrence model: fixed or sliding calculation combined with daily, weekly, or monthly frequency.

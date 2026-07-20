@@ -20,4 +20,6 @@ Home Tasker deliberately starts with a small surface. The integration is local-o
 - `binary_sensor.py`: task entities and virtual device metadata
 - `frontend/panel.js`: dependency-free list and the group/task dialogs
 
+The list has no recurrence filters or icon actions. Group actions appear at the bottom of expanded groups; clicking a task opens its editor, where completion and deletion are available.
+
 Uploads live under `<config>/home_tasker/uploads`; metadata is stored in the versioned Home Assistant Store.
