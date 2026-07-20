@@ -35,23 +35,6 @@ class HomeTaskerStore:
     async def async_load(self) -> None:
         if stored := await self._store.async_load():
             self._data = {key: stored.get(key, default) for key, default in self._data.items()}
-            for task in self._data["tasks"]:
-                self._normalize_task(task)
-
-    @staticmethod
-    def _normalize_task(task: dict[str, Any]) -> None:
-        """Upgrade the short-lived legacy recurrence fields in memory."""
-        due = date.fromisoformat(task["due_date"])
-        legacy_mode = task.get("recurrence_mode", "fixed")
-        if legacy_mode == "weekly":
-            task["recurrence_mode"] = "fixed"
-            task["frequency"] = "weekly"
-            task["interval"] = 1
-        task.setdefault("frequency", {"day": "daily", "week": "weekly", "month": "monthly"}.get(task.get("interval_unit"), "monthly"))
-        task.setdefault("weekdays", [due.weekday()] if task["frequency"] == "weekly" else [])
-        task.setdefault("day_of_month", due.day)
-        task.setdefault("anchor_day", due.day)
-        task.setdefault("schedule_anchor", task["due_date"])
 
     def snapshot(self) -> dict[str, Any]:
         return {key: list(self._data[key]) for key in ("groups", "tasks", "attachments")}
