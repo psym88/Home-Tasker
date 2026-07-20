@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.25
+
+- Zugeordnete Home-Assistant-Benutzer werden als zusätzliche Pille in der Task-Zeile angezeigt.
+- Tasks ohne Benutzerzuweisung zeigen keine Benutzer-Pille.
+
 ## 0.2.24
 
 - Browser-`confirm()`-Abfragen wurden für Gruppen und Tasks entfernt.
