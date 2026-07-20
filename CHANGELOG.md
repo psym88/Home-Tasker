@@ -13,11 +13,13 @@
 
 ### Fixed
 
+- Render task entity icons with Home Assistant's current state-icon component.
 - Schedule dynamic entity additions in the dispatcher callback on Home Assistant's running event loop.
 - Keep the task editor open and refresh its due date/history after completion.
 
 ### Changed
 
+- Removed the task-row indent and total-task pill, and shortened the open-task pill to its number.
 - Added expansion chevrons to group rows and the original Home Assistant entity icon to each task row.
 - Moved group editing to the right side of the group header and group deletion to the lower-left corner of the group editor.
 - Match list and task-editor actions to the Save/Cancel button treatment; delete uses the neutral button with red text.
