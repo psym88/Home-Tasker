@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.22
+
+- Die Versionsnummer steht oben rechts.
+- Die Box „Zuordnung“ folgt direkt auf „Planung“ und enthält zusätzlich eine optionale Auswahl aktiver Home-Assistant-Benutzer.
+- Die Benutzerzuweisung wird am Task und als Entitätsattribut gespeichert.
+- „Abbrechen“ wurde durch ein X oben links im fixierten Editor-Header ersetzt.
+
 ## 0.2.21
 
 - Drag-and-drop für Tasks wurde wieder entfernt.

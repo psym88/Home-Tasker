@@ -143,7 +143,7 @@ class HomeTaskerStore:
             )
             task = {
                 "id": uuid4().hex,
-                **{k: payload.get(k) for k in ("name", "description", "due_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month")},
+                **{k: payload.get(k) for k in ("name", "description", "assignee_user_id", "due_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month")},
                 "group_id": group_id,
                 "anchor_day": due.day,
                 "schedule_anchor": payload["due_date"],
@@ -161,7 +161,7 @@ class HomeTaskerStore:
                 task["group_id"] = self._resolve_task_group(
                     payload.get("group_id"), payload.get("group_name"), _now()
                 )
-            for key in ("name", "description", "due_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month"):
+            for key in ("name", "description", "assignee_user_id", "due_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month"):
                 if key in payload:
                     task[key] = payload[key]
             if "due_date" in payload:

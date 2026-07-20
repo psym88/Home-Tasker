@@ -18,6 +18,7 @@ GROUP_FIELDS = {vol.Required("name"): str, vol.Optional("manufacturer"): TEXT, v
 TASK_FIELDS = {
     vol.Required("name"): str,
     vol.Optional("description"): TEXT,
+    vol.Optional("assignee_user_id"): TEXT,
     vol.Required("due_date"): str,
     vol.Required("recurrence_mode"): vol.In(("fixed", "sliding")),
     vol.Required("frequency"): vol.In(("daily", "weekly", "monthly")),
@@ -66,7 +67,14 @@ def validate_task_schedule(msg: dict[str, Any]) -> None:
 @websocket_api.async_response
 @require_store
 async def ws_list(hass, connection, msg, store):
-    connection.send_result(msg["id"], store.snapshot())
+    result = store.snapshot()
+    result["users"] = [
+        {"id": user.id, "name": user.name or user.id}
+        for user in await hass.auth.async_get_users()
+        if getattr(user, "is_active", True)
+        and not getattr(user, "system_generated", False)
+    ]
+    connection.send_result(msg["id"], result)
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/group/create", **GROUP_FIELDS})
