@@ -19,6 +19,7 @@
 
 ### Changed
 
+- Balanced task-row spacing and replaced all task-editor delete text/emoji controls with red MDI delete icons.
 - Centered task icons in a padded leading column, hid zero-count open pills, and replaced group edit/delete text actions with icons.
 - Removed the task-row indent and total-task pill, and shortened the open-task pill to its number.
 - Added expansion chevrons to group rows and the original Home Assistant entity icon to each task row.
