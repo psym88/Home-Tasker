@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.16
+
+- Der Editor ist mit Abstand zum oberen Bildschirmrand fixiert, damit aufklappende Bereiche ihn nicht mehr vertikal verschieben.
+
 ## 0.2.15
 
 - Planung, Dateien und Verlauf im Task-Editor sind standardmäßig eingeklappt.
