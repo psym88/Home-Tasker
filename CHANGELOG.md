@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.27
+
+- Task-Metadaten sind klar aufgeteilt: Aufgabendatum und Zuordnung stehen gemeinsam, Dateianhänge in einer eigenen Zeile.
+- Das Aufgabendatum wird relativ angezeigt, das exakte Datum bleibt als Tooltip verfügbar.
+- Die Wiederholungsart wird in der Listenansicht nicht mehr als Pille angezeigt.
+- Zwischen den Pillen sorgt ein einheitlicher Abstand für bessere Lesbarkeit.
+
 ## 0.2.26
 
 - Jede Task-Zeile besitzt rechts eine Aktion mit `mdi:check-circle-outline` und einer Bestätigung vor dem Erledigen.
