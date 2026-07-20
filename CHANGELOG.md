@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.23
+
+- Die Browser-`datalist` für Gruppen wurde durch eine eigene HA-nahe Combobox ersetzt.
+- Bestehende Gruppen werden in einem eindeutig anwendungseigenen Ergebnisbereich gefiltert angezeigt.
+- Neue Gruppennamen erscheinen als explizite Aktion „als neue Gruppe erstellen“.
+- Such-, Aufklapp- und Löschen-Symbole verdeutlichen den Zustand der Auswahl.
+
 ## 0.2.22
 
 - Die Versionsnummer steht oben rechts.
