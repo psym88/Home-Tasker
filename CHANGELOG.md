@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.21
+
+- Drag-and-drop für Tasks wurde wieder entfernt.
+- Die Gruppenzuweisung befindet sich in einer eigenen Box „Zuordnung“ ohne Fallback-Hinweis.
+- Das Pflichtfeld „Name“ zeigt einen roten Asterisk.
+- Gruppeninterne Hinzufügen-Zeilen wurden durch einen einzigen fixierten globalen „Task hinzufügen“-Button unten rechts ersetzt.
+
 ## 0.2.20
 
 - Tasks können in der Listenansicht per Drag-and-drop auf eine andere Gruppenzeile verschoben werden.
