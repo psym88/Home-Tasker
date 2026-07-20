@@ -5,6 +5,7 @@ from datetime import date
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass, BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -15,11 +16,34 @@ from .models import HomeTaskerData
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry[HomeTaskerData], async_add_entities: AddEntitiesCallback) -> None:
     store = entry.runtime_data.store
-    known: set[str] = set()
+    entities: dict[str, TaskSensor] = {}
+    entity_registry = er.async_get(hass)
+    device_registry = dr.async_get(hass)
 
     async def sync() -> None:
-        new = [TaskSensor(store, task["id"]) for task in store.tasks if task["id"] not in known]
-        known.update(entity._task_id for entity in new)
+        task_ids = {task["id"] for task in store.tasks}
+        group_ids = {group["id"] for group in store.groups}
+
+        for task_id in set(entities) - task_ids:
+            entity = entities.pop(task_id)
+            entity_id = entity.entity_id
+            if entity_id is not None:
+                await entity.async_remove(force_remove=True)
+            if entity_id and entity_registry.async_get(entity_id):
+                entity_registry.async_remove(entity_id)
+
+        valid_unique_ids = {f"{DOMAIN}_{task_id}" for task_id in task_ids}
+        for registry_entry in list(entity_registry.entities.values()):
+            if registry_entry.platform == DOMAIN and registry_entry.unique_id.startswith(f"{DOMAIN}_") and registry_entry.unique_id not in valid_unique_ids:
+                entity_registry.async_remove(registry_entry.entity_id)
+
+        for device in list(device_registry.devices.values()):
+            home_tasker_ids = {identifier[1] for identifier in device.identifiers if identifier[0] == DOMAIN}
+            if home_tasker_ids and home_tasker_ids.isdisjoint(group_ids):
+                device_registry.async_remove_device(device.id)
+
+        new = [TaskSensor(store, task_id) for task_id in task_ids - set(entities)]
+        entities.update((entity._task_id, entity) for entity in new)
         if new:
             async_add_entities(new)
 

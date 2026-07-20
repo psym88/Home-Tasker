@@ -13,12 +13,14 @@
 
 ### Fixed
 
+- Remove deleted task entities and orphaned group devices from Home Assistant's registries.
 - Render task entity icons with Home Assistant's current state-icon component.
 - Schedule dynamic entity additions in the dispatcher callback on Home Assistant's running event loop.
 - Keep the task editor open and refresh its due date/history after completion.
 
 ### Changed
 
+- Boxed the scheduling controls and renamed fixed/sliding recurrence to task-date/completion-date wording.
 - Limited sorting to name and due date, removed header totals, truncated long filenames, and removed the empty validation gap above files.
 - Replaced the file browse link with a visible clickable drop zone and distributed weekday buttons evenly across the full mobile width.
 - Balanced task-row spacing and replaced all task-editor delete text/emoji controls with red MDI delete icons.
