@@ -19,6 +19,7 @@
 
 ### Changed
 
+- Limited sorting to name and due date, removed header totals, truncated long filenames, and removed the empty validation gap above files.
 - Replaced the file browse link with a visible clickable drop zone and distributed weekday buttons evenly across the full mobile width.
 - Balanced task-row spacing and replaced all task-editor delete text/emoji controls with red MDI delete icons.
 - Centered task icons in a padded leading column, hid zero-count open pills, and replaced group edit/delete text actions with icons.
