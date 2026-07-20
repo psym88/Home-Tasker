@@ -18,6 +18,7 @@
 
 ### Changed
 
+- Moved group editing to the right side of the group header and group deletion to the lower-left corner of the group editor.
 - Match list and task-editor actions to the Save/Cancel button treatment; delete uses the neutral button with red text.
 - Show each group's due-task count as a red `N offen` pill.
 - Display attachment counts as `N Dateien` and remove added sizing/padding from text action buttons.

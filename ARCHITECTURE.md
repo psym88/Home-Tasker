@@ -20,7 +20,7 @@ Home Tasker deliberately starts with a small surface. The integration is local-o
 - `binary_sensor.py`: task entities and virtual device metadata
 - `frontend/panel.js`: dependency-free list and the group/task dialogs
 
-The list has no recurrence filters or icon actions. Group actions appear at the bottom of expanded groups; clicking a task opens its editor, where completion and deletion are available.
+The list has no recurrence filters or icon actions. Group editing appears at the right of the group header; deletion is available at the lower left of the group editor. Clicking a task opens its editor, where completion and deletion are available.
 Group headers show the number of due tasks as a red `N offen` pill.
 Actions use native buttons styled with Home Assistant theme variables instead of unstable internal frontend components. Popup titles remain sticky while the dialog body scrolls.
 
