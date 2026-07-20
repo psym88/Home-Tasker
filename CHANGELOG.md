@@ -14,9 +14,12 @@
 ### Fixed
 
 - Schedule dynamic entity additions in the dispatcher callback on Home Assistant's running event loop.
+- Keep the task editor open and refresh its due date/history after completion.
 
 ### Changed
 
+- Keep popup titles visible while their content scrolls.
+- Render mobile-friendly HA-themed native action buttons with 44-pixel touch targets.
 - Removed recurrence filter chips and all list action icons.
 - Made task rows open the editor and moved task completion/deletion into that editor.
 - Moved group edit/delete actions to the bottom of expanded groups and added list hover states.
