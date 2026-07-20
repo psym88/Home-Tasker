@@ -67,7 +67,7 @@ class TaskSensor(BinarySensorEntity):
     @property
     def extra_state_attributes(self):
         task = self._task
-        return {k: task.get(k) for k in ("group_id", "due_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month")} if task else {}
+        return {"task_id": task["id"], **{k: task.get(k) for k in ("group_id", "due_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month")}} if task else {}
 
     async def async_added_to_hass(self) -> None:
         self.async_on_remove(async_dispatcher_connect(self.hass, SIGNAL_UPDATED, self.async_write_ha_state))
