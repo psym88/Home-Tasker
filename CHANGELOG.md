@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.15
+
+- Planung, Dateien und Verlauf im Task-Editor sind standardmäßig eingeklappt.
+- Die drei Bereiche lassen sich über einen Chevron im Box-Titel auf- und zuklappen.
+
 ## Unreleased
 
 ### Added
