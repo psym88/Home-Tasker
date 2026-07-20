@@ -1,14 +1,16 @@
 """Admin-only WebSocket API."""
 
+from datetime import timedelta
 from functools import wraps
 from typing import Any
 
 import voluptuous as vol
 from homeassistant.components import websocket_api
+from homeassistant.components.http.auth import async_sign_path
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
-from .const import SIGNAL_UPDATED
+from .const import DOWNLOAD_URL, SIGNAL_UPDATED
 from .helpers import get_store
 
 TEXT = vol.Any(str, None)
@@ -148,4 +150,17 @@ async def ws_attachment_delete(hass, connection, msg, store):
     await store.async_delete_attachment(msg["attachment_id"]); connection.send_result(msg["id"])
 
 
-COMMANDS = (ws_list, ws_group_create, ws_group_update, ws_group_delete, ws_task_create, ws_task_update, ws_task_delete, ws_task_complete, ws_history_list, ws_history_delete, ws_attachment_delete)
+@websocket_api.websocket_command({vol.Required("type"): "home_tasker/attachment/sign", vol.Required("attachment_id"): str})
+@websocket_api.require_admin
+@websocket_api.async_response
+@require_store
+async def ws_attachment_sign(hass, connection, msg, store):
+    attachment_id = msg["attachment_id"]
+    if store.attachment(attachment_id) is None or not store.file_path(attachment_id).exists():
+        raise ValueError("unknown_attachment")
+    path = f"{DOWNLOAD_URL}/{attachment_id}"
+    url = async_sign_path(hass, path, timedelta(hours=1), refresh_token_id=connection.refresh_token_id)
+    connection.send_result(msg["id"], {"url": url})
+
+
+COMMANDS = (ws_list, ws_group_create, ws_group_update, ws_group_delete, ws_task_create, ws_task_update, ws_task_delete, ws_task_complete, ws_history_list, ws_history_delete, ws_attachment_delete, ws_attachment_sign)

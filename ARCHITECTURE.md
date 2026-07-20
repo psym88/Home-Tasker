@@ -9,7 +9,7 @@ Home Tasker deliberately starts with a small surface. The integration is local-o
 - Fixed weekly schedules support multiple weekdays. Fixed monthly schedules support days 1–31 or the last day. Sliding schedules advance from the completion date.
 - Before version 1.0, stored schema changes do not include compatibility normalization; development data may be reset.
 - Every task exposes one problem `binary_sensor`; `on` means due. Deleting tasks or groups also removes their entity/device registry entries.
-- Attachments belong to one task. History entries retain `due_before` and `due_after` so deleting an entry restores the derived due date.
+- Attachments belong to one task. Their browser links are pre-signed through an admin-only WebSocket command and rendered as native anchors for authenticated mobile/browser access. History entries retain `due_before` and `due_after` so deleting an entry restores the derived due date.
 
 ## Modules
 

@@ -7,7 +7,7 @@ STORAGE_VERSION = 1
 SIGNAL_UPDATED = f"{DOMAIN}_updated"
 PANEL_URL = "/home-tasker"
 PANEL_TITLE = "Home Tasker"
-PANEL_VERSION = "0.2.13"
+PANEL_VERSION = "0.2.14"
 FRONTEND_URL = f"/{DOMAIN}_frontend"
 PANEL_JS_URL = f"{FRONTEND_URL}/panel.js?v={PANEL_VERSION}"
 UPLOAD_URL = f"/api/{DOMAIN}/upload"

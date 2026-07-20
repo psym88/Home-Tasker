@@ -4,6 +4,7 @@
 
 ### Added
 
+- Added pre-signed authenticated attachment links that open natively in browsers and the iOS Companion App.
 - Apply the selected name/state sort order to tasks inside every group.
 - Initial Home Tasker Home Assistant integration.
 - Expandable group/task panel with fixed/sliding filters, sorting, state and file pills.
@@ -20,6 +21,7 @@
 
 ### Changed
 
+- Made description fields non-resizable and renamed the visible due-date field to task date.
 - Boxed the scheduling controls and renamed fixed/sliding recurrence to task-date/completion-date wording.
 - Limited sorting to name and due date, removed header totals, truncated long filenames, and removed the empty validation gap above files.
 - Replaced the file browse link with a visible clickable drop zone and distributed weekday buttons evenly across the full mobile width.
