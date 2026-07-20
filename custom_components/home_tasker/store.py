@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 
 from .const import STORAGE_KEY, STORAGE_VERSION
-from .scheduler import add_interval
+from .scheduler import next_due
 
 
 def _now() -> str:
@@ -35,6 +35,23 @@ class HomeTaskerStore:
     async def async_load(self) -> None:
         if stored := await self._store.async_load():
             self._data = {key: stored.get(key, default) for key, default in self._data.items()}
+            for task in self._data["tasks"]:
+                self._normalize_task(task)
+
+    @staticmethod
+    def _normalize_task(task: dict[str, Any]) -> None:
+        """Upgrade the short-lived legacy recurrence fields in memory."""
+        due = date.fromisoformat(task["due_date"])
+        legacy_mode = task.get("recurrence_mode", "fixed")
+        if legacy_mode == "weekly":
+            task["recurrence_mode"] = "fixed"
+            task["frequency"] = "weekly"
+            task["interval"] = 1
+        task.setdefault("frequency", {"day": "daily", "week": "weekly", "month": "monthly"}.get(task.get("interval_unit"), "monthly"))
+        task.setdefault("weekdays", [due.weekday()] if task["frequency"] == "weekly" else [])
+        task.setdefault("day_of_month", due.day)
+        task.setdefault("anchor_day", due.day)
+        task.setdefault("schedule_anchor", task["due_date"])
 
     def snapshot(self) -> dict[str, Any]:
         return {key: list(self._data[key]) for key in ("groups", "tasks", "attachments")}
@@ -95,12 +112,11 @@ class HomeTaskerStore:
             self._find("groups", payload["group_id"])
             now = _now()
             due = date.fromisoformat(payload["due_date"])
-            if payload["recurrence_mode"] == "weekly":
-                payload = {**payload, "interval": 1, "interval_unit": "week"}
             task = {
                 "id": uuid4().hex,
-                **{k: payload.get(k) for k in ("group_id", "name", "description", "due_date", "recurrence_mode", "interval", "interval_unit")},
+                **{k: payload.get(k) for k in ("group_id", "name", "description", "due_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month")},
                 "anchor_day": due.day,
+                "schedule_anchor": payload["due_date"],
                 "created_at": now,
                 "updated_at": now,
             }
@@ -111,14 +127,12 @@ class HomeTaskerStore:
     async def async_update_task(self, task_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         async with self._lock:
             task = self._find("tasks", task_id)
-            for key in ("name", "description", "due_date", "recurrence_mode", "interval", "interval_unit"):
+            for key in ("name", "description", "due_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month"):
                 if key in payload:
                     task[key] = payload[key]
-            if task["recurrence_mode"] == "weekly":
-                task["interval"] = 1
-                task["interval_unit"] = "week"
             if "due_date" in payload:
                 task["anchor_day"] = date.fromisoformat(payload["due_date"]).day
+                task["schedule_anchor"] = payload["due_date"]
             task["updated_at"] = _now()
             await self._save()
             return task
@@ -138,8 +152,7 @@ class HomeTaskerStore:
         async with self._lock:
             task = self._find("tasks", task_id)
             due_before = task["due_date"]
-            base = date.fromisoformat(completion_date if task["recurrence_mode"] == "sliding" else due_before)
-            due_after = add_interval(base, int(task["interval"]), task["interval_unit"], int(task["anchor_day"])).isoformat()
+            due_after = next_due(task, date.fromisoformat(completion_date)).isoformat()
             record = {"id": uuid4().hex, "completion_date": completion_date, "recorded_at": _now(), "user_id": user_id, "user_name": user_name, "due_before": due_before, "due_after": due_after}
             task["due_date"] = due_after
             task["updated_at"] = record["recorded_at"]

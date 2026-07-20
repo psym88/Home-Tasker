@@ -8,8 +8,10 @@
 
 ### Changed
 
-- Added the simple weekly recurrence and compacted the list and task editor.
+- Compacted the list and task editor.
 - Separated files and history into distinct task-editor sections and removed the group icon field from the editor.
+- Replaced the temporary weekly type with a Todoist-style recurrence model: fixed or sliding calculation combined with daily, weekly, or monthly frequency.
+- Added multiple weekday selection, monthly day/last-day selection, and right-aligned file actions.
 
 ### Added
 

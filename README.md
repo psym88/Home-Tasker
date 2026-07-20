@@ -7,7 +7,8 @@ Home Tasker is a local Home Assistant custom integration for recurring household
 - Expandable group/task list in a bundled admin panel
 - One virtual Home Assistant device per group
 - One due-state problem `binary_sensor` per task
-- Fixed, sliding, and simple weekly recurrences
+- Fixed calendar schedules or sliding completion-based schedules
+- Daily intervals, weekly intervals with multiple weekdays, and monthly intervals with a calendar day
 - Task completion history with undo by deleting a history entry
 - Task-owned file uploads via browse or drag and drop
 

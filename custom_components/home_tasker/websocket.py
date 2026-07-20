@@ -13,7 +13,16 @@ from .helpers import get_store
 
 TEXT = vol.Any(str, None)
 GROUP_FIELDS = {vol.Required("name"): str, vol.Optional("manufacturer"): TEXT, vol.Optional("model"): TEXT, vol.Optional("icon"): TEXT, vol.Optional("description"): TEXT}
-TASK_FIELDS = {vol.Required("name"): str, vol.Optional("description"): TEXT, vol.Required("due_date"): str, vol.Required("recurrence_mode"): vol.In(("fixed", "sliding", "weekly")), vol.Required("interval"): vol.All(vol.Coerce(int), vol.Range(min=1)), vol.Required("interval_unit"): vol.In(("day", "week", "month", "year"))}
+TASK_FIELDS = {
+    vol.Required("name"): str,
+    vol.Optional("description"): TEXT,
+    vol.Required("due_date"): str,
+    vol.Required("recurrence_mode"): vol.In(("fixed", "sliding")),
+    vol.Required("frequency"): vol.In(("daily", "weekly", "monthly")),
+    vol.Required("interval"): vol.All(vol.Coerce(int), vol.Range(min=1)),
+    vol.Optional("weekdays", default=[]): [vol.All(vol.Coerce(int), vol.Range(min=0, max=6))],
+    vol.Optional("day_of_month"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=1, max=31)), "last", None),
+}
 
 
 @callback
@@ -38,6 +47,12 @@ def require_store(func):
 
 def updated(hass: HomeAssistant) -> None:
     async_dispatcher_send(hass, SIGNAL_UPDATED)
+
+
+def validate_task_schedule(msg: dict[str, Any]) -> None:
+    """Reject incomplete fixed calendar rules."""
+    if msg.get("recurrence_mode") == "fixed" and msg.get("frequency") == "weekly" and not msg.get("weekdays"):
+        raise ValueError("select_at_least_one_weekday")
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/list"})
@@ -77,6 +92,7 @@ async def ws_group_delete(hass, connection, msg, store):
 @websocket_api.async_response
 @require_store
 async def ws_task_create(hass, connection, msg, store):
+    validate_task_schedule(msg)
     connection.send_result(msg["id"], await store.async_add_task(msg)); updated(hass)
 
 
@@ -85,6 +101,7 @@ async def ws_task_create(hass, connection, msg, store):
 @websocket_api.async_response
 @require_store
 async def ws_task_update(hass, connection, msg, store):
+    validate_task_schedule(msg)
     connection.send_result(msg["id"], await store.async_update_task(msg["task_id"], msg)); updated(hass)
 
 
