@@ -1,0 +1,199 @@
+"""Versioned persistence for Home Tasker."""
+
+from __future__ import annotations
+
+import asyncio
+import contextlib
+from datetime import date, datetime, timezone
+from pathlib import Path
+from typing import Any
+from uuid import uuid4
+
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.storage import Store
+
+from .const import STORAGE_KEY, STORAGE_VERSION
+from .scheduler import add_interval
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+class HomeTaskerStore:
+    """Serialize mutations and persist one compact snapshot."""
+
+    def __init__(self, hass: HomeAssistant, upload_dir: Path) -> None:
+        self._hass = hass
+        self._store: Store[dict[str, Any]] = Store(hass, STORAGE_VERSION, STORAGE_KEY)
+        self._upload_dir = upload_dir
+        self._lock = asyncio.Lock()
+        self._data: dict[str, Any] = {
+            "groups": [], "tasks": [], "history": {}, "attachments": []
+        }
+
+    async def async_load(self) -> None:
+        if stored := await self._store.async_load():
+            self._data = {key: stored.get(key, default) for key, default in self._data.items()}
+
+    def snapshot(self) -> dict[str, Any]:
+        return {key: list(self._data[key]) for key in ("groups", "tasks", "attachments")}
+
+    @property
+    def groups(self) -> list[dict[str, Any]]:
+        return list(self._data["groups"])
+
+    @property
+    def tasks(self) -> list[dict[str, Any]]:
+        return list(self._data["tasks"])
+
+    def _find(self, kind: str, item_id: str) -> dict[str, Any]:
+        item = next((x for x in self._data[kind] if x["id"] == item_id), None)
+        if item is None:
+            raise ValueError(f"unknown_{kind[:-1]}")
+        return item
+
+    async def _save(self) -> None:
+        await self._store.async_save(self._data)
+
+    async def async_add_group(self, payload: dict[str, Any]) -> dict[str, Any]:
+        async with self._lock:
+            now = _now()
+            group = {"id": uuid4().hex, **{k: payload.get(k) for k in (
+                "name", "manufacturer", "model", "icon", "description"
+            )}, "created_at": now, "updated_at": now}
+            self._data["groups"].append(group)
+            await self._save()
+            return group
+
+    async def async_update_group(self, group_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        async with self._lock:
+            group = self._find("groups", group_id)
+            for key in ("name", "manufacturer", "model", "icon", "description"):
+                if key in payload:
+                    group[key] = payload[key]
+            group["updated_at"] = _now()
+            await self._save()
+            return group
+
+    async def async_delete_group(self, group_id: str) -> None:
+        async with self._lock:
+            self._find("groups", group_id)
+            task_ids = {t["id"] for t in self._data["tasks"] if t["group_id"] == group_id}
+            file_ids = [a["id"] for a in self._data["attachments"] if a["task_id"] in task_ids]
+            self._data["groups"] = [g for g in self._data["groups"] if g["id"] != group_id]
+            self._data["tasks"] = [t for t in self._data["tasks"] if t["id"] not in task_ids]
+            self._data["attachments"] = [a for a in self._data["attachments"] if a["task_id"] not in task_ids]
+            for task_id in task_ids:
+                self._data["history"].pop(task_id, None)
+            for file_id in file_ids:
+                await self._unlink(file_id)
+            await self._save()
+
+    async def async_add_task(self, payload: dict[str, Any]) -> dict[str, Any]:
+        async with self._lock:
+            self._find("groups", payload["group_id"])
+            now = _now()
+            due = date.fromisoformat(payload["due_date"])
+            task = {
+                "id": uuid4().hex,
+                **{k: payload.get(k) for k in ("group_id", "name", "description", "due_date", "recurrence_mode", "interval", "interval_unit")},
+                "anchor_day": due.day,
+                "created_at": now,
+                "updated_at": now,
+            }
+            self._data["tasks"].append(task)
+            await self._save()
+            return task
+
+    async def async_update_task(self, task_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        async with self._lock:
+            task = self._find("tasks", task_id)
+            for key in ("name", "description", "due_date", "recurrence_mode", "interval", "interval_unit"):
+                if key in payload:
+                    task[key] = payload[key]
+            if "due_date" in payload:
+                task["anchor_day"] = date.fromisoformat(payload["due_date"]).day
+            task["updated_at"] = _now()
+            await self._save()
+            return task
+
+    async def async_delete_task(self, task_id: str) -> None:
+        async with self._lock:
+            self._find("tasks", task_id)
+            file_ids = [a["id"] for a in self._data["attachments"] if a["task_id"] == task_id]
+            self._data["tasks"] = [t for t in self._data["tasks"] if t["id"] != task_id]
+            self._data["attachments"] = [a for a in self._data["attachments"] if a["task_id"] != task_id]
+            self._data["history"].pop(task_id, None)
+            for file_id in file_ids:
+                await self._unlink(file_id)
+            await self._save()
+
+    async def async_complete_task(self, task_id: str, completion_date: str, user_id: str | None, user_name: str) -> dict[str, Any]:
+        async with self._lock:
+            task = self._find("tasks", task_id)
+            due_before = task["due_date"]
+            base = date.fromisoformat(completion_date if task["recurrence_mode"] == "sliding" else due_before)
+            due_after = add_interval(base, int(task["interval"]), task["interval_unit"], int(task["anchor_day"])).isoformat()
+            record = {"id": uuid4().hex, "completion_date": completion_date, "recorded_at": _now(), "user_id": user_id, "user_name": user_name, "due_before": due_before, "due_after": due_after}
+            task["due_date"] = due_after
+            task["updated_at"] = record["recorded_at"]
+            self._data["history"].setdefault(task_id, []).append(record)
+            await self._save()
+            return task
+
+    def history(self, task_id: str) -> list[dict[str, Any]]:
+        self._find("tasks", task_id)
+        return sorted(self._data["history"].get(task_id, []), key=lambda x: x["recorded_at"], reverse=True)
+
+    async def async_delete_history(self, task_id: str, entry_id: str) -> dict[str, Any]:
+        async with self._lock:
+            task = self._find("tasks", task_id)
+            entries = self._data["history"].get(task_id, [])
+            removed = next((x for x in entries if x["id"] == entry_id), None)
+            if removed is None:
+                raise ValueError("unknown_history_entry")
+            remaining = [x for x in entries if x["id"] != entry_id]
+            self._data["history"][task_id] = remaining
+            task["due_date"] = (max(remaining, key=lambda x: x["recorded_at"])["due_after"] if remaining else removed["due_before"])
+            task["updated_at"] = _now()
+            await self._save()
+            return task
+
+    def attachment(self, attachment_id: str) -> dict[str, Any] | None:
+        return next((x for x in self._data["attachments"] if x["id"] == attachment_id), None)
+
+    async def async_add_attachment(self, task_id: str, filename: str, content_type: str, data: bytes) -> dict[str, Any]:
+        async with self._lock:
+            self._find("tasks", task_id)
+            attachment = {"id": uuid4().hex, "task_id": task_id, "filename": filename, "content_type": content_type, "size": len(data), "uploaded_at": _now()}
+            await self._hass.async_add_executor_job(self._write, attachment["id"], data)
+            self._data["attachments"].append(attachment)
+            await self._save()
+            return attachment
+
+    async def async_delete_attachment(self, attachment_id: str) -> None:
+        async with self._lock:
+            if self.attachment(attachment_id) is None:
+                raise ValueError("unknown_attachment")
+            self._data["attachments"] = [x for x in self._data["attachments"] if x["id"] != attachment_id]
+            await self._unlink(attachment_id)
+            await self._save()
+
+    def _write(self, file_id: str, data: bytes) -> None:
+        self._upload_dir.mkdir(parents=True, exist_ok=True)
+        (self._upload_dir / file_id).write_bytes(data)
+
+    async def _unlink(self, file_id: str) -> None:
+        await self._hass.async_add_executor_job(self._unlink_sync, file_id)
+
+    def _unlink_sync(self, file_id: str) -> None:
+        with contextlib.suppress(FileNotFoundError):
+            (self._upload_dir / file_id).unlink()
+
+    def file_path(self, file_id: str) -> Path:
+        return self._upload_dir / file_id
+
+    @staticmethod
+    def is_due(task: dict[str, Any], today: date) -> bool:
+        return today >= date.fromisoformat(task["due_date"])

@@ -1,0 +1,10 @@
+{
+  "domain": "home_tasker",
+  "name": "Home Tasker",
+  "codeowners": ["@psym88"],
+  "config_flow": true,
+  "documentation": "https://github.com/psym88/Home-Tasker",
+  "iot_class": "local_push",
+  "version": "0.1.0"
+}
+
