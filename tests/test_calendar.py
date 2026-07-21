@@ -1,7 +1,9 @@
 """Home Tasker calendar tests."""
 
+import ast
 import asyncio
 from datetime import date, datetime, timezone
+from pathlib import Path
 
 from custom_components.home_tasker.calendar import HomeTaskerCalendar
 
@@ -91,6 +93,23 @@ def test_calendar_platform_is_forwarded_with_binary_sensors():
     from custom_components.home_tasker.const import PLATFORMS
 
     assert PLATFORMS == ["binary_sensor", "calendar"]
+
+
+def test_calendar_dispatcher_update_is_an_event_loop_callback():
+    source = Path("custom_components/home_tasker/calendar.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    calendar_class = next(
+        node
+        for node in tree.body
+        if isinstance(node, ast.ClassDef) and node.name == "HomeTaskerCalendar"
+    )
+    handler = next(
+        node
+        for node in calendar_class.body
+        if isinstance(node, ast.FunctionDef) and node.name == "_handle_update"
+    )
+
+    assert [ast.unparse(item) for item in handler.decorator_list] == ["callback"]
 
 
 def test_calendar_expands_fixed_recurrences_inside_requested_range():

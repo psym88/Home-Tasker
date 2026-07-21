@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.93
+
+### Fixed
+
+- Keep calendar state and subscription refreshes on the Home Assistant event loop when task mutations dispatch an update.
+- Prevent thread-safety errors from `async_write_ha_state` after creating, editing, completing or deleting a task.
+
 ## 0.2.92
 
 ### Changed
