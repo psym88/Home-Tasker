@@ -26,6 +26,7 @@ Home Tasker deliberately has a small surface. The integration is local-only and 
 - `frontend/task-editor.js`, `task-viewer.js`, and `group-editor.js`: task and group workflows
 - `frontend/native-task-dialog.js`: Home Assistant `show-dialog` contract and `ha-adaptive-dialog` host for the complete task viewer
 - `frontend/native-form-dialog.js`: adaptive-dialog hosts for task/group forms and confirmations, including the shared collapsible-section layout rules
+- `frontend/action-menu.js`: shared anchored task/group overflow menu with accessible focus and dismissal behavior
 - `frontend/dialogs.js`, `shared.js`, and `styles.js`: dialog primitives, escaping, Markdown helpers, and shared panel styling
 
 Dialog header, collapsible-section, icon, and theme rules live in the shared style mixin so both the sidebar panel and dashboard card can host the same viewer and editor workflows without layout differences.
@@ -40,6 +41,6 @@ Collapsible boxes remove redundant vertical padding and keep the clickable heade
 
 The backend supplies Home Assistant's current local date so sensors, relative dates, and the frontend agree around midnight. The panel refreshes visible data every 30 seconds and retries automatically after load failures. Attachment URLs are returned in bulk instead of requiring one WebSocket request per file.
 
-The dashboard card is registered as an extra frontend module while the config entry is loaded. Its configuration remains Lovelace-local. It reuses the panel viewer and administrative editor workflows, but renders a flat task list. Authenticated users may list, view, sign attachment links, read history, and complete tasks; structural mutations and history deletion remain admin-only. Edit-mode controls additionally check the active Home Assistant user's administrator flag before rendering.
+The dashboard card is registered as an extra frontend module while the config entry is loaded. Its configuration remains Lovelace-local. It reuses the panel viewer, administrative editor workflows, and anchored vertical-dots action menu, but renders a flat task list. Authenticated users may list, view, sign attachment links, read history, and complete tasks; structural mutations and history deletion remain admin-only. Edit-mode controls additionally check the active Home Assistant user's administrator flag before rendering. Edit menu items use the neutral Home Assistant hover fill, while delete items use the themed alert color and retain confirmation dialogs.
 
 Uploads live under `<config>/home_tasker/uploads`; metadata is stored in the versioned Home Assistant Store.

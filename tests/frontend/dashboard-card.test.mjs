@@ -11,6 +11,7 @@ const {HomeTaskerBase,HomeTaskerPanel}=await import("../../custom_components/hom
 const {EDITOR_FILE_GRID}=await import("../../custom_components/home_tasker/frontend/task-editor.js");
 const {TASK_DIALOG_TAG,showTaskDialog}=await import("../../custom_components/home_tasker/frontend/native-task-dialog.js");
 const {CONFIRM_DIALOG_TAG,FORM_DIALOG_TAG,formDialogFooterHtml,formDialogLayoutStyles,showFormDialog,showNativeConfirmation}=await import("../../custom_components/home_tasker/frontend/native-form-dialog.js");
+const {ROW_ACTION_MENU_STYLES}=await import("../../custom_components/home_tasker/frontend/action-menu.js");
 
 const tasks=[
   {id:"old",name:"Wischen",due_date:"2026-07-20",group_id:"house",assignee_user_id:"alice"},
@@ -28,8 +29,9 @@ test("sorting supports both directions and an ascending name tiebreaker without 
 test("normalization preserves null and sanitizes invalid values",()=>{assert.equal(normalizeCardConfig({due_days:null}).due_days,null);assert.equal(normalizeCardConfig({due_days:-2,mode:"other"}).due_days,0);assert.equal(normalizeCardConfig({mode:"other"}).mode,"view");});
 
 test("due status separates overdue, today, and future dates",()=>{assert.equal(dueStatus("2026-07-20","2026-07-21"),"overdue");assert.equal(dueStatus("2026-07-21","2026-07-21"),"today");assert.equal(dueStatus("2026-07-22","2026-07-21"),"future");});
-test("view rows omit edit controls and assignment metadata",()=>{const html=dashboardTaskRowHtml(tasks[0],false,"gestern","overdue");assert.doesNotMatch(html,/pencil|edit-task-row|alice|house/);assert.match(html,/Wischen/);assert.match(html,/due-label overdue/);});
-test("edit rows contain a secondary-color pencil control",()=>assert.match(dashboardTaskRowHtml(tasks[0],true,"gestern","overdue"),/class="edit-task-row icon"[^>]+color:var\(--secondary-text-color\)/));
+test("view rows omit action controls and assignment metadata",()=>{const html=dashboardTaskRowHtml(tasks[0],false,"gestern","overdue");assert.doesNotMatch(html,/dots-vertical|row-action-toggle|alice|house/);assert.match(html,/Wischen/);assert.match(html,/due-label overdue/);});
+test("edit rows contain an accessible vertical-dots action control",()=>{const html=dashboardTaskRowHtml(tasks[0],true,"gestern","overdue");assert.match(html,/class="row-action-toggle icon"/);assert.match(html,/aria-haspopup="menu"/);assert.match(html,/mdi:dots-vertical/);});
+test("row action menu has neutral edit and red delete hover treatments",()=>{assert.match(ROW_ACTION_MENU_STYLES,/button:hover[^}]+ha-color-fill-neutral-quiet-hover/);assert.match(ROW_ACTION_MENU_STYLES,/button\.danger:hover[^}]+ha-color-fill-alert-quiet-hover/);assert.match(ROW_ACTION_MENU_STYLES,/error-color/);});
 test("edit mode falls back to view for non-admin users",()=>{assert.equal(canEditCard({mode:"edit"},{user:{is_admin:false}}),false);assert.equal(canEditCard({mode:"edit"},{user:{is_admin:true}}),true);});
 
 test("editor update emits a dashboard-local config change",()=>{const editor=Object.create(HomeTaskerCardEditor.prototype);editor.config={...DEFAULT_CARD_CONFIG};editor.render=()=>{};let event;editor.dispatchEvent=value=>{event=value;};editor.update({mode:"edit",group_ids:["house"]});assert.equal(event.type,"config-changed");assert.equal(event.detail.config.mode,"edit");assert.deepEqual(event.detail.config.group_ids,["house"]);});
@@ -41,3 +43,4 @@ test("native form dialogs include collapsible layout and chevron styles",()=>{co
 test("native editor actions use the same adaptive-dialog footer as the viewer",()=>{const html=formDialogFooterHtml();assert.match(html,/ha-dialog-footer slot="footer"/);assert.match(html,/ha-button class="save" slot="primaryAction" variant="brand"/);assert.doesNotMatch(html,/<button/);});
 test("viewer and editor attachment rows truncate names while reserving right columns",()=>{const controller=Object.create(HomeTaskerBase.prototype);controller.signedFiles=new Map();const html=controller.fileLink({id:"file",filename:"a-very-long-file-name.pdf"});assert.match(html,/class="filename-base"[^>]+text-overflow:ellipsis/);assert.match(html,/class="filename-extension"[^>]*>\.pdf</);assert.match(html,/max-width:100%/);assert.equal(EDITOR_FILE_GRID,"display:grid;grid-template-columns:minmax(0,1fr) max-content 44px;gap:8px;align-items:center");});
 test("dashboard add action renders before task elements",()=>{const html=dashboardCardBodyHtml('<div class="task-row"></div>',true);assert.ok(html.indexOf("card-actions")<html.indexOf("task-row"));});
+test("row menu deletion keeps confirmation and reloads after the mutation",async()=>{const controller=Object.create(HomeTaskerBase.prototype),messages=[];controller.confirmAction=async()=>true;controller.ws=async message=>messages.push(message);let loads=0;controller.load=async()=>{loads++;};await controller.deleteTask({id:"task",name:"Task"});assert.deepEqual(messages,[{type:"home_tasker/task/delete",task_id:"task"}]);assert.equal(loads,1);});

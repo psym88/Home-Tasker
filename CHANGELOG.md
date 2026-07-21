@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.67
+
+### Changed
+
+- Replace task and group pencil actions with accessible vertical-dots overflow menus in the panel and dashboard card.
+- Offer edit and confirmed delete actions directly from each menu, with neutral edit hover styling and a red destructive hover treatment.
+
 ## 0.2.66
 
 ### Changed

@@ -11,7 +11,7 @@ test("task rows remain transparent", () => {
   assert.equal(TASK_ROW_HOVER_BACKGROUND, "rgba(var(--rgb-primary-text-color),0.04)");
 });
 
-test("list edit actions and expand control use the secondary text color", () => {
+test("list rows use vertical-dots action menus", () => {
   class TaskListModel extends withTaskList(class {}) {}
   const model = new TaskListModel();
   model.groups = [];
@@ -25,8 +25,8 @@ test("list edit actions and expand control use the secondary text color", () => 
   model.relativeDate = value => value;
 
   assert.equal(LIST_SECONDARY_ACTION_COLOR, "var(--secondary-text-color)");
-  assert.match(model.groupRow({ id: "group", name: "Group" }), /class="edit-group icon"[^>]+color:var\(--secondary-text-color\)/);
-  assert.match(model.taskRow({ id: "task", name: "Task", due_date: "2026-07-21" }), /class="edit-task-row icon"[^>]+color:var\(--secondary-text-color\)/);
+  assert.match(model.groupRow({ id: "group", name: "Group" }), /data-action-kind="group"[\s\S]*?mdi:dots-vertical/);
+  assert.match(model.taskRow({ id: "task", name: "Task", due_date: "2026-07-21" }), /data-action-kind="task"[\s\S]*?mdi:dots-vertical/);
 });
 
 test("sortTasksByDue sorts by due date and then by name", () => {

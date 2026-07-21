@@ -1,6 +1,6 @@
 import { HomeTaskerBase } from "./main.js";
 import { esc } from "./shared.js";
-import { LIST_SECONDARY_ACTION_COLOR } from "./task-list.js";
+import { ROW_ACTION_MENU_STYLES, rowActionButtonHtml } from "./action-menu.js";
 
 export const UNASSIGNED = "__unassigned__";
 export const DEFAULT_CARD_CONFIG = Object.freeze({
@@ -43,7 +43,7 @@ export function sortDashboardTasks(tasks,direction="asc",locale="de"){
 }
 
 export function dueStatus(dueDate,today){return dueDate<today?"overdue":dueDate===today?"today":"future";}
-export function dashboardTaskRowHtml(task,editable,relativeDate,status){return `<div class="task-row${editable?" editable":""}" data-task="${esc(task.id)}" tabindex="0"><div><div class="task-name">${esc(task.name)}</div><div class="due-label ${esc(status)}">${esc(relativeDate)}</div></div>${editable?`<button type="button" class="edit-task-row icon" aria-label="Task bearbeiten" title="Task bearbeiten" style="color:${LIST_SECONDARY_ACTION_COLOR}"><ha-icon icon="mdi:pencil"></ha-icon></button>`:""}</div>`;}
+export function dashboardTaskRowHtml(task,editable,relativeDate,status){return `<div class="task-row${editable?" editable":""}" data-task="${esc(task.id)}" tabindex="0"><div><div class="task-name">${esc(task.name)}</div><div class="due-label ${esc(status)}">${esc(relativeDate)}</div></div>${editable?rowActionButtonHtml("task",esc(task.id)):""}</div>`;}
 export function dashboardCardBodyHtml(rows,editable){return `<ha-card>${editable?'<div class="card-actions"><button type="button" class="add-task"><ha-icon icon="mdi:plus"></ha-icon><span>Task hinzufügen</span></button></div>':""}<div class="card-content">${rows||'<div class="empty">Keine passenden Tasks</div>'}</div></ha-card>`;}
 export function canEditCard(config,hass){return normalizeCardConfig(config).mode==="edit"&&Boolean(hass?.user?.is_admin);}
 
@@ -54,11 +54,12 @@ export class HomeTaskerCard extends HomeTaskerBase {
   getCardSize(){return Math.max(1,Math.min(8,this.visibleTasks().length+1));}
   visibleTasks(){return sortDashboardTasks(filterDashboardTasks(this.tasks||[],this.config||DEFAULT_CARD_CONFIG,this.today),(this.config||DEFAULT_CARD_CONFIG).sort_direction,this.locale());}
   render(){
+    this.closeActionMenu();
     if(!this.shadowRoot.querySelector(".card-root"))this.shadowRoot.innerHTML=`${this.styles()}${this.dialogLayoutStyles()}<style>:host{display:block}ha-card{overflow:hidden}.card-content{display:grid;gap:8px;padding:12px}.task-row{display:grid;grid-template-columns:minmax(0,1fr);align-items:center;min-height:52px;padding:4px 12px;border:1px solid var(--divider-color);border-radius:10px;background:var(--secondary-background-color);cursor:pointer}.task-row:hover{background:rgba(var(--rgb-primary-text-color),.04)}.task-row.editable{grid-template-columns:minmax(0,1fr) 44px}.task-name{color:var(--primary-text-color);font-weight:var(--ha-font-weight-normal,400)}.due-label{display:inline-flex;margin-top:3px;font-size:var(--ha-font-size-s,12px);font-weight:var(--ha-font-weight-medium,500)}.due-label.today{color:var(--warning-color,#f57c00)}.due-label.overdue{color:var(--error-color,#d32f2f)}.due-label.future{color:var(--success-color,#43a047)}.empty{padding:20px;color:var(--secondary-text-color);text-align:center}.card-actions{display:flex;justify-content:flex-end;padding:12px 12px 0}.add-task{display:flex;align-items:center;gap:7px;background:var(--primary-color);color:var(--text-primary-color,#fff)}</style><div class="card-root"></div><div class="dialogs"></div>`;
     const root=this.shadowRoot.querySelector(".card-root"),tasks=this.visibleTasks(),editable=canEditCard(this.config,this._hass);
     root.innerHTML=dashboardCardBodyHtml(tasks.map(task=>dashboardTaskRowHtml(task,editable,this.relativeDate(task.due_date),dueStatus(task.due_date,this.today))).join(""),editable);
-    root.insertAdjacentHTML("beforeend",this.themeStyles()+this.buttonThemeStyles()+this.compactDetailsStyles()+this.iconHoverStyles());
-    root.querySelectorAll("[data-task]").forEach(row=>{const task=this.tasks.find(item=>item.id===row.dataset.task);row.onclick=()=>this.taskViewer(task);row.onkeydown=event=>{if(event.target===row&&(event.key==="Enter"||event.key===" "))this.taskViewer(task);};const edit=row.querySelector(".edit-task-row");if(edit)edit.onclick=event=>{event.stopPropagation();this.taskEditor(task.group_id,task);};});
+    root.insertAdjacentHTML("beforeend",ROW_ACTION_MENU_STYLES+this.themeStyles()+this.buttonThemeStyles()+this.compactDetailsStyles()+this.iconHoverStyles());
+    root.querySelectorAll("[data-task]").forEach(row=>{const task=this.tasks.find(item=>item.id===row.dataset.task);row.onclick=()=>this.taskViewer(task);row.onkeydown=event=>{if(event.target===row&&(event.key==="Enter"||event.key===" "))this.taskViewer(task);};const actions=row.querySelector(".row-action-toggle");if(actions)actions.onclick=event=>{event.stopPropagation();this.actionMenu(actions,()=>this.taskEditor(task.group_id,task),()=>this.deleteTask(task));};});
     const add=root.querySelector(".add-task");if(add)add.onclick=()=>this.taskEditor(null);
   }
 }

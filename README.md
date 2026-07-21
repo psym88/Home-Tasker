@@ -20,7 +20,7 @@ Only one Home Tasker config entry can be created.
 
 - Use the global **Add task** button to create a task. Enter an existing group name or create a new group directly from the task editor.
 - Expand a group to see its tasks. Compact group headers use Home Assistant's table background without hover, while transparent task rows use the primary background and gain a subtle text-color tint on hover. Group names use a larger heading style than the normal-weight task names, and a circular red badge shows the count of currently due tasks.
-- Click a task row to open its read-only viewer with rendered Markdown, a concise due-date label, collapsible files and history, completion notes, and a completion action. Use the pencil at the right of the row to edit the task.
+- Click a task row to open its read-only viewer with rendered Markdown, a concise due-date label, collapsible files and history, completion notes, and a completion action. Use the vertical-dots menu at the right of task and group rows to edit or delete them; destructive actions remain confirmation-protected.
 - Files can be uploaded by browsing or drag and drop. New uploads are discarded when the editor is closed without saving.
 - History rows show the completion date, local time, user, and optional completion notes. Deleting a history entry restores the due date derived from the remaining history.
 - The panel inherits Home Assistant theme typography, text colors, and button styling for consistent light, dark, and custom themes. Task rows have a transparent resting background and retain the original neutral hover treatment, as do icon actions.
@@ -33,7 +33,7 @@ Only one Home Tasker config entry can be created.
 
 After the integration is loaded, Home Assistant automatically makes the **Home Tasker** card available in the dashboard card picker. The card lists tasks as flat rows ordered by due date; by default it shows tasks due today or earlier.
 
-The visual card editor provides a fixed view or edit mode, a future due-date window, multi-select filters for groups and assignees (including unassigned tasks), and ascending or descending due-date sorting. Card settings are stored only in the dashboard configuration and do not change Home Tasker data. View mode omits all edit controls. Edit mode shows pencil and add actions only to administrators, with the add action above the task list. Tasks render as separate rounded elements, with due dates colored orange for today, red when overdue, and green when upcoming.
+The visual card editor provides a fixed view or edit mode, a future due-date window, multi-select filters for groups and assignees (including unassigned tasks), and ascending or descending due-date sorting. Card settings are stored only in the dashboard configuration and do not change Home Tasker data. View mode omits all administrative controls. Edit mode shows vertical-dots edit/delete menus and the add action only to administrators, with the add action above the task list. Tasks render as separate rounded elements, with due dates colored orange for today, red when overdue, and green when upcoming.
 
 All authenticated Home Assistant users can open task details and complete tasks with optional notes. Creating, editing, deleting, and changing history remain administrator-only operations. Viewers, task/group editors, and confirmations use registered Home Assistant adaptive-dialog hosts opened through the native dialog contract. Viewer completion and editor save actions remain visible in native dialog footers while their content scrolls.
 
