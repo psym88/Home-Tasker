@@ -2,6 +2,14 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.92
+
+### Changed
+
+- Expand each task's future repetitions across the calendar's requested date range instead of showing only the current due date.
+- Identify individual occurrences by date while retaining the task ID as the stable calendar series ID.
+- Project after-completion schedules from each displayed due date until a real completion recalculates the series.
+
 ## 0.2.91
 
 ### Added

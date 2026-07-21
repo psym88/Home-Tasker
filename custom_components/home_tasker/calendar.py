@@ -14,6 +14,7 @@ from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN, SIGNAL_UPDATED
 from .models import HomeTaskerData
+from .scheduler import next_due
 
 
 async def async_setup_entry(
@@ -36,8 +37,10 @@ class HomeTaskerCalendar(CalendarEntity):
     def __init__(self, store: Any) -> None:
         self._store = store
 
-    def _calendar_event(self, task: dict[str, Any]) -> CalendarEvent:
-        due = date.fromisoformat(task["due_date"])
+    def _calendar_event(
+        self, task: dict[str, Any], due: date | None = None
+    ) -> CalendarEvent:
+        due = due or date.fromisoformat(task["due_date"])
         groups = {group["id"]: group for group in self._store.groups}
         group = groups.get(task.get("group_id"))
         return CalendarEvent(
@@ -47,7 +50,16 @@ class HomeTaskerCalendar(CalendarEntity):
             description=task.get("description") or None,
             location=group["name"] if group else None,
             uid=task["id"],
+            recurrence_id=due.isoformat(),
         )
+
+    @staticmethod
+    def _next_occurrence(task: dict[str, Any], due: date) -> date:
+        current = {**task, "due_date": due.isoformat()}
+        following = next_due(current, due)
+        if following <= due:
+            raise ValueError("recurrence_did_not_advance")
+        return following
 
     @property
     def event(self) -> CalendarEvent | None:
@@ -65,14 +77,18 @@ class HomeTaskerCalendar(CalendarEntity):
         start_date: datetime,
         end_date: datetime,
     ) -> list[CalendarEvent]:
-        """Return task due dates intersecting the requested local time range."""
+        """Return current and projected task occurrences in the requested range."""
         events: list[tuple[datetime, CalendarEvent]] = []
         for task in self._store.tasks:
-            event = self._calendar_event(task)
-            event_start = datetime.combine(event.start, time.min, tzinfo=start_date.tzinfo)
-            event_end = datetime.combine(event.end, time.min, tzinfo=start_date.tzinfo)
-            if event_end > start_date and event_start < end_date:
-                events.append((event_start, event))
+            due = date.fromisoformat(task["due_date"])
+            while True:
+                event_start = datetime.combine(due, time.min, tzinfo=start_date.tzinfo)
+                if event_start >= end_date:
+                    break
+                event_end = event_start + timedelta(days=1)
+                if event_end > start_date:
+                    events.append((event_start, self._calendar_event(task, due)))
+                due = self._next_occurrence(task, due)
         return [event for _, event in sorted(events, key=lambda item: (item[0], item[1].summary.casefold()))]
 
     async def async_added_to_hass(self) -> None:

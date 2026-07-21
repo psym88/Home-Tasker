@@ -98,7 +98,7 @@ All signed-in Home Assistant users can view, create, edit, delete and complete t
 
 Each group is represented as a Home Assistant device. Every task provides a problem `binary_sensor`; it is `on` while the task is due. Assignment and schedule information is available as entity attributes for use in automations and notifications.
 
-The read-only **Home Tasker** calendar shows every task as an all-day event on its current due date. Completing or rescheduling a task moves the event to its newly calculated due date, while deleting a task removes it from the calendar. The task description and group are exposed as the event description and location.
+The read-only **Home Tasker** calendar shows every task as an all-day event on its current due date and expands its future repetitions in the visible calendar range. Completing or rescheduling a task recalculates the series from its newly calculated due date, while deleting a task removes the series. For **After completion** schedules, future entries are projections that assume completion on each displayed due date. The task description and group are exposed as the event description and location.
 
 ## Data and privacy
 

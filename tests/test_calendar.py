@@ -15,6 +15,12 @@ class FakeStore:
             "description": "Use a damp cloth",
             "group_id": "group-1",
             "due_date": "2026-07-24",
+            "schedule_anchor": "2026-07-24",
+            "recurrence_mode": "fixed",
+            "frequency": "yearly",
+            "interval": 1,
+            "month_of_year": 7,
+            "day_of_month": 24,
         },
         {
             "id": "task-first-b",
@@ -22,6 +28,12 @@ class FakeStore:
             "description": None,
             "group_id": "group-1",
             "due_date": "2026-07-22",
+            "schedule_anchor": "2026-07-22",
+            "recurrence_mode": "fixed",
+            "frequency": "yearly",
+            "interval": 1,
+            "month_of_year": 7,
+            "day_of_month": 22,
         },
         {
             "id": "task-first-a",
@@ -29,6 +41,12 @@ class FakeStore:
             "description": None,
             "group_id": "group-1",
             "due_date": "2026-07-22",
+            "schedule_anchor": "2026-07-22",
+            "recurrence_mode": "fixed",
+            "frequency": "yearly",
+            "interval": 1,
+            "month_of_year": 7,
+            "day_of_month": 22,
         },
     ]
 
@@ -52,6 +70,7 @@ def test_calendar_returns_sorted_all_day_events_with_task_details():
     assert events[0].end == date(2026, 7, 23)
     assert events[0].location == "Kitchen"
     assert events[0].uid == "task-first-a"
+    assert events[0].recurrence_id == "2026-07-22"
     assert events[2].description == "Use a damp cloth"
 
 
@@ -72,3 +91,65 @@ def test_calendar_platform_is_forwarded_with_binary_sensors():
     from custom_components.home_tasker.const import PLATFORMS
 
     assert PLATFORMS == ["binary_sensor", "calendar"]
+
+
+def test_calendar_expands_fixed_recurrences_inside_requested_range():
+    store = FakeStore()
+    store.tasks = [
+        {
+            "id": "daily-task",
+            "name": "Water herbs",
+            "group_id": "group-1",
+            "due_date": "2026-07-22",
+            "schedule_anchor": "2026-07-22",
+            "recurrence_mode": "fixed",
+            "frequency": "daily",
+            "interval": 2,
+        }
+    ]
+    calendar = HomeTaskerCalendar(store)
+
+    events = asyncio.run(
+        calendar.async_get_events(
+            None,
+            datetime(2026, 7, 22, tzinfo=timezone.utc),
+            datetime(2026, 7, 29, tzinfo=timezone.utc),
+        )
+    )
+
+    assert [event.start for event in events] == [
+        date(2026, 7, 22),
+        date(2026, 7, 24),
+        date(2026, 7, 26),
+        date(2026, 7, 28),
+    ]
+
+
+def test_calendar_projects_after_completion_recurrences_from_due_dates():
+    store = FakeStore()
+    store.tasks = [
+        {
+            "id": "sliding-task",
+            "name": "Change filter",
+            "group_id": "group-1",
+            "due_date": "2026-07-22",
+            "recurrence_mode": "sliding",
+            "frequency": "weekly",
+            "interval": 2,
+        }
+    ]
+    calendar = HomeTaskerCalendar(store)
+
+    events = asyncio.run(
+        calendar.async_get_events(
+            None,
+            datetime(2026, 7, 20, tzinfo=timezone.utc),
+            datetime(2026, 8, 25, tzinfo=timezone.utc),
+        )
+    )
+
+    assert [event.start for event in events] == [
+        date(2026, 7, 22),
+        date(2026, 8, 5),
+        date(2026, 8, 19),
+    ]
