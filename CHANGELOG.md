@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.82
+
+### Changed
+
+- Make dashboard edit-mode controls available to every authenticated Home Assistant user, with visibility controlled solely by the card configuration.
+- Allow authenticated users to create, edit and delete tasks, preview schedules, manage task attachments and remove task history entries while keeping dedicated group administration protected.
+
 ## 0.2.81
 
 ### Changed

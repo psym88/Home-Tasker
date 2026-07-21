@@ -46,7 +46,7 @@ export function sortDashboardTasks(tasks,locale="de"){
 export function dueStatus(dueDate,today){return dueDate<today?"overdue":dueDate===today?"today":"future";}
 export function dashboardTaskRowHtml(task,editable,relativeDate,status){return `<div class="task-row${editable?" editable":""}" data-task="${esc(task.id)}" tabindex="0"><div><div class="task-name">${esc(task.name)}</div><div class="due-label ${esc(status)}">${esc(relativeDate)}</div></div>${editable?rowActionButtonHtml("task",esc(task.id)):""}</div>`;}
 export function dashboardCardBodyHtml(rows,editable,hideCardBackground=false){return `<ha-card${hideCardBackground?' class="no-card-background" style="--ha-card-border-width:0px;--ha-card-border-color:transparent;border:none!important;background:transparent!important;box-shadow:none!important"':""}><div class="card-content">${editable?'<button type="button" class="add-task"><ha-icon icon="mdi:plus"></ha-icon><span>Task hinzufügen</span></button>':""}${rows||'<div class="empty">Keine passenden Tasks</div>'}</div></ha-card>`;}
-export function canEditCard(config,hass){return normalizeCardConfig(config).mode==="edit"&&Boolean(hass?.user?.is_admin);}
+export function canEditCard(config,hass){return normalizeCardConfig(config).mode==="edit";}
 
 export class HomeTaskerCard extends HomeTaskerBase {
   static getStubConfig(){return {...DEFAULT_CARD_CONFIG};}

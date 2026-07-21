@@ -77,7 +77,7 @@ After Home Tasker is loaded, the **Home Tasker** card is available in the dashbo
 The visual card editor lets you configure:
 
 - **View mode**, which shows tasks without management actions
-- **Edit mode**, which adds task creation and edit/delete actions for administrators
+- **Edit mode**, which adds task creation and edit/delete actions for every signed-in user
 - How many upcoming days to include, or no due-date limit
 - Group and assignee filters, including unassigned tasks
 - Whether the outer card background and frame are shown
@@ -86,7 +86,7 @@ Select a task in the card to open its details and complete it. Card settings are
 
 ## Permissions
 
-All signed-in Home Assistant users can view tasks, open attachments and history, and complete tasks with optional notes. Only administrators can create, edit, or delete tasks and groups, remove history entries, and use the dashboard card's edit controls.
+All signed-in Home Assistant users can view, create, edit, delete and complete tasks, manage task attachments and remove task history entries. The dashboard card exposes editing controls whenever its Lovelace configuration uses **Edit mode**; the user's administrator flag does not override that card setting. Group administration and access to the Home Tasker sidebar panel remain administrator-only.
 
 ## Home Assistant entities
 

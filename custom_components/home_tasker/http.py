@@ -19,8 +19,6 @@ class UploadView(HomeAssistantView):
     requires_auth = True
 
     async def post(self, request: web.Request) -> web.Response:
-        if not request["hass_user"].is_admin:
-            raise web.HTTPUnauthorized()
         store = get_store(request.app["hass"])
         if store is None:
             raise web.HTTPServiceUnavailable()

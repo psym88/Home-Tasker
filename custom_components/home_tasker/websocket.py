@@ -1,4 +1,4 @@
-"""Admin-only WebSocket API."""
+"""Authenticated Home Tasker WebSocket API."""
 
 from datetime import date, timedelta
 from functools import wraps
@@ -134,7 +134,6 @@ async def ws_group_delete(hass, connection, msg, store):
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/create", **TASK_GROUP_FIELDS, **TASK_FIELDS})
-@websocket_api.require_admin
 @websocket_api.async_response
 @require_store
 async def ws_task_create(hass, connection, msg, store):
@@ -144,7 +143,6 @@ async def ws_task_create(hass, connection, msg, store):
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/update", vol.Required("task_id"): str, **TASK_GROUP_FIELDS, **{vol.Optional(k.schema): v for k, v in TASK_FIELDS.items()}})
-@websocket_api.require_admin
 @websocket_api.async_response
 @require_store
 async def ws_task_update(hass, connection, msg, store):
@@ -154,7 +152,6 @@ async def ws_task_update(hass, connection, msg, store):
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/delete", vol.Required("task_id"): str})
-@websocket_api.require_admin
 @websocket_api.async_response
 @require_store
 async def ws_task_delete(hass, connection, msg, store):
@@ -164,7 +161,6 @@ async def ws_task_delete(hass, connection, msg, store):
 @websocket_api.websocket_command(
     {vol.Required("type"): "home_tasker/task/preview_next_due", **PREVIEW_FIELDS}
 )
-@websocket_api.require_admin
 @websocket_api.async_response
 @require_store
 async def ws_task_preview_next_due(hass, connection, msg, store):
@@ -211,7 +207,6 @@ async def ws_history_list(hass, connection, msg, store):
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/history/delete", vol.Required("task_id"): str, vol.Required("entry_id"): str})
-@websocket_api.require_admin
 @websocket_api.async_response
 @require_store
 async def ws_history_delete(hass, connection, msg, store):
@@ -219,7 +214,6 @@ async def ws_history_delete(hass, connection, msg, store):
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/attachment/delete", vol.Required("attachment_id"): str})
-@websocket_api.require_admin
 @websocket_api.async_response
 @require_store
 async def ws_attachment_delete(hass, connection, msg, store):
