@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.65
+
+### Fixed
+
+- Truncate long attachment base names consistently in task viewers and editors while preserving the file extension.
+- Reserve right-aligned columns for attachment sizes and editor delete actions so long names cannot widen or horizontally scroll dialogs.
+
 ## 0.2.64
 
 ### Fixed
