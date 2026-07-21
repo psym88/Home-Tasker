@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 globalThis.HTMLElement = class {};
@@ -75,4 +76,32 @@ test("grouped task rows preserve panel sorting and due badges", () => {
 
   assert.ok(html.includes('<span class="pill open-count">1</span>'));
   assert.ok(html.indexOf('data-task="due"') < html.indexOf('data-task="later"'));
+});
+
+test("expanded groups end with a group-bound add-task placeholder", () => {
+  class TaskListModel extends withTaskList(class {}) {}
+  const model = new TaskListModel();
+  model.tasks = [{ id: "task", group_id: "chores", name: "Task", due_date: "2026-07-21" }];
+  model.attachments = [];
+  model.users = [];
+  model.signedFiles = new Map();
+  model.expanded = new Set(["chores"]);
+  model.sort = "name";
+  model.today = "2026-07-21";
+  model.date = value => value;
+  model.relativeDate = value => value;
+
+  const html = model.groupRow({ id: "chores", name: "Haushalt" });
+  assert.ok(html.indexOf('data-task="task"') < html.indexOf('class="placeholder-add group-add"'));
+  assert.match(html, /mdi:plus[\s\S]*Task hinzufügen/);
+  model.expanded.clear();
+  assert.doesNotMatch(model.groupRow({ id: "chores", name: "Haushalt" }), /group-add/);
+});
+
+test("task list replaces the floating action with top and group placeholders", () => {
+  const source = readFileSync(new URL("../../custom_components/home_tasker/frontend/task-list.js", import.meta.url), "utf8");
+  assert.doesNotMatch(source, /floating-add|position:fixed/);
+  assert.match(source, /class="placeholder-add list-add"/);
+  assert.match(source, /groupAdd\.onclick=\(\)=>this\.taskEditor\(g\.id\)/);
+  assert.match(source, /border:1px dashed var\(--divider-color\)/);
 });

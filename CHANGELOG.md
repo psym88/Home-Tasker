@@ -2,6 +2,14 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.73
+
+### Changed
+
+- Replace the task panel's fixed bottom-right add button with a full-width muted dashed placeholder above the group list.
+- Add a matching final placeholder to every expanded group and preselect that group when creating a task from it.
+- Remove the now-unused floating-add styles.
+
 ## 0.2.72
 
 ### Changed
