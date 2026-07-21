@@ -55,7 +55,7 @@ Groups can be expanded to show their tasks. The badge beside a group shows how m
 
 ### View, complete, and manage tasks
 
-Select a task to open its details. From there you can review its description, schedule, files, and history, and complete it with an optional note.
+Select a task to open its details. From there you can review its Home Assistant-rendered Markdown description, schedule, files, and history, and complete it with an optional note.
 
 Administrators can use the three-dot menu beside a task or group to edit or delete it. Files can be attached from the task editor by selecting them or using drag and drop. Supported files open in a Home Assistant preview dialog.
 

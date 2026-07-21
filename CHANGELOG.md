@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.85
+
+### Changed
+
+- Render task descriptions with Home Assistant's native Markdown component and remove the custom Markdown parser and redundant viewer styles.
+
 ## 0.2.84
 
 ### Fixed
