@@ -20,14 +20,14 @@ Only one Home Tasker config entry can be created.
 
 - Use the global **Add task** button to create a task. Enter an existing group name or create a new group directly from the task editor.
 - Expand a group to see its tasks. Compact group headers use Home Assistant's table background without hover, while transparent task rows use the primary background and gain a subtle text-color tint on hover. Group names use a larger heading style than the normal-weight task names, and a circular red badge shows the count of currently due tasks.
-- Click a task row to open its read-only viewer with rendered Markdown, a concise due-date label, collapsible files and history, completion notes, and a completion action. Use the Shadow-DOM-safe vertical-dots menu at the right of task and group rows to edit or delete them; destructive actions remain confirmation-protected.
+- Click a task row to open its read-only viewer with rendered Markdown, a concise due-date label, collapsible files and history, completion notes, and a completion action. Use the gray, Shadow-DOM-safe vertical-dots menu at the right of task and group rows to edit or delete them; destructive actions remain confirmation-protected and are no longer duplicated inside editor dialogs.
 - Files can be uploaded by browsing or drag and drop. New uploads are discarded when the editor is closed without saving.
 - History rows show the completion date, local time, user, and optional completion notes. Deleting a history entry restores the due date derived from the remaining history.
 - The panel inherits Home Assistant theme typography, text colors, and button styling for consistent light, dark, and custom themes. Task rows have a transparent resting background and retain the original neutral hover treatment, as do icon actions.
 - The editor uses consistent Home Assistant body typography throughout planning. It initially shows four unnumbered backend-calculated dates under "Due date preview" in normal text size and color. Weekdays and localized dates share one aligned, responsive two-column layout, ensuring every date starts at the same horizontal position below the recurrence description. "Show more" reveals one additional occurrence and retains that count when schedule options change. The final planning control presents "Optional start date" as a planning subtitle, places its selection below, and shows its removal action in the Home Assistant error color.
 - Recurrence supports daily, weekly, monthly, and yearly rhythms. Calendar-based yearly tasks select a month and day, while completion-based yearly tasks advance from the actual completion date.
 - Collapsible scheduling, file, and history boxes use compact internal spacing and clickable headers with correctly aligned, rotating chevrons in native viewers and editors.
-- Long attachment names truncate only the base name in lists, viewers, and editors so the file extension remains visible. File sizes and editor delete actions stay right-aligned. Description fields can be resized vertically.
+- Long attachment names truncate only the base name in lists, viewers, and editors so the file extension remains visible. Short base names keep their extension directly adjacent. File sizes and attachment delete actions stay right-aligned. Description fields can be resized vertically.
 
 ## Dashboard card
 

@@ -2,6 +2,17 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.69
+
+### Changed
+
+- Remove task and group delete icons from editor dialogs now that deletion is available in each row's overflow menu.
+- Restore the neutral secondary color for vertical-dots action icons.
+
+### Fixed
+
+- Keep the extension directly beside short attachment base names while retaining base-name-only truncation for long filenames.
+
 ## 0.2.68
 
 ### Fixed
