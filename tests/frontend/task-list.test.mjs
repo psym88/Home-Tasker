@@ -104,4 +104,5 @@ test("task list replaces the floating action with top and group placeholders", (
   assert.match(source, /class="placeholder-add list-add"/);
   assert.match(source, /groupAdd\.onclick=\(\)=>this\.taskEditor\(g\.id\)/);
   assert.match(source, /border:1px dashed var\(--divider-color\)/);
+  assert.match(source, /\.placeholder-add\{justify-content:center;text-align:center\}/);
 });

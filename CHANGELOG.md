@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.74
+
+### Changed
+
+- Center the plus icon and add-task label consistently in the dashboard card, above the panel group list, and inside expanded groups.
+
 ## 0.2.73
 
 ### Changed
