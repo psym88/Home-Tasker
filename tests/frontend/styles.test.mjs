@@ -30,11 +30,18 @@ test("all pills use Home Assistant's small font size", () => {
   assert.doesNotMatch(model.styles(), /\.count,\.pill\{[^}]*font-size:/);
 });
 
-test("shared dialog layout aligns headers and collapsible content", () => {
+test("shared dialog layout contains only collapsible content rules", () => {
   class StyleModel extends withStyles(class {}) {}
   const css = new StyleModel().dialogLayoutStyles();
-  assert.match(css, /\.modal-header\{[^}]*display:flex;align-items:center/);
-  assert.match(css, /\.modal-header h2\{[^}]*position:static/);
+  assert.doesNotMatch(css, /modal-header|modal-close/);
   assert.match(css, /\.details-content\{display:none/);
   assert.match(css, /\.details\.open>\.details-content\{display:flex/);
+});
+
+test("panel styles exclude legacy overlays and editor-only layout", () => {
+  class StyleModel extends withStyles(class {}) {}
+  const model = new StyleModel();
+  assert.doesNotMatch(model.styles(), /\.overlay|\.modal\{|form,label|\.actions/);
+  assert.match(model.formStyles(), /form,label/);
+  assert.match(model.formStyles(), /\.details\{/);
 });

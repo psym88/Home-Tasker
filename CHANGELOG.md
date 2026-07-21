@@ -2,6 +2,14 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.70
+
+### Changed
+
+- Remove unreachable legacy overlay containers, modal headers, editor actions, and related CSS after the migration to native Home Assistant dialogs.
+- Render the native editor footer directly and isolate editor-only form styles from panel and dashboard roots.
+- Keep only collapsible-section rules in the shared dialog layout mixin.
+
 ## 0.2.69
 
 ### Changed
