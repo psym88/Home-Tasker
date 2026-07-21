@@ -29,6 +29,14 @@ Only one Home Tasker config entry can be created.
 - Collapsible scheduling, file, and history boxes use compact internal spacing and clickable headers that match their visible area.
 - Long attachment pills truncate only the base name so the file extension remains visible. Description fields can be resized vertically.
 
+## Dashboard card
+
+After the integration is loaded, Home Assistant automatically makes the **Home Tasker** card available in the dashboard card picker. The card lists tasks as flat rows ordered by due date; by default it shows tasks due today or earlier.
+
+The visual card editor provides a fixed view or edit mode, a future due-date window, multi-select filters for groups and assignees (including unassigned tasks), and ascending or descending due-date sorting. Card settings are stored only in the dashboard configuration and do not change Home Tasker data. View mode omits all edit controls. Edit mode shows pencil and add actions only to administrators.
+
+All authenticated Home Assistant users can open task details and complete tasks with optional notes. Creating, editing, deleting, and changing history remain administrator-only operations.
+
 ## Recurrence
 
 - **By calendar** schedules remain anchored to selected calendar days. Completing a task early keeps its upcoming occurrence, completing it on time advances once, and completing it late skips missed occurrences.

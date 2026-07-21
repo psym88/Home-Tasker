@@ -2,6 +2,16 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.58
+
+### Added
+
+- Add an automatically registered Home Tasker dashboard card with flat due-date rows, view and edit modes, a visual editor, due/group/assignee filters, and configurable sort direction.
+
+### Changed
+
+- Allow authenticated Home Assistant users to view and complete tasks while keeping structural edits and history changes administrator-only.
+
 ## 0.2.57
 
 ### Changed

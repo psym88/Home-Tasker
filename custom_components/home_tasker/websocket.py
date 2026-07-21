@@ -86,7 +86,6 @@ def validate_task_schedule(
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/list"})
-@websocket_api.require_admin
 @websocket_api.async_response
 @require_store
 async def ws_list(hass, connection, msg, store):
@@ -190,7 +189,6 @@ async def ws_task_preview_next_due(hass, connection, msg, store):
         vol.Optional("notes"): TEXT,
     }
 )
-@websocket_api.require_admin
 @websocket_api.async_response
 @require_store
 async def ws_task_complete(hass, connection, msg, store):
@@ -206,7 +204,6 @@ async def ws_task_complete(hass, connection, msg, store):
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/history/list", vol.Required("task_id"): str})
-@websocket_api.require_admin
 @websocket_api.async_response
 @require_store
 async def ws_history_list(hass, connection, msg, store):
@@ -230,7 +227,6 @@ async def ws_attachment_delete(hass, connection, msg, store):
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/attachment/sign_all"})
-@websocket_api.require_admin
 @websocket_api.async_response
 @require_store
 async def ws_attachment_sign_all(hass, connection, msg, store):

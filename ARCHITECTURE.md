@@ -21,6 +21,7 @@ Home Tasker deliberately has a small surface. The integration is local-only and 
 - `frontend/panel.js`: lightweight ES-module entry point and custom-element registration
 - `frontend/main.js`: panel state, Home Assistant communication, shared formatting, and feature coordination
 - `frontend/task-list.js`: grouped panel list plus reusable flat due-date sorting for a future dashboard card
+- `frontend/dashboard-card.js`: automatically loaded Lovelace card, visual card editor, flat filtering, and due-date sorting
 - `frontend/task-editor.js`, `task-viewer.js`, and `group-editor.js`: task and group workflows
 - `frontend/dialogs.js`, `shared.js`, and `styles.js`: dialog primitives, escaping, Markdown helpers, and shared panel styling
 
@@ -32,5 +33,7 @@ Typography follows Home Assistant font, size, weight, line-height, and color var
 Collapsible boxes remove redundant vertical padding and keep the clickable header aligned with its visible area. The optional start boundary is normal body text with only its selection action triggering a visually hidden native date input; a clear action appears when populated. The editor initially requests four unnumbered dates under a preview subtitle and increments the backend sequence count by one for each "Show more" action; this count is retained across schedule-option changes. Recurrence mode, rhythm, and preview subtitles share a larger Home Assistant theme-aware text style. Preview dates combine a localized weekday with the locale-specific numeric date. The backend uses the same scheduler for previews, task creation, schedule updates, and persisted completion dates. Task rows use an explicitly transparent resting background and the original neutral row hover. Icon actions retain circular, neutral, theme-aware hover and focus treatments.
 
 The backend supplies Home Assistant's current local date so sensors, relative dates, and the frontend agree around midnight. The panel refreshes visible data every 30 seconds and retries automatically after load failures. Attachment URLs are returned in bulk instead of requiring one WebSocket request per file.
+
+The dashboard card is registered as an extra frontend module while the config entry is loaded. Its configuration remains Lovelace-local. It reuses the panel viewer and administrative editor workflows, but renders a flat task list. Authenticated users may list, view, sign attachment links, read history, and complete tasks; structural mutations and history deletion remain admin-only. Edit-mode controls additionally check the active Home Assistant user's administrator flag before rendering.
 
 Uploads live under `<config>/home_tasker/uploads`; metadata is stored in the versioned Home Assistant Store.
