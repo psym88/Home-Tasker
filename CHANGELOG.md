@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.53
+
+### Changed
+
+- Give group headers a subtle Home Assistant neutral background and matching hover fill so they remain visually distinct from transparent task rows.
+
 ## 0.2.52
 
 ### Fixed
