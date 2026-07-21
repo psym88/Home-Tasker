@@ -3,34 +3,6 @@ const CSS_URL = new URL(`./panel.css?v=${VERSION}`, import.meta.url).href;
 const STYLE_LINK = `<link rel="stylesheet" href="${CSS_URL}">`;
 const L = { addTask:"Task hinzufügen", fixed:"Nach Kalender", sliding:"Nach Erledigung", daily:"Täglich", weekly:"Wöchentlich", monthly:"Monatlich", yearly:"Jährlich", save:"Speichern", files:"Dateien", history:"Verlauf", noFiles:"Keine Dateien", noHistory:"Noch kein Verlauf" };
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const markdownInline = (value) => {
-  const protectedHtml=[],protect=html=>{protectedHtml.push(html);return `\u0000${protectedHtml.length-1}\u0000`;};
-  let html=esc(value).replace(/`([^`\n]+)`/g,(_,text)=>protect(`<code>${text}</code>`));
-  html=html.replace(/\[([^\]]+)]\(((?:https?:\/\/|mailto:|\/)[^\s)]+)\)/g,(_,label,url)=>protect(`<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`));
-  html=html.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>").replace(/__([^_]+)__/g,"<strong>$1</strong>");
-  html=html.replace(/(^|[^*])\*([^*\n]+)\*/g,"$1<em>$2</em>").replace(/(^|[^_])_([^_\n]+)_/g,"$1<em>$2</em>");
-  return html.replace(/\u0000(\d+)\u0000/g,(_,index)=>protectedHtml[Number(index)]);
-};
-const markdown = (value) => {
-  const lines=String(value??"").replace(/\r\n?/g,"\n").split("\n"),parts=[];
-  let list=null,paragraph=[],fence=null;
-  const flushParagraph=()=>{if(paragraph.length){parts.push(`<p>${paragraph.map(markdownInline).join("<br>")}</p>`);paragraph=[];}};
-  const closeList=()=>{if(list){parts.push(`</${list}>`);list=null;}};
-  for(const line of lines){
-    if(fence!==null){if(/^\s*```/.test(line)){parts.push(`<pre><code>${esc(fence.join("\n"))}</code></pre>`);fence=null;}else fence.push(line);continue;}
-    if(/^\s*```/.test(line)){flushParagraph();closeList();fence=[];continue;}
-    const heading=/^(#{1,6})\s+(.+)$/.exec(line),unordered=/^\s*[-*+]\s+(.+)$/.exec(line),ordered=/^\s*\d+[.)]\s+(.+)$/.exec(line),quote=/^\s*>\s?(.*)$/.exec(line);
-    if(!line.trim()){flushParagraph();closeList();continue;}
-    if(heading){flushParagraph();closeList();const level=heading[1].length;parts.push(`<h${level}>${markdownInline(heading[2])}</h${level}>`);continue;}
-    if(unordered||ordered){flushParagraph();const kind=unordered?"ul":"ol";if(list!==kind){closeList();parts.push(`<${kind}>`);list=kind;}parts.push(`<li>${markdownInline((unordered||ordered)[1])}</li>`);continue;}
-    if(quote){flushParagraph();closeList();parts.push(`<blockquote>${markdownInline(quote[1])}</blockquote>`);continue;}
-    if(/^\s*(?:---+|___+|\*\*\*+)\s*$/.test(line)){flushParagraph();closeList();parts.push("<hr>");continue;}
-    closeList();paragraph.push(line);
-  }
-  if(fence!==null)parts.push(`<pre><code>${esc(fence.join("\n"))}</code></pre>`);
-  flushParagraph();closeList();return parts.join("");
-};
-
 class HomeTaskerPanel extends HTMLElement {
   constructor(){ super(); this.attachShadow({mode:"open"}); this.groups=[]; this.tasks=[]; this.attachments=[]; this.users=[]; this.today=""; this.signedFiles=new Map(); this.expanded=new Set(); this.sort="name"; this.loading=false; this.refreshTimer=null; this.detailsObserver=new MutationObserver(()=>this.prepareDetails());this.detailsObserver.observe(this.shadowRoot,{childList:true,subtree:true}); }
   connectedCallback(){if(!this.refreshTimer)this.refreshTimer=setInterval(()=>{if(document.visibilityState==="visible")this.load();},30000);}
@@ -68,7 +40,8 @@ class HomeTaskerPanel extends HTMLElement {
   historyRow(entry,deletable=false){return `<div class="detail-row history-entry" data-history="${entry.id}" style="display:grid;grid-template-columns:max-content max-content max-content minmax(0,1fr)${deletable?" 44px":""};gap:8px;align-items:start"><span title="Datum">${this.date(entry.completion_date)}</span><span title="Zeit">${this.historyTime(entry)}</span><span title="Benutzer">${esc(entry.user_name||"system")}</span><span title="Notizen" style="min-width:0;white-space:pre-wrap;overflow-wrap:anywhere">${entry.notes?esc(entry.notes):"–"}</span>${deletable?'<button type="button" class="editor-action remove danger" aria-label="Verlaufseintrag entfernen" title="Entfernen" style="justify-self:end"><ha-icon icon="mdi:delete"></ha-icon></button>':""}</div>`;}
   async taskViewer(task){
     const root=this.shadowRoot.querySelector(".dialogs"),group=this.groups.find(item=>item.id===task.group_id),assignee=this.users.find(user=>user.id===task.assignee_user_id),files=this.attachments.filter(file=>file.task_id===task.id);
-    root.innerHTML=`<div class="overlay viewer-overlay"><div class="modal task-viewer" role="dialog" aria-modal="true" aria-labelledby="task-viewer-title">${this.modalHeader(esc(task.name),"task-viewer-title")}<div class="viewer-pills"><span class="pill"><ha-icon icon="mdi:devices"></ha-icon>${esc(group?.name||"Keine Gruppe")}</span><span class="pill"><ha-icon icon="mdi:account"></ha-icon>${esc(assignee?.name||"Nicht zugewiesen")}</span></div><section class="viewer-section"><h3>Beschreibung</h3><div class="viewer-description">${task.description?markdown(task.description):"<p>Keine Beschreibung</p>"}</div></section><section class="viewer-section"><h3>Planung</h3><p>${esc(this.scheduleText(task))}</p></section><section class="details viewer-box"><h3>${L.files}</h3><div class="viewer-file-list">${files.length?files.map(file=>`<div class="detail-row">${this.fileLink(file)}<span class="file-size">${this.size(file.size)}</span></div>`).join(""):`<small>${L.noFiles}</small>`}</div></section><section class="details viewer-box"><h3>${L.history}</h3><div class="viewer-history-list">Laden…</div></section><label class="viewer-notes"><span>Notizen zur Erledigung</span><textarea placeholder="Optionale Notizen für den Verlauf"></textarea></label><div class="viewer-actions"><button type="button" class="viewer-complete"><ha-icon icon="mdi:check-circle-outline"></ha-icon><span>Erledigt</span></button></div></div></div>`;
+    root.innerHTML=`<div class="overlay viewer-overlay"><div class="modal task-viewer" role="dialog" aria-modal="true" aria-labelledby="task-viewer-title">${this.modalHeader(esc(task.name),"task-viewer-title")}<div class="viewer-pills"><span class="pill"><ha-icon icon="mdi:devices"></ha-icon>${esc(group?.name||"Keine Gruppe")}</span><span class="pill"><ha-icon icon="mdi:account"></ha-icon>${esc(assignee?.name||"Nicht zugewiesen")}</span></div><section class="viewer-section"><h3>Beschreibung</h3><div class="viewer-description"></div></section><section class="viewer-section"><h3>Planung</h3><p>${esc(this.scheduleText(task))}</p></section><section class="details viewer-box"><h3>${L.files}</h3><div class="viewer-file-list">${files.length?files.map(file=>`<div class="detail-row">${this.fileLink(file)}<span class="file-size">${this.size(file.size)}</span></div>`).join(""):`<small>${L.noFiles}</small>`}</div></section><section class="details viewer-box"><h3>${L.history}</h3><div class="viewer-history-list">Laden…</div></section><label class="viewer-notes"><span>Notizen zur Erledigung</span><textarea placeholder="Optionale Notizen für den Verlauf"></textarea></label><div class="viewer-actions"><button type="button" class="viewer-complete"><ha-icon icon="mdi:check-circle-outline"></ha-icon><span>Erledigt</span></button></div></div></div>`;
+    const description=root.querySelector(".viewer-description");if(task.description){const md=document.createElement("ha-markdown");md.breaks=true;md.content=task.description;description.appendChild(md);}else description.innerHTML="<p>Keine Beschreibung</p>";
     let closed=false;const close=()=>{if(closed)return;closed=true;window.removeEventListener("keydown",onKey);root.innerHTML="";},onKey=e=>{if(e.key==="Escape")close();};window.addEventListener("keydown",onKey);root.querySelector(".modal-close").onclick=close;root.querySelector(".viewer-overlay").onclick=e=>{if(e.target===e.currentTarget)close();};root.querySelector(".viewer-complete").onclick=async()=>{const notes=root.querySelector(".viewer-notes textarea").value.trim()||null;if(!await this.confirmAction("Task erledigen",`Möchtest du den Task „${task.name}“ als erledigt markieren?`,"Erledigen","success","mdi:check-circle-outline"))return;await this.ws({type:"home_tasker/task/complete",task_id:task.id,notes});close();await this.load();};
     try{const data=await this.ws({type:"home_tasker/history/list",task_id:task.id});if(closed)return;const history=root.querySelector(".viewer-history-list");history.innerHTML=data.history.length?data.history.map(entry=>this.historyRow(entry)).join(""):`<small>${L.noHistory}</small>`;}catch(err){if(!closed)root.querySelector(".viewer-history-list").innerHTML=`<small>Verlauf konnte nicht geladen werden: ${esc(err.message||err)}</small>`;}
   }

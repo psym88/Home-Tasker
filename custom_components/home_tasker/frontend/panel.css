@@ -99,16 +99,11 @@ main{padding-bottom:96px}
 .viewer-pills .pill{display:inline-flex;align-items:center;gap:5px}
 .viewer-section h3{margin:0 0 8px;font-size:13px;color:var(--secondary-text-color)}
 .viewer-section p{margin:0;white-space:pre-line}
+/* Description is rendered by HA's native <ha-markdown>, which styles its
+   own shadow DOM. Only the outer container needs styling here. */
 .viewer-description{line-height:1.55;overflow-wrap:anywhere}
 .viewer-description>:first-child{margin-top:0}
 .viewer-description>:last-child{margin-bottom:0}
-.viewer-description h1,.viewer-description h2,.viewer-description h3{color:var(--primary-text-color);font-size:1.2em;margin:16px 0 6px}
-.viewer-description blockquote{margin:10px 0;padding-left:12px;border-left:3px solid var(--primary-color);color:var(--secondary-text-color)}
-.viewer-description pre,.viewer-description code{background:var(--secondary-background-color);border-radius:5px}
-.viewer-description code{padding:2px 4px}
-.viewer-description pre{padding:10px;overflow:auto}
-.viewer-description pre code{padding:0}
-.viewer-description a{color:var(--primary-color)}
 .viewer-file-list .file-size{flex:0;white-space:nowrap;margin-left:auto}
 .viewer-history-list{overflow-x:auto}
 .viewer-actions{display:flex;justify-content:flex-end}
