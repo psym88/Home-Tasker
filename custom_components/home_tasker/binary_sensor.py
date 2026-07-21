@@ -34,7 +34,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry[HomeTaskerDa
 
         valid_unique_ids = {f"{DOMAIN}_{task_id}" for task_id in task_ids}
         for registry_entry in list(entity_registry.entities.values()):
-            if registry_entry.platform == DOMAIN and registry_entry.unique_id.startswith(f"{DOMAIN}_") and registry_entry.unique_id not in valid_unique_ids:
+            if (
+                registry_entry.domain == "binary_sensor"
+                and registry_entry.platform == DOMAIN
+                and registry_entry.unique_id.startswith(f"{DOMAIN}_")
+                and registry_entry.unique_id not in valid_unique_ids
+            ):
                 entity_registry.async_remove(registry_entry.entity_id)
 
         for device in list(device_registry.devices.values()):

@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.96
+
+### Fixed
+
+- Restrict orphan task-entity cleanup to the binary-sensor domain so task mutations no longer remove the Home Tasker calendar from the entity registry.
+
 ## 0.2.95
 
 ### Fixed

@@ -95,6 +95,14 @@ def test_calendar_platform_is_forwarded_with_binary_sensors():
     assert PLATFORMS == ["binary_sensor", "calendar"]
 
 
+def test_task_sensor_cleanup_cannot_remove_calendar_registry_entry():
+    source = Path("custom_components/home_tasker/binary_sensor.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert 'registry_entry.domain == "binary_sensor"' in source
+
+
 def test_calendar_dispatcher_update_is_an_event_loop_callback():
     source = Path("custom_components/home_tasker/calendar.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
