@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.63
+
+### Changed
+
+- Host task and group editors and all Home Tasker confirmations in registered Home Assistant adaptive dialogs opened through `show-dialog`.
+- Place the dashboard card's add-task action above the task elements so it remains immediately accessible for long lists.
+
 ## 0.2.62
 
 ### Changed
