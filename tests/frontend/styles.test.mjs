@@ -30,6 +30,11 @@ test("all pills use Home Assistant's small font size", () => {
   assert.doesNotMatch(model.styles(), /\.count,\.pill\{[^}]*font-size:/);
 });
 
+test("each task-list group has a theme-aware outer border", () => {
+  class StyleModel extends withStyles(class {}) {}
+  assert.match(new StyleModel().groupListStyles(), /\.group\{[^}]*border:1px solid var\(--divider-color\)/);
+});
+
 test("shared dialog layout contains only collapsible content rules", () => {
   class StyleModel extends withStyles(class {}) {}
   const css = new StyleModel().dialogLayoutStyles();

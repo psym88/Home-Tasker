@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.78
+
+### Fixed
+
+- Preserve individual dashboard task-tile borders when the outer card background and frame are hidden.
+- Add a theme-aware outer border around every grouped task-list block.
+
 ## 0.2.77
 
 ### Changed
