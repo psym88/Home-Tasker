@@ -4,11 +4,29 @@ import test from "node:test";
 globalThis.HTMLElement = class {};
 globalThis.customElements = { get: () => undefined, define: () => undefined };
 
-const { TASK_ROW_BACKGROUND, TASK_ROW_HOVER_BACKGROUND, sortTasksByDue, withTaskList } = await import("../../custom_components/home_tasker/frontend/task-list.js");
+const { LIST_SECONDARY_ACTION_COLOR, TASK_ROW_BACKGROUND, TASK_ROW_HOVER_BACKGROUND, sortTasksByDue, withTaskList } = await import("../../custom_components/home_tasker/frontend/task-list.js");
 
 test("task rows remain transparent", () => {
   assert.equal(TASK_ROW_BACKGROUND, "transparent");
   assert.equal(TASK_ROW_HOVER_BACKGROUND, "rgba(var(--rgb-primary-text-color),0.04)");
+});
+
+test("list edit actions and expand control use the secondary text color", () => {
+  class TaskListModel extends withTaskList(class {}) {}
+  const model = new TaskListModel();
+  model.groups = [];
+  model.tasks = [];
+  model.attachments = [];
+  model.users = [];
+  model.expanded = new Set();
+  model.sort = "name";
+  model.due = () => false;
+  model.date = value => value;
+  model.relativeDate = value => value;
+
+  assert.equal(LIST_SECONDARY_ACTION_COLOR, "var(--secondary-text-color)");
+  assert.match(model.groupRow({ id: "group", name: "Group" }), /class="edit-group icon"[^>]+color:var\(--secondary-text-color\)/);
+  assert.match(model.taskRow({ id: "task", name: "Task", due_date: "2026-07-21" }), /class="edit-task-row icon"[^>]+color:var\(--secondary-text-color\)/);
 });
 
 test("sortTasksByDue sorts by due date and then by name", () => {

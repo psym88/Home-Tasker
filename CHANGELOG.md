@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.56
+
+### Changed
+
+- Use Home Assistant's secondary text color for task and group pencil actions and the global expand/collapse control.
+
 ## 0.2.55
 
 ### Changed
