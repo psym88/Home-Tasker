@@ -18,7 +18,11 @@ Home Tasker deliberately has a small surface. The integration is local-only and 
 - `websocket.py`: authenticated metadata API
 - `http.py`: authenticated binary upload/download
 - `binary_sensor.py`: task entities and virtual device metadata
-- `frontend/panel.js`: dependency-free list and the group/task dialogs
+- `frontend/panel.js`: lightweight ES-module entry point and custom-element registration
+- `frontend/main.js`: panel state, Home Assistant communication, shared formatting, and feature coordination
+- `frontend/task-list.js`: grouped panel list plus reusable flat due-date sorting for a future dashboard card
+- `frontend/task-editor.js`, `task-viewer.js`, and `group-editor.js`: task and group workflows
+- `frontend/dialogs.js`, `shared.js`, and `styles.js`: dialog primitives, escaping, Markdown helpers, and shared panel styling
 
 The list has no recurrence filters. Group rows share task-row padding and show the number of due tasks in a circular red badge. Group editing appears as a pencil action at the right of the group header; deletion is available at the lower left of the group editor. Clicking a task opens a read-only viewer with rendered Markdown, a human-readable schedule, collapsible attachments and history, optional completion notes, and completion. The blue pencil action at the right of a task row opens its editor, where deletion is available. The editor labels recurrence as "By calendar" or "After completion", previews four backend-calculated due dates initially, and reveals additional occurrences one at a time. Its optional start-date control uses the same subtitle hierarchy as the other planning controls, with the selection action below and a red removal action. Viewer and editor history rows show date, local time, user, and notes; only the editor exposes the delete action.
 The viewer labels the currently calculated date concisely as "Due date".

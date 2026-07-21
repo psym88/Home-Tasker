@@ -2,6 +2,17 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.50
+
+### Changed
+
+- Split the Home Tasker panel into focused ES modules for state, lists, editors, viewers, dialogs, shared helpers, and styles.
+- Expose reusable due-date task sorting as a foundation for a future flat dashboard card.
+
+### Tests
+
+- Add focused frontend tests for due-date sorting, stable input handling, and grouped task rendering.
+
 ## 0.2.48
 
 ### Fixed

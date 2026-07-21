@@ -1,0 +1,6 @@
+export const withGroupEditor = Base => class extends Base {
+  groupEditor(group=null){ const g=group||{}; this.dialog(group?"Gruppe bearbeiten":"Neue Gruppe",[
+    ["name","Name",g.name,true],["manufacturer","Hersteller",g.manufacturer],["model","Modell",g.model],["description","Beschreibung",g.description,false,"textarea"]
+  ],async v=>{const payload={name:v.name,manufacturer:v.manufacturer||null,model:v.model||null,description:v.description||null};await this.ws({type:`home_tasker/group/${group?"update":"create"}`,...(group?{group_id:group.id}:{}),...payload});await this.load();},group?modal=>this.mountGroupActions(modal,group):null); }
+  mountGroupActions(modal,group){const actions=modal.querySelector(".actions");actions.insertAdjacentHTML("afterbegin",`<button type="button" class="editor-action danger group-delete" aria-label="Gruppe löschen" title="Gruppe löschen"><ha-icon icon="mdi:delete"></ha-icon></button><i></i>`);actions.querySelector(".group-delete").onclick=async()=>{if(!await this.confirmAction("Gruppe löschen",`Möchtest du die Gruppe „${group.name}“ wirklich löschen? Enthaltene Tasks, Dateien und Verläufe werden ebenfalls gelöscht.`,"Löschen","danger","mdi:alert-outline"))return;await this.ws({type:"home_tasker/group/delete",group_id:group.id});this.shadowRoot.querySelector(".dialogs").innerHTML="";await this.load();};}
+};
