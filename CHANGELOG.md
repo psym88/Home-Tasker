@@ -2,6 +2,14 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.30
+
+### Changed
+
+- Open a new read-only task viewer when clicking a task row.
+- Move task editing to a blue pencil action at the right of each row.
+- Show the task title, group and assignee pills, rendered Markdown description, human-readable schedule, files, history, and completion action in the viewer.
+
 ## 0.2.29
 
 ### Fixed
