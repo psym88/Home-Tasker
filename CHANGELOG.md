@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.95
+
+### Fixed
+
+- Represent expanded task repetitions as independent calendar events with a unique task-and-date ID.
+- Remove misleading recurrence IDs from already flattened events so Home Assistant does not interpret the refreshed list as a native recurring series.
+
 ## 0.2.94
 
 ### Fixed

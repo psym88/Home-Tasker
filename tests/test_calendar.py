@@ -71,8 +71,8 @@ def test_calendar_returns_sorted_all_day_events_with_task_details():
     assert events[0].start == date(2026, 7, 22)
     assert events[0].end == date(2026, 7, 23)
     assert events[0].location == "Kitchen"
-    assert events[0].uid == "task-first-a"
-    assert events[0].recurrence_id == "2026-07-22"
+    assert events[0].uid == "task-first-a:2026-07-22"
+    assert events[0].recurrence_id is None
     assert events[2].description == "Use a damp cloth"
 
 
@@ -143,6 +143,13 @@ def test_calendar_expands_fixed_recurrences_inside_requested_range():
         date(2026, 7, 26),
         date(2026, 7, 28),
     ]
+    assert [event.uid for event in events] == [
+        "daily-task:2026-07-22",
+        "daily-task:2026-07-24",
+        "daily-task:2026-07-26",
+        "daily-task:2026-07-28",
+    ]
+    assert all(event.recurrence_id is None and event.rrule is None for event in events)
 
 
 def test_calendar_projects_after_completion_recurrences_from_due_dates():

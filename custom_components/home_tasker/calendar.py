@@ -49,8 +49,7 @@ class HomeTaskerCalendar(CalendarEntity):
             summary=task["name"],
             description=task.get("description") or None,
             location=group["name"] if group else None,
-            uid=task["id"],
-            recurrence_id=due.isoformat(),
+            uid=f"{task['id']}:{due.isoformat()}",
         )
 
     @staticmethod
