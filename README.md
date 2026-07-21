@@ -31,7 +31,7 @@ Only one Home Tasker config entry can be created.
 
 ## Recurrence
 
-- **By calendar** schedules remain anchored to selected calendar days. Completing an overdue task skips missed occurrences and selects the next future occurrence.
+- **By calendar** schedules remain anchored to selected calendar days. Completing a task early keeps its upcoming occurrence, completing it on time advances once, and completing it late skips missed occurrences.
 - **After completion** schedules advance from the actual completion date.
 - Daily schedules advance by a number of days.
 - Weekly fixed schedules support multiple weekdays and multi-week intervals.

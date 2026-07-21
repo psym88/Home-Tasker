@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.47
+
+### Fixed
+
+- Keep the currently scheduled calendar occurrence when a task is completed before its due date.
+- Continue advancing calendar tasks normally when completed on time and skip missed occurrences only when completed late.
+
 ## 0.2.46
 
 ### Changed
