@@ -9,7 +9,7 @@ Home Tasker deliberately has a small surface. The integration is local-only and 
 - Fixed weekly schedules support multiple weekdays. Fixed monthly schedules support days 1–31 or the last day. Sliding schedules advance from the completion date, including the completion day for monthly schedules.
 - Before version 1.0, stored schema changes do not include compatibility normalization; development data may be reset.
 - Every task exposes one problem `binary_sensor`; `on` means due. Deleting tasks or groups also removes their entity/device registry entries.
-- Attachments belong to one task. Their browser links are pre-signed through admin-only WebSocket commands and rendered as native anchors for authenticated mobile/browser access. History entries retain `due_before` and `due_after` so deleting an entry restores the derived due date. An explicit due-date edit is applied after pending history deletions and therefore wins.
+- Attachments belong to one task. Their browser links are pre-signed through admin-only WebSocket commands and rendered as native anchors for authenticated mobile/browser access. History entries retain `due_before`, `due_after`, the recording timestamp, user, and optional completion notes so deleting an entry restores the derived due date. An explicit due-date edit is applied after pending history deletions and therefore wins.
 
 ## Modules
 
@@ -20,7 +20,7 @@ Home Tasker deliberately has a small surface. The integration is local-only and 
 - `binary_sensor.py`: task entities and virtual device metadata
 - `frontend/panel.js`: dependency-free list and the group/task dialogs
 
-The list has no recurrence filters. Group editing appears as a pencil action at the right of the group header; deletion is available at the lower left of the group editor. Clicking a task opens a read-only viewer with rendered Markdown, a human-readable schedule, attachments, history, and completion. The blue pencil action at the right of a task row opens its editor, where deletion is available.
+The list has no recurrence filters. Group editing appears as a pencil action at the right of the group header; deletion is available at the lower left of the group editor. Clicking a task opens a read-only viewer with rendered Markdown, a human-readable schedule, collapsible attachments and history, optional completion notes, and completion. The blue pencil action at the right of a task row opens its editor, where deletion is available. The editor repeats the human-readable schedule at the end of its scheduling box. Viewer and editor history rows show date, local time, user, and notes; only the editor exposes the delete action.
 Group headers show the number of due tasks as a red numeric pill.
 Actions use native buttons styled with Home Assistant theme variables instead of unstable internal frontend components. Popup titles remain sticky while the dialog body scrolls.
 

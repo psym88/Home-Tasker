@@ -213,12 +213,28 @@ class HomeTaskerStore:
                 await self._unlink(file_id)
             await self._save()
 
-    async def async_complete_task(self, task_id: str, completion_date: str, user_id: str | None, user_name: str) -> dict[str, Any]:
+    async def async_complete_task(
+        self,
+        task_id: str,
+        completion_date: str,
+        user_id: str | None,
+        user_name: str,
+        notes: str | None = None,
+    ) -> dict[str, Any]:
         async with self._lock:
             task = self._find("tasks", task_id)
             due_before = task["due_date"]
             due_after = next_due(task, date.fromisoformat(completion_date)).isoformat()
-            record = {"id": uuid4().hex, "completion_date": completion_date, "recorded_at": _now(), "user_id": user_id, "user_name": user_name, "due_before": due_before, "due_after": due_after}
+            record = {
+                "id": uuid4().hex,
+                "completion_date": completion_date,
+                "recorded_at": _now(),
+                "user_id": user_id,
+                "user_name": user_name,
+                "notes": str(notes or "").strip() or None,
+                "due_before": due_before,
+                "due_after": due_after,
+            }
             task["due_date"] = due_after
             task["updated_at"] = record["recorded_at"]
             self._data["history"].setdefault(task_id, []).append(record)

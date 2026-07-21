@@ -2,6 +2,18 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.31
+
+### Changed
+
+- Use the same collapsible file and history boxes in the read-only task viewer as in the editor, without viewer delete actions.
+- Show completion date, local time, user, and notes in viewer and editor history rows while keeping the editor delete action right-aligned.
+- Display the human-readable recurrence summary at the end of the editor scheduling box.
+
+### Added
+
+- Add optional completion notes in the task viewer and persist them with the new history entry.
+
 ## 0.2.30
 
 ### Changed
