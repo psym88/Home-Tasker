@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.76
+
+### Changed
+
+- Replace the task-list sorting HTML dropdown with Home Assistant's native `ha-select` and `ha-list-item` components.
+- Give dashboard task rows theme-aware, tile-like status fills and hover colors while retaining the overdue, today, and future distinctions.
+
 ## 0.2.75
 
 ### Changed

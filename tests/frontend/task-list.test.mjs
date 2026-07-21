@@ -115,3 +115,11 @@ test("task-list attachment pills open in-app instead of a new browser page", () 
   assert.match(html, /class="pill file-pill file-open" data-file-open="file"/);
   assert.doesNotMatch(html, /target="_blank"|<a /);
 });
+
+test("task-list sorting uses Home Assistant's native select components", () => {
+  const source = readFileSync(new URL("../../custom_components/home_tasker/frontend/task-list.js", import.meta.url), "utf8");
+  assert.match(source, /<ha-select class="sort" label="Sortierung">/);
+  assert.match(source, /<ha-list-item value="name">Name<\/ha-list-item>/);
+  assert.match(source, /addEventListener\("selected"/);
+  assert.doesNotMatch(source, /<select class="sort">/);
+});
