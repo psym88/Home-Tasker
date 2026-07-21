@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.99
+
+### Changed
+
+- Place the NFC tag pill after the assignee in grouped task rows.
+- Add compact icons to assignee and attachment pills and use one shared icon size across all pills.
+
 ## 0.2.98
 
 ### Changed

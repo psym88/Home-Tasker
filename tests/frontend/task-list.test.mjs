@@ -104,13 +104,15 @@ test("task-list titles show the assigned Home Assistant tag name as a small pill
   class TaskListModel extends withTaskList(class {}) {}
   const model = new TaskListModel();
   model.attachments = [];
-  model.users = [];
+  model.users = [{ id: "alex", name: "Alex" }];
   model.tags = [{ id: "tag-1", name: "Washing machine" }];
   model.due = () => false;
   model.date = value => value;
   model.relativeDate = value => value;
-  const html = model.taskRow({ id: "task", name: "Laundry", nfc_tag_id: "tag-1", due_date: "2026-07-21" });
-  assert.ok(html.indexOf("Laundry") < html.indexOf("Washing machine"));
+  const html = model.taskRow({ id: "task", name: "Laundry", assignee_user_id: "alex", nfc_tag_id: "tag-1", due_date: "2026-07-21" });
+  assert.ok(html.indexOf("Laundry") < html.indexOf("Alex"));
+  assert.ok(html.indexOf("Alex") < html.indexOf("Washing machine"));
+  assert.match(html, /mdi:account/);
   assert.match(html, /class="pill ht-content-small"><ha-icon icon="mdi:nfc"><\/ha-icon>Washing machine<\/span>/);
 });
 
@@ -150,6 +152,7 @@ test("task-list attachment pills open in-app instead of a new browser page", () 
   model.signedFiles = new Map([["file", "/signed/file"]]);
   const html = model.filePill({ id: "file", filename: "manual.pdf" });
   assert.match(html, /class="pill file-pill file-open" data-file-open="file"/);
+  assert.match(html, /mdi:paperclip/);
   assert.doesNotMatch(html, /target="_blank"|<a /);
 });
 
