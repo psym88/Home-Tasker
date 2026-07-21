@@ -2,6 +2,16 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.32
+
+### Changed
+
+- Remove history column headers and use compact natural-width date, time, and user columns so notes receive the remaining space.
+- Place the next due date on a new line in the viewer. In the editor, show the entered first due date and preview the next due date if the task were completed today.
+- Apply a consistent title, subtitle, and content hierarchy using Home Assistant typography and text color variables.
+- Standardize action controls around the 44-pixel add-task button size and Home Assistant theme colors.
+- Render due-date pills with normal font weight.
+
 ## 0.2.31
 
 ### Changed
