@@ -100,6 +100,20 @@ test("task-list titles use the secondary text color", () => {
   assert.match(model.taskRow({ id: "task", name: "Task", due_date: "2026-07-21" }), /<strong class="ht-content">Task<\/strong>/);
 });
 
+test("task-list titles show the assigned Home Assistant tag name as a small pill", () => {
+  class TaskListModel extends withTaskList(class {}) {}
+  const model = new TaskListModel();
+  model.attachments = [];
+  model.users = [];
+  model.tags = [{ id: "tag-1", name: "Washing machine" }];
+  model.due = () => false;
+  model.date = value => value;
+  model.relativeDate = value => value;
+  const html = model.taskRow({ id: "task", name: "Laundry", nfc_tag_id: "tag-1", due_date: "2026-07-21" });
+  assert.ok(html.indexOf("Laundry") < html.indexOf("Washing machine"));
+  assert.match(html, /class="pill ht-content-small"><ha-icon icon="mdi:nfc"><\/ha-icon>Washing machine<\/span>/);
+});
+
 test("expanded groups end with a group-bound add-task placeholder", () => {
   class TaskListModel extends withTaskList(class {}) {}
   const model = new TaskListModel();

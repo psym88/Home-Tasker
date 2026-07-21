@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.98
+
+### Changed
+
+- Load available tag IDs and entity-registry names from Home Assistant for a native task-editor selection.
+- Show the assigned tag name as a small pill beside tasks in the grouped list and in the task viewer.
+
 ## 0.2.97
 
 ### Added

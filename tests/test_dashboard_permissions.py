@@ -61,6 +61,13 @@ def test_nfc_listener_lifecycle_is_bound_to_config_entry():
     assert "entry.async_on_unload(nfc.async_setup_listener(hass, store))" in source
 
 
+def test_native_tag_integration_is_loaded_as_a_dependency():
+    import json
+
+    manifest = json.loads((ROOT / "custom_components/home_tasker/manifest.json").read_text(encoding="utf-8"))
+    assert "tag" in manifest["dependencies"]
+
+
 def test_frontend_and_consolidated_translations_are_registered_as_static_paths():
     source=(ROOT / "custom_components/home_tasker/__init__.py").read_text(encoding="utf-8")
     assert "StaticPathConfig(FRONTEND_URL, str(frontend_dir), False)" in source
