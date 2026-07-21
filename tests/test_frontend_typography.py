@@ -22,8 +22,9 @@ def test_due_dates_use_aligned_dynamic_columns_below_rule() -> None:
     source = panel_source()
 
     assert 'role="table" aria-label="Fälligkeiten"' in source
-    assert "grid-template-columns:max-content max-content;column-gap:12px" in source
-    assert 'style="display:grid;justify-content:start;margin-top:8px"' in source
+    assert 'role="row" style="display:contents"' in source
+    assert 'role="table" aria-label="Fälligkeiten" style="display:grid;grid-template-columns:max-content max-content;column-gap:12px;justify-content:start;margin-top:8px"' in source
+    assert source.count("grid-template-columns:max-content max-content;column-gap:12px") == 1
     assert "editorScheduleHtml(task,result.due_dates)" in source
 
 
