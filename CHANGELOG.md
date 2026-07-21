@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.57
+
+### Changed
+
+- Use Home Assistant's small font-size variable for all pills.
+
 ## 0.2.56
 
 ### Changed

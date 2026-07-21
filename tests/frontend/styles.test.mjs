@@ -21,3 +21,11 @@ test("icon hover uses the neutral Home Assistant fill", () => {
     /ha-color-fill-primary-quiet-hover|color-mix/,
   );
 });
+
+test("all pills use Home Assistant's small font size", () => {
+  class StyleModel extends withStyles(class {}) {}
+  const model = new StyleModel();
+
+  assert.match(model.themeStyles(), /\.pill\{font-size:var\(--ha-font-size-s\)\}/);
+  assert.doesNotMatch(model.styles(), /\.count,\.pill\{[^}]*font-size:/);
+});
