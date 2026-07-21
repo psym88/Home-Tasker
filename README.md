@@ -20,11 +20,11 @@ Only one Home Tasker config entry can be created.
 
 - Use the global **Add task** button to create a task. Enter an existing group name or create a new group directly from the task editor.
 - Expand a group to see its tasks. The red number is the count of currently due tasks.
-- Click a task row to open its read-only viewer with rendered Markdown, schedule, collapsible files and history, completion notes, and a completion action. Use the blue pencil at the right of the row to edit the task.
+- Click a task row to open its read-only viewer with rendered Markdown, a concise due-date label, collapsible files and history, completion notes, and a completion action. Use the blue pencil at the right of the row to edit the task.
 - Files can be uploaded by browsing or drag and drop. New uploads are discarded when the editor is closed without saving.
 - History rows show the completion date, local time, user, and optional completion notes. Deleting a history entry restores the due date derived from the remaining history.
 - The panel inherits Home Assistant theme typography, text colors, and button styling for consistent light, dark, and custom themes.
-- The editor calculates the first six due dates in the backend from either a fixed calendar rule or the completion date. New tasks need no explicit task date; an optional collapsible start date can delay the first occurrence.
+- The editor initially shows four backend-calculated due dates with localized weekdays and date formats. Each "Show more" action reveals one additional occurrence. New tasks need no explicit task date; an optional collapsible start date at the end of the planning box can delay the first occurrence.
 - Recurrence supports daily, weekly, monthly, and yearly rhythms. Calendar-based yearly tasks select a month and day, while completion-based yearly tasks advance from the actual completion date.
 - Collapsible scheduling, file, and history boxes use compact internal spacing and clickable headers that match their visible area.
 - Long attachment pills truncate only the base name so the file extension remains visible. Description fields can be resized vertically.

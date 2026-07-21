@@ -2,6 +2,21 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.38
+
+### Changed
+
+- Shorten the task viewer schedule label from "Next due date" to "Due date".
+
+## 0.2.37
+
+### Changed
+
+- Show four due dates by default and reveal one additional occurrence per "Show more" action.
+- Prefix preview dates with a localized weekday while preserving the user's locale-specific date order and separators.
+- Place the optional start date as the final option inside the planning box.
+- Display yearly day and month selectors on one row, with day first.
+
 ## 0.2.36
 
 ### Changed
