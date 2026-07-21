@@ -2,6 +2,16 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.36
+
+### Changed
+
+- Calculate the initial due date from the recurrence rule instead of requiring a task date.
+- Rename recurrence modes in the editor to "By calendar" and "After completion".
+- Add an optional collapsible start-date boundary.
+- Add yearly calendar and completion-based recurrence, including leap-day clamping.
+- Keep existing tasks on their current due date unless their schedule is changed.
+
 ## 0.2.35
 
 ### Changed

@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from custom_components.home_tasker.scheduler import add_interval, next_due, next_due_sequence, validate_schedule
+from custom_components.home_tasker.scheduler import add_interval, due_sequence, initial_due, next_due, next_due_sequence, validate_schedule
 
 
 def task(**values):
@@ -92,3 +92,46 @@ def test_next_due_sequence_uses_each_occurrence_as_the_next_completion():
         date(2026, 7, 29),
         date(2026, 7, 31),
     ]
+
+
+def test_initial_fixed_weekly_due_starts_on_first_selected_weekday():
+    value = task(frequency="weekly", interval=2, weekdays=[3])
+    assert initial_due(value, date(2026, 7, 21)) == date(2026, 7, 23)
+    assert due_sequence(value, date(2026, 7, 21), 3) == [
+        date(2026, 7, 23),
+        date(2026, 8, 6),
+        date(2026, 8, 20),
+    ]
+    assert initial_due(value, date(2026, 7, 23)) == date(2026, 7, 23)
+
+
+def test_start_date_is_boundary_for_calendar_and_due_for_sliding():
+    fixed = task(frequency="weekly", weekdays=[3], start_date="2026-09-01")
+    assert initial_due(fixed, date(2026, 7, 21)) == date(2026, 9, 3)
+    sliding = task(recurrence_mode="sliding", start_date="2026-09-01")
+    assert initial_due(sliding, date(2026, 7, 21)) == date(2026, 9, 1)
+    sliding["start_date"] = None
+    assert initial_due(sliding, date(2026, 7, 21)) == date(2026, 7, 21)
+
+
+def test_fixed_yearly_schedule_and_leap_day_clamping():
+    yearly = task(frequency="yearly", month_of_year=7, day_of_month=1)
+    assert initial_due(yearly, date(2026, 7, 1)) == date(2026, 7, 1)
+    assert initial_due(yearly, date(2026, 7, 2)) == date(2027, 7, 1)
+    yearly["interval"] = 2
+    assert due_sequence(yearly, date(2026, 7, 2), 3) == [
+        date(2027, 7, 1),
+        date(2029, 7, 1),
+        date(2031, 7, 1),
+    ]
+    leap = task(frequency="yearly", month_of_year=2, day_of_month=29)
+    assert due_sequence(leap, date(2027, 1, 1), 3) == [
+        date(2027, 2, 28),
+        date(2028, 2, 29),
+        date(2029, 2, 28),
+    ]
+
+
+def test_sliding_yearly_uses_completion_date():
+    value = task(recurrence_mode="sliding", frequency="yearly", interval=2)
+    assert next_due(value, date(2026, 7, 21)) == date(2028, 7, 21)

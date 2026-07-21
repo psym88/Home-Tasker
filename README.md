@@ -22,16 +22,17 @@ Only one Home Tasker config entry can be created.
 - Expand a group to see its tasks. The red number is the count of currently due tasks.
 - Click a task row to open its read-only viewer with rendered Markdown, schedule, collapsible files and history, completion notes, and a completion action. Use the blue pencil at the right of the row to edit the task.
 - Files can be uploaded by browsing or drag and drop. New uploads are discarded when the editor is closed without saving.
-- History rows show the completion date, local time, user, and optional completion notes. Deleting a history entry recalculates the derived due date. If the due date is edited in the same save operation, the explicitly entered date wins.
+- History rows show the completion date, local time, user, and optional completion notes. Deleting a history entry restores the due date derived from the remaining history.
 - The panel inherits Home Assistant theme typography, text colors, and button styling for consistent light, dark, and custom themes.
-- The editor schedule summary shows the first six due dates without trailing punctuation. All future dates are calculated as a generic sequence by the backend scheduler, beginning with a completion today.
+- The editor calculates the first six due dates in the backend from either a fixed calendar rule or the completion date. New tasks need no explicit task date; an optional collapsible start date can delay the first occurrence.
+- Recurrence supports daily, weekly, monthly, and yearly rhythms. Calendar-based yearly tasks select a month and day, while completion-based yearly tasks advance from the actual completion date.
 - Collapsible scheduling, file, and history boxes use compact internal spacing and clickable headers that match their visible area.
 - Long attachment pills truncate only the base name so the file extension remains visible. Description fields can be resized vertically.
 
 ## Recurrence
 
-- **Fixed** schedules remain anchored to their calendar. Completing an overdue task skips missed occurrences and selects the next future occurrence.
-- **Sliding** schedules advance from the completion date.
+- **By calendar** schedules remain anchored to selected calendar days. Completing an overdue task skips missed occurrences and selects the next future occurrence.
+- **After completion** schedules advance from the actual completion date.
 - Daily schedules advance by a number of days.
 - Weekly fixed schedules support multiple weekdays and multi-week intervals.
 - Monthly fixed schedules support days 1–31 or the last day. Dates such as day 31 are clamped to the last available day of shorter months.

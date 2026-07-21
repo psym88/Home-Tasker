@@ -13,7 +13,7 @@ from homeassistant.util import dt as dt_util
 
 from .const import DOWNLOAD_URL, SIGNAL_UPDATED
 from .helpers import get_store
-from .scheduler import next_due_sequence, validate_schedule
+from .scheduler import due_sequence, next_due_sequence, validate_schedule
 
 TEXT = vol.Any(str, None)
 GROUP_FIELDS = {vol.Required("name"): str, vol.Optional("manufacturer"): TEXT, vol.Optional("model"): TEXT, vol.Optional("icon"): TEXT, vol.Optional("description"): TEXT}
@@ -21,22 +21,24 @@ TASK_FIELDS = {
     vol.Required("name"): str,
     vol.Optional("description"): TEXT,
     vol.Optional("assignee_user_id"): TEXT,
-    vol.Required("due_date"): str,
+    vol.Optional("start_date"): TEXT,
     vol.Required("recurrence_mode"): vol.In(("fixed", "sliding")),
-    vol.Required("frequency"): vol.In(("daily", "weekly", "monthly")),
+    vol.Required("frequency"): vol.In(("daily", "weekly", "monthly", "yearly")),
     vol.Required("interval"): vol.All(vol.Coerce(int), vol.Range(min=1)),
     vol.Optional("weekdays", default=[]): [vol.All(vol.Coerce(int), vol.Range(min=0, max=6))],
     vol.Optional("day_of_month"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=1, max=31)), "last", None),
+    vol.Optional("month_of_year"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=1, max=12)), None),
 }
 TASK_GROUP_FIELDS = {
     vol.Optional("group_id"): vol.Any(str, None),
     vol.Optional("group_name"): TEXT,
 }
 PREVIEW_FIELDS = {
-    vol.Required("due_date"): str,
+    vol.Optional("due_date"): str,
     vol.Optional("schedule_anchor"): str,
+    vol.Optional("start_date"): TEXT,
     vol.Required("recurrence_mode"): vol.In(("fixed", "sliding")),
-    vol.Required("frequency"): vol.In(("daily", "weekly", "monthly")),
+    vol.Required("frequency"): vol.In(("daily", "weekly", "monthly", "yearly")),
     vol.Required("interval"): vol.All(vol.Coerce(int), vol.Range(min=1)),
     vol.Optional("weekdays", default=[]): [
         vol.All(vol.Coerce(int), vol.Range(min=0, max=6))
@@ -44,7 +46,9 @@ PREVIEW_FIELDS = {
     vol.Optional("day_of_month"): vol.Any(
         vol.All(vol.Coerce(int), vol.Range(min=1, max=31)), "last", None
     ),
-    vol.Optional("completion_date"): str,
+    vol.Optional("month_of_year"): vol.Any(
+        vol.All(vol.Coerce(int), vol.Range(min=1, max=12)), None
+    ),
     vol.Optional("count", default=2): vol.All(vol.Coerce(int), vol.Range(min=1, max=24)),
 }
 
@@ -136,7 +140,8 @@ async def ws_group_delete(hass, connection, msg, store):
 @require_store
 async def ws_task_create(hass, connection, msg, store):
     validate_task_schedule(msg)
-    connection.send_result(msg["id"], await store.async_add_task(msg)); updated(hass)
+    today = dt_util.now().date()
+    connection.send_result(msg["id"], await store.async_add_task(msg, today)); updated(hass)
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/update", vol.Required("task_id"): str, **TASK_GROUP_FIELDS, **{vol.Optional(k.schema): v for k, v in TASK_FIELDS.items()}})
@@ -145,7 +150,8 @@ async def ws_task_create(hass, connection, msg, store):
 @require_store
 async def ws_task_update(hass, connection, msg, store):
     validate_task_schedule(msg, store.task(msg["task_id"]))
-    connection.send_result(msg["id"], await store.async_update_task(msg["task_id"], msg)); updated(hass)
+    today = dt_util.now().date()
+    connection.send_result(msg["id"], await store.async_update_task(msg["task_id"], msg, today)); updated(hass)
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/delete", vol.Required("task_id"): str})
@@ -165,10 +171,11 @@ async def ws_task_delete(hass, connection, msg, store):
 async def ws_task_preview_next_due(hass, connection, msg, store):
     """Preview recurrence using the authoritative backend scheduler."""
     validate_schedule(msg)
-    completed = date.fromisoformat(
-        msg.get("completion_date", dt_util.now().date().isoformat())
-    )
-    due_dates = next_due_sequence(msg, completed, msg["count"])
+    if msg.get("due_date"):
+        current = date.fromisoformat(msg["due_date"])
+        due_dates = [current, *next_due_sequence(msg, current, msg["count"] - 1)]
+    else:
+        due_dates = due_sequence(msg, dt_util.now().date(), msg["count"])
     connection.send_result(
         msg["id"],
         {"due_dates": [due.isoformat() for due in due_dates]},
