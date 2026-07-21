@@ -30,3 +30,12 @@ def test_supporting_text_uses_normal_body_typography() -> None:
 
     assert "p,small,label,.pill,.schedule-options,.version,header p" in source
     assert ".history-entry{font-size:var(--ha-font-size-m,14px)" in source
+
+
+def test_optional_start_date_matches_planning_subtitle_hierarchy() -> None:
+    source = panel_source()
+
+    assert 'class="start-date-title"' in source
+    assert "color:var(--secondary-text-color);font-size:var(--ha-font-size-m,14px);font-weight:var(--ha-font-weight-medium,500)" in source
+    assert 'class="start-date-actions" style="display:flex;align-items:center;gap:4px"' in source
+    assert 'min-height:32px;color:var(--error-color)' in source
