@@ -24,7 +24,7 @@ Only one Home Tasker config entry can be created.
 - Files can be uploaded by browsing or drag and drop. New uploads are discarded when the editor is closed without saving.
 - History rows show the completion date, local time, user, and optional completion notes. Deleting a history entry restores the due date derived from the remaining history.
 - The panel inherits Home Assistant theme typography, text colors, and button styling for consistent light, dark, and custom themes.
-- The editor initially shows four backend-calculated dates under "Due date preview" with localized weekdays and date formats. "Show more" sits directly under the list, reveals one additional occurrence, and retains that count when schedule options change. The final planning control shows an optional start-date heading and subtle calendar-trigger text without a visible input box.
+- The editor initially shows four unnumbered backend-calculated dates under "Due date preview" with localized weekdays and date formats. "Show more" uses normal Home Assistant body typography, reveals one additional occurrence, and retains that count when schedule options change. The final planning control reads "Optional start date" with only its selection action clickable.
 - Recurrence supports daily, weekly, monthly, and yearly rhythms. Calendar-based yearly tasks select a month and day, while completion-based yearly tasks advance from the actual completion date.
 - Collapsible scheduling, file, and history boxes use compact internal spacing and clickable headers that match their visible area.
 - Long attachment pills truncate only the base name so the file extension remains visible. Description fields can be resized vertically.

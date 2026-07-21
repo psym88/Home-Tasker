@@ -2,6 +2,15 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.41
+
+### Changed
+
+- Present the optional start date as normal body text with only the selection action clickable.
+- Use normal Home Assistant body typography for "Show more".
+- Remove occurrence numbering from the due-date preview.
+- Apply a larger shared Home Assistant subtitle style to recurrence mode, rhythm, and due-date preview labels.
+
 ## 0.2.40
 
 ### Changed
