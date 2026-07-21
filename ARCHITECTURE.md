@@ -25,6 +25,7 @@ Home Tasker deliberately has a small surface. The integration is local-only and 
 - `frontend/dashboard-card.js`: automatically loaded Lovelace card, visual card editor, flat filtering, and due-date sorting; the card and panel are sibling custom elements for scoped-registry compatibility
 - List group blocks use a theme divider border, and dashboard task tiles keep their own divider border independently of the optional outer-card frame.
 - `frontend/task-editor.js`, `task-viewer.js`, and `group-editor.js`: task and group workflows
+- The task editor replaces the browser-specific interval spinner with a 44-pixel theme-aware stepper while keeping direct numeric and arrow-key input.
 - `frontend/native-task-dialog.js`: Home Assistant `show-dialog` contract and `ha-adaptive-dialog` host for the complete task viewer
 - `frontend/native-attachment-dialog.js`: adaptive attachment preview for images, media, PDFs, and other browser-inline formats with an explicit download fallback
 - `frontend/native-form-dialog.js`: adaptive-dialog hosts for task/group forms and confirmations, including the shared collapsible-section layout rules

@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.79
+
+### Changed
+
+- Replace the browser-specific planning interval spinner with a theme-aware minus/value/plus stepper.
+- Match the interval stepper and frequency dropdown at a consistent 44-pixel height while retaining direct numeric and arrow-key input.
+
 ## 0.2.78
 
 ### Fixed
