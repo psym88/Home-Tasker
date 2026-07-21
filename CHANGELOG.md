@@ -2,6 +2,16 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.34
+
+### Changed
+
+- Show the first three due dates in the editor without explanatory parenthetical labels and calculate both future dates through the backend scheduler.
+- Allow description text areas to be resized vertically.
+- Preserve file extensions when long attachment pills truncate their base names.
+- Add circular Home Assistant-style hover and focus treatments to clickable icon actions.
+- Use the native primary text color and hover treatment for popup close actions.
+
 ## 0.2.33
 
 ### Changed

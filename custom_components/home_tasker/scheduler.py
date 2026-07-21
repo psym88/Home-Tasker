@@ -75,3 +75,18 @@ def next_due(task: dict[str, Any], completed: date) -> date:
         raise ValueError("invalid_monthly_schedule")
 
     raise ValueError("invalid_frequency")
+
+
+def next_due_sequence(
+    task: dict[str, Any], completed: date, count: int = 2
+) -> list[date]:
+    """Return consecutive future occurrences using the authoritative rules."""
+    values: list[date] = []
+    current_task = dict(task)
+    current_completion = completed
+    for _ in range(max(0, count)):
+        due = next_due(current_task, current_completion)
+        values.append(due)
+        current_task["due_date"] = due.isoformat()
+        current_completion = due
+    return values
