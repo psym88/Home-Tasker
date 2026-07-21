@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.88
+
+### Changed
+
+- Consolidate viewer, editor and task-list typography into four reusable Home Assistant-themed classes.
+- Remove field-specific typography selectors, runtime style injection and typographic inline overrides without changing the rendered hierarchy.
+
 ## 0.2.87
 
 ### Changed
