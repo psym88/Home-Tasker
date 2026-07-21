@@ -8,7 +8,7 @@ Home Tasker deliberately has a small surface. The integration is local-only and 
 - A task belongs to exactly one group and stores its name, description, calculated due date, optional start boundary, recurrence mode (`fixed` or `sliding`), frequency (`daily`, `weekly`, `monthly`, or `yearly`), interval, and calendar anchor.
 - Fixed weekly schedules support multiple weekdays. Fixed monthly schedules support days 1–31 or the last day. Completing a fixed task before its due date preserves the upcoming occurrence; completing it on time advances once, while late completion skips missed occurrences. Sliding schedules advance from the completion date, including the completion day for monthly schedules.
 - Before version 1.0, stored schema changes do not include compatibility normalization; development data may be reset.
-- Every task exposes one problem `binary_sensor`; `on` means due. Deleting tasks or groups also removes their entity/device registry entries.
+- Every task exposes one problem `binary_sensor`; `on` means due. The sensors are push-only (polling disabled) and refresh on data mutations and at local midnight so the due state flips at the date rollover. Deleting tasks or groups also removes their entity/device registry entries.
 - Attachments belong to one task. Their browser links are pre-signed through admin-only WebSocket commands and rendered as native anchors for authenticated mobile/browser access. History entries retain `due_before`, `due_after`, the recording timestamp, user, and optional completion notes so deleting an entry restores the derived due date.
 
 ## Modules

@@ -229,19 +229,6 @@ async def ws_attachment_delete(hass, connection, msg, store):
     await store.async_delete_attachment(msg["attachment_id"]); connection.send_result(msg["id"])
 
 
-@websocket_api.websocket_command({vol.Required("type"): "home_tasker/attachment/sign", vol.Required("attachment_id"): str})
-@websocket_api.require_admin
-@websocket_api.async_response
-@require_store
-async def ws_attachment_sign(hass, connection, msg, store):
-    attachment_id = msg["attachment_id"]
-    if store.attachment(attachment_id) is None or not store.file_path(attachment_id).exists():
-        raise ValueError("unknown_attachment")
-    path = f"{DOWNLOAD_URL}/{attachment_id}"
-    url = async_sign_path(hass, path, timedelta(hours=1), refresh_token_id=connection.refresh_token_id)
-    connection.send_result(msg["id"], {"url": url})
-
-
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/attachment/sign_all"})
 @websocket_api.require_admin
 @websocket_api.async_response
@@ -263,4 +250,4 @@ async def ws_attachment_sign_all(hass, connection, msg, store):
     )
 
 
-COMMANDS = (ws_list, ws_group_create, ws_group_update, ws_group_delete, ws_task_create, ws_task_update, ws_task_delete, ws_task_preview_next_due, ws_task_complete, ws_history_list, ws_history_delete, ws_attachment_delete, ws_attachment_sign, ws_attachment_sign_all)
+COMMANDS = (ws_list, ws_group_create, ws_group_update, ws_group_delete, ws_task_create, ws_task_update, ws_task_delete, ws_task_preview_next_due, ws_task_complete, ws_history_list, ws_history_delete, ws_attachment_delete, ws_attachment_sign_all)

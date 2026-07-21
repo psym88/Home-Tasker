@@ -1,4 +1,4 @@
-const VERSION = "0.2.47";
+const VERSION = "0.2.48";
 const L = { addTask:"Task hinzufügen", fixed:"Nach Kalender", sliding:"Nach Erledigung", daily:"Täglich", weekly:"Wöchentlich", monthly:"Monatlich", yearly:"Jährlich", save:"Speichern", files:"Dateien", history:"Verlauf", noFiles:"Keine Dateien", noHistory:"Noch kein Verlauf" };
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const markdownInline = (value) => {
