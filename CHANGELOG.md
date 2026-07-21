@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.75
+
+### Changed
+
+- Open attachments from task lists, viewers, and editors in a native Home Assistant adaptive dialog instead of a new browser page.
+- Preview images, audio, video, PDFs, and other browser-supported inline files while retaining an explicit download action.
+
 ## 0.2.74
 
 ### Changed

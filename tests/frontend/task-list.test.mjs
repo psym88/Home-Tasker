@@ -106,3 +106,12 @@ test("task list replaces the floating action with top and group placeholders", (
   assert.match(source, /border:1px dashed var\(--divider-color\)/);
   assert.match(source, /\.placeholder-add\{justify-content:center;text-align:center\}/);
 });
+
+test("task-list attachment pills open in-app instead of a new browser page", () => {
+  class TaskListModel extends withTaskList(class {}) {}
+  const model = new TaskListModel();
+  model.signedFiles = new Map([["file", "/signed/file"]]);
+  const html = model.filePill({ id: "file", filename: "manual.pdf" });
+  assert.match(html, /class="pill file-pill file-open" data-file-open="file"/);
+  assert.doesNotMatch(html, /target="_blank"|<a /);
+});
