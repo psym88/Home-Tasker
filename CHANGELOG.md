@@ -2,6 +2,15 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.39
+
+### Changed
+
+- Add the missing period after numeric days in monthly schedule descriptions.
+- Place "Show more" directly beneath the due-date list.
+- Keep the optional start date as the final planning control, immediately before the generated schedule text.
+- Replace the visible start-date input with subtle text that opens the native date picker and retains a clear action.
+
 ## 0.2.38
 
 ### Changed
