@@ -83,7 +83,7 @@ The task editor previews upcoming due dates before you save the schedule.
 
 ## Dashboard card
 
-After Home Tasker is loaded, the **Home Tasker** card is available in the dashboard card picker. By default, it shows overdue tasks and tasks due today, with the oldest task first.
+After Home Tasker is loaded, the **Home Tasker** card is available in the dashboard card picker. By default, it shows overdue tasks and tasks due today, with the oldest task first. In both the dashboard card and grouped task list, overdue dates are red, dates due today are orange, and future dates are green.
 
 The visual card editor lets you configure:
 

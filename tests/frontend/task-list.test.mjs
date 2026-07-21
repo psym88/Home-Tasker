@@ -163,3 +163,20 @@ test("task-list sorting uses the planning-style themed select", () => {
   assert.match(source, /\.sort"\)\.onchange/);
   assert.doesNotMatch(source, /<ha-select class="sort"/);
 });
+
+test("task-list due pills distinguish today from overdue", async () => {
+  const { DUE_DATE_STYLES } = await import("../../custom_components/home_tasker/frontend/task-list.js");
+  class TaskListModel extends withTaskList(class {}) {}
+  const model = new TaskListModel();
+  model.today = "2026-07-21";
+  model.attachments = [];
+  model.users = [];
+  model.tags = [];
+  model.signedFiles = new Map();
+  model.date = value => value;
+  model.relativeDate = value => value;
+  assert.match(model.taskRow({ id: "today", name: "Today", due_date: "2026-07-21" }), /due-date today/);
+  assert.match(model.taskRow({ id: "old", name: "Old", due_date: "2026-07-20" }), /due-date overdue/);
+  assert.match(DUE_DATE_STYLES, /\.due-date\.today\{color:var\(--warning-color/);
+  assert.match(DUE_DATE_STYLES, /\.due-date\.overdue\{color:var\(--error-color/);
+});

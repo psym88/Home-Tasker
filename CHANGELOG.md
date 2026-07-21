@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.102
+
+### Fixed
+
+- Show tasks due today in orange in the grouped task list, matching the dashboard card, while overdue tasks remain red.
+
 ## 0.2.101
 
 ### Changed
