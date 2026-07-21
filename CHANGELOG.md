@@ -2,6 +2,14 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.42
+
+### Changed
+
+- Standardize labels, pills, history entries, and planning controls on Home Assistant body typography.
+- Reserve the small Home Assistant font size for the compact due-date preview list.
+- Make group names larger than task names in the main task list and render task names at normal weight.
+
 ## 0.2.41
 
 ### Changed
