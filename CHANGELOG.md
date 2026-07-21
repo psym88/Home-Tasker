@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.54
+
+### Changed
+
+- Match Home Assistant data tables: darker non-hovering group headers, transparent task rows on the table background, and a subtle row-only hover tint.
+
 ## 0.2.53
 
 ### Changed

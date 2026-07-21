@@ -1,4 +1,4 @@
-export const VERSION = "0.2.53";
+export const VERSION = "0.2.54";
 import { HomeTaskerPanel } from "./main.js";
 
 HomeTaskerPanel.version = VERSION;

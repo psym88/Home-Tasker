@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-const { GROUP_HEADER_BACKGROUND, GROUP_HEADER_HOVER_BACKGROUND, withStyles } = await import("../../custom_components/home_tasker/frontend/styles.js");
+const { GROUP_LIST_BACKGROUND, GROUP_HEADER_BACKGROUND, withStyles } = await import("../../custom_components/home_tasker/frontend/styles.js");
 
-test("group headers use neutral Home Assistant resting and hover fills", () => {
-  assert.equal(GROUP_HEADER_BACKGROUND, "var(--ha-color-fill-neutral-quiet-resting,var(--secondary-background-color))");
-  assert.equal(GROUP_HEADER_HOVER_BACKGROUND, "var(--ha-color-fill-neutral-quiet-hover,var(--secondary-background-color))");
+test("group list follows Home Assistant data-table backgrounds", () => {
+  assert.equal(GROUP_LIST_BACKGROUND, "var(--data-table-background-color,var(--card-background-color,#fff))");
+  assert.equal(GROUP_HEADER_BACKGROUND, "var(--primary-background-color)");
 });
 
 test("icon hover uses the neutral Home Assistant fill", () => {

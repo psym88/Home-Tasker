@@ -19,7 +19,7 @@ Only one Home Tasker config entry can be created.
 ## Usage
 
 - Use the global **Add task** button to create a task. Enter an existing group name or create a new group directly from the task editor.
-- Expand a group to see its tasks. Compact group headers use a subtle neutral Home Assistant background to distinguish them from transparent task rows, group names use a larger heading style than the normal-weight task names, and a circular red badge shows the count of currently due tasks.
+- Expand a group to see its tasks. Compact group headers follow Home Assistant data-table styling with a darker primary background and no hover, while transparent task rows use the table background and gain a subtle text-color tint on hover. Group names use a larger heading style than the normal-weight task names, and a circular red badge shows the count of currently due tasks.
 - Click a task row to open its read-only viewer with rendered Markdown, a concise due-date label, collapsible files and history, completion notes, and a completion action. Use the blue pencil at the right of the row to edit the task.
 - Files can be uploaded by browsing or drag and drop. New uploads are discarded when the editor is closed without saving.
 - History rows show the completion date, local time, user, and optional completion notes. Deleting a history entry restores the due date derived from the remaining history.

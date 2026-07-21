@@ -4,10 +4,11 @@ import test from "node:test";
 globalThis.HTMLElement = class {};
 globalThis.customElements = { get: () => undefined, define: () => undefined };
 
-const { TASK_ROW_BACKGROUND, sortTasksByDue, withTaskList } = await import("../../custom_components/home_tasker/frontend/task-list.js");
+const { TASK_ROW_BACKGROUND, TASK_ROW_HOVER_BACKGROUND, sortTasksByDue, withTaskList } = await import("../../custom_components/home_tasker/frontend/task-list.js");
 
 test("task rows remain transparent", () => {
   assert.equal(TASK_ROW_BACKGROUND, "transparent");
+  assert.equal(TASK_ROW_HOVER_BACKGROUND, "rgba(var(--rgb-primary-text-color),0.04)");
 });
 
 test("sortTasksByDue sorts by due date and then by name", () => {
