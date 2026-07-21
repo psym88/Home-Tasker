@@ -33,7 +33,7 @@ Only one Home Tasker config entry can be created.
 
 After the integration is loaded, Home Assistant automatically makes the **Home Tasker** card available in the dashboard card picker. The card lists tasks as flat rows ordered by due date; by default it shows tasks due today or earlier.
 
-The visual card editor provides a fixed view or edit mode, a future due-date window, multi-select filters for groups and assignees (including unassigned tasks), and ascending or descending due-date sorting. Card settings are stored only in the dashboard configuration and do not change Home Tasker data. View mode omits all edit controls. Edit mode shows pencil and add actions only to administrators.
+The visual card editor provides a fixed view or edit mode, a future due-date window, multi-select filters for groups and assignees (including unassigned tasks), and ascending or descending due-date sorting. Card settings are stored only in the dashboard configuration and do not change Home Tasker data. View mode omits all edit controls. Edit mode shows pencil and add actions only to administrators. Tasks render as separate rounded elements, with due dates colored orange for today, red when overdue, and green when upcoming.
 
 All authenticated Home Assistant users can open task details and complete tasks with optional notes. Creating, editing, deleting, and changing history remain administrator-only operations.
 

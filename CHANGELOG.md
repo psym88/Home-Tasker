@@ -2,6 +2,16 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.60
+
+### Changed
+
+- Render dashboard tasks as separated rounded elements and color their due dates orange for today, red when overdue, and green when upcoming.
+
+### Fixed
+
+- Preserve card-editor focus and open dropdowns by avoiding full rerenders on routine Home Assistant state updates.
+
 ## 0.2.59
 
 ### Fixed
