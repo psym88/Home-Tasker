@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.94
+
+### Fixed
+
+- Remove the duplicate direct calendar-listener refresh after task mutations and rely on Home Assistant's state-driven debounced calendar update.
+- Keep the calendar feed available when an older task contains incomplete recurrence data by limiting the failure to that task's future projection.
+
 ## 0.2.93
 
 ### Fixed

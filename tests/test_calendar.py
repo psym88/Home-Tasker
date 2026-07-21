@@ -110,6 +110,7 @@ def test_calendar_dispatcher_update_is_an_event_loop_callback():
     )
 
     assert [ast.unparse(item) for item in handler.decorator_list] == ["callback"]
+    assert "async_update_event_listeners" not in ast.unparse(handler)
 
 
 def test_calendar_expands_fixed_recurrences_inside_requested_range():
@@ -171,4 +172,41 @@ def test_calendar_projects_after_completion_recurrences_from_due_dates():
         date(2026, 7, 22),
         date(2026, 8, 5),
         date(2026, 8, 19),
+    ]
+
+
+def test_invalid_legacy_recurrence_keeps_current_event_and_other_tasks():
+    store = FakeStore()
+    store.tasks = [
+        {
+            "id": "legacy-task",
+            "name": "Legacy task",
+            "group_id": "group-1",
+            "due_date": "2026-07-22",
+        },
+        {
+            "id": "valid-task",
+            "name": "Valid task",
+            "group_id": "group-1",
+            "due_date": "2026-07-23",
+            "schedule_anchor": "2026-07-23",
+            "recurrence_mode": "fixed",
+            "frequency": "daily",
+            "interval": 1,
+        },
+    ]
+    calendar = HomeTaskerCalendar(store)
+
+    events = asyncio.run(
+        calendar.async_get_events(
+            None,
+            datetime(2026, 7, 22, tzinfo=timezone.utc),
+            datetime(2026, 7, 25, tzinfo=timezone.utc),
+        )
+    )
+
+    assert [(event.summary, event.start) for event in events] == [
+        ("Legacy task", date(2026, 7, 22)),
+        ("Valid task", date(2026, 7, 23)),
+        ("Valid task", date(2026, 7, 24)),
     ]

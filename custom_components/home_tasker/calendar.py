@@ -61,6 +61,28 @@ class HomeTaskerCalendar(CalendarEntity):
             raise ValueError("recurrence_did_not_advance")
         return following
 
+    def _task_events(
+        self,
+        task: dict[str, Any],
+        start_date: datetime,
+        end_date: datetime,
+    ) -> list[tuple[datetime, CalendarEvent]]:
+        """Expand one task without allowing invalid legacy data to break the feed."""
+        events: list[tuple[datetime, CalendarEvent]] = []
+        due = date.fromisoformat(task["due_date"])
+        while True:
+            event_start = datetime.combine(due, time.min, tzinfo=start_date.tzinfo)
+            if event_start >= end_date:
+                break
+            event_end = event_start + timedelta(days=1)
+            if event_end > start_date:
+                events.append((event_start, self._calendar_event(task, due)))
+            try:
+                due = self._next_occurrence(task, due)
+            except (KeyError, TypeError, ValueError):
+                break
+        return events
+
     @property
     def event(self) -> CalendarEvent | None:
         """Return the current or next task event."""
@@ -80,15 +102,7 @@ class HomeTaskerCalendar(CalendarEntity):
         """Return current and projected task occurrences in the requested range."""
         events: list[tuple[datetime, CalendarEvent]] = []
         for task in self._store.tasks:
-            due = date.fromisoformat(task["due_date"])
-            while True:
-                event_start = datetime.combine(due, time.min, tzinfo=start_date.tzinfo)
-                if event_start >= end_date:
-                    break
-                event_end = event_start + timedelta(days=1)
-                if event_end > start_date:
-                    events.append((event_start, self._calendar_event(task, due)))
-                due = self._next_occurrence(task, due)
+            events.extend(self._task_events(task, start_date, end_date))
         return [event for _, event in sorted(events, key=lambda item: (item[0], item[1].summary.casefold()))]
 
     async def async_added_to_hass(self) -> None:
@@ -100,5 +114,3 @@ class HomeTaskerCalendar(CalendarEntity):
     @callback
     def _handle_update(self) -> None:
         self.async_write_ha_state()
-        if update_listeners := getattr(self, "async_update_event_listeners", None):
-            update_listeners()
