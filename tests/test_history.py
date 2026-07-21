@@ -47,6 +47,37 @@ def test_completion_notes_are_trimmed_and_optional():
     asyncio.run(run())
 
 
+def test_completing_task_sets_next_due_date_from_completion_date():
+    async def run():
+        store = HomeTaskerStore.__new__(HomeTaskerStore)
+        store._lock = asyncio.Lock()
+        store._store = MemoryStore()
+        store._data = {
+            "groups": [],
+            "tasks": [
+                {
+                    "id": "task-1",
+                    "due_date": "2026-07-21",
+                    "recurrence_mode": "sliding",
+                    "frequency": "monthly",
+                    "interval": 1,
+                }
+            ],
+            "history": {},
+            "attachments": [],
+        }
+
+        completed = await store.async_complete_task(
+            "task-1", "2026-07-25", "user-1", "Marco"
+        )
+
+        assert completed["due_date"] == "2026-08-25"
+        assert store.history("task-1")[0]["due_after"] == "2026-08-25"
+        assert store._store.data["tasks"][0]["due_date"] == "2026-08-25"
+
+    asyncio.run(run())
+
+
 def test_store_calculates_initial_due_and_preserves_it_for_metadata_updates():
     async def run():
         store = HomeTaskerStore.__new__(HomeTaskerStore)

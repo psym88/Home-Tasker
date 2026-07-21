@@ -2,6 +2,14 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.46
+
+### Changed
+
+- Reduce group-row padding to match task rows.
+- Replace the open-task pill with a circular red count badge.
+- Replace source-text typography assertions with a behavioral completion test that verifies the next due date is persisted.
+
 ## 0.2.45
 
 ### Fixed
