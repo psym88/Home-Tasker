@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.81
+
+### Changed
+
+- Rewrite the README as a concise, user-focused installation and usage guide.
+- Add an official My Home Assistant button for adding Home Tasker as a custom HACS integration repository.
+
 ## 0.2.80
 
 ### Fixed

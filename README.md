@@ -1,6 +1,19 @@
 # Home Tasker
 
-Home Tasker is a local Home Assistant custom integration for recurring household tasks.
+Home Tasker brings recurring household tasks into Home Assistant. Organize tasks in groups, assign them to Home Assistant users, track due dates and completion history, and attach useful files or notes.
+
+[![Open your Home Assistant instance and add this repository to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=psym88&repository=Home-Tasker&category=integration)
+
+## Features
+
+- Daily, weekly, monthly, and yearly recurring tasks
+- Calendar-based schedules or intervals based on the last completion
+- Task groups and assignment to Home Assistant users
+- Completion notes, history, and file attachments
+- A dedicated Home Tasker panel for managing tasks
+- A configurable dashboard card for a focused task list
+- Home Assistant entities for automations and notifications
+- Local storage inside your Home Assistant configuration
 
 ## Requirements
 
@@ -9,55 +22,83 @@ Home Tasker is a local Home Assistant custom integration for recurring household
 
 ## Installation
 
-1. Add this repository to HACS as a custom integration repository.
-2. Install **Home Tasker**.
-3. Restart Home Assistant.
-4. Add the integration under **Settings → Devices & services**.
+### Install with HACS
 
-Only one Home Tasker config entry can be created.
+1. Select the **Open your Home Assistant** button above.
+2. Confirm that you want to open your Home Assistant instance.
+3. Add **Home Tasker** as a custom integration repository.
+4. Install **Home Tasker** in HACS.
+5. Restart Home Assistant.
 
-## Usage
+### Add the repository manually
 
-- Use the full-width, muted **Add task** placeholder above the group list to create a task. Its plus icon and label are centered consistently with the dashboard card. Each group block, including its tasks, has a theme-aware outer border. Expanded groups provide the same centered dashed placeholder after their last task and preselect that group in the editor. Enter an existing group name or create a new group directly from the task editor.
-- Expand a group to see its tasks. Compact group headers use Home Assistant's table background without hover, while transparent task rows use the primary background and gain a subtle text-color tint on hover. Group names use a larger heading style than the normal-weight task names, and a circular red badge shows the count of currently due tasks.
-- Click a task row to open its read-only viewer with rendered Markdown, a concise due-date label, collapsible files and history, completion notes, and a completion action. Use the gray, Shadow-DOM-safe vertical-dots menu at the right of task and group rows to edit or delete them; destructive actions remain confirmation-protected and are no longer duplicated inside editor dialogs.
-- Files can be uploaded by browsing or drag and drop. New uploads are discarded when the editor is closed without saving.
-- History rows show the completion date, local time, user, and optional completion notes. Deleting a history entry restores the due date derived from the remaining history.
-- The panel inherits Home Assistant theme typography, text colors, and button styling for consistent light, dark, and custom themes. Task rows have a transparent resting background and retain the original neutral hover treatment, as do icon actions.
-- The editor uses consistent Home Assistant body typography throughout planning. Frequency and interval controls share the same 44-pixel height; the interval uses a theme-aware minus/value/plus stepper that also supports direct numeric entry and arrow keys. It initially shows four unnumbered backend-calculated dates under "Due date preview" in normal text size and color. Existing preview dates remain visible while schedule changes are recalculated, avoiding layout flicker. Weekdays and localized dates share one aligned, responsive two-column layout, ensuring every date starts at the same horizontal position below the recurrence description. "Show more" reveals one additional occurrence and retains that count when schedule options change. The final planning control presents "Optional start date" as a planning subtitle, places its selection below, and shows its removal action in the Home Assistant error color.
-- Recurrence supports daily, weekly, monthly, and yearly rhythms. Calendar-based yearly tasks select a month and day, while completion-based yearly tasks advance from the actual completion date.
-- Collapsible scheduling, file, and history boxes use compact internal spacing and clickable headers with correctly aligned, rotating chevrons in native viewers and editors.
-- Long attachment names truncate only the base name in lists, viewers, and editors so the file extension remains visible. Short base names keep their extension directly adjacent. Clicking an attachment opens a native Home Assistant preview dialog instead of a new browser page; images, audio, video, PDFs, and other browser-supported inline formats are previewed, with a download action retained as fallback. File sizes and attachment delete actions stay right-aligned. Description fields can be resized vertically.
+1. Open **HACS → Integrations**.
+2. Open the menu in the upper-right corner and select **Custom repositories**.
+3. Enter `https://github.com/psym88/Home-Tasker` and select **Integration** as the category.
+4. Add the repository, install **Home Tasker**, and restart Home Assistant.
+
+## Setup
+
+1. Open **Settings → Devices & services**.
+2. Select **Add integration** and search for **Home Tasker**.
+3. Complete the setup. Home Tasker then appears in the Home Assistant sidebar.
+
+Only one Home Tasker configuration entry can be created.
+
+## Getting started
+
+### Create and organize tasks
+
+Select **+ Add task** at the top of the Home Tasker panel. Choose an existing group or enter a new group name, then configure the task, assignment, and schedule. You can also add a task directly at the end of an expanded group.
+
+Groups can be expanded to show their tasks. The badge beside a group shows how many of its tasks are currently due.
+
+### View, complete, and manage tasks
+
+Select a task to open its details. From there you can review its description, schedule, files, and history, and complete it with an optional note.
+
+Administrators can use the three-dot menu beside a task or group to edit or delete it. Files can be attached from the task editor by selecting them or using drag and drop. Supported files open in a Home Assistant preview dialog.
+
+### Recurring schedules
+
+- **By calendar** keeps a task anchored to selected calendar days. Completing it early preserves the upcoming occurrence; late completion skips missed occurrences.
+- **After completion** calculates the next due date from the day the task was completed.
+- Daily schedules use a number of days.
+- Weekly calendar schedules can use multiple weekdays and multi-week intervals.
+- Monthly calendar schedules can use days 1–31 or the last day of the month.
+- Yearly calendar schedules use a selected month and day.
+
+The task editor previews upcoming due dates before you save the schedule.
 
 ## Dashboard card
 
-After the integration is loaded, Home Assistant automatically makes the **Home Tasker** card available in the dashboard card picker. The card lists tasks as flat rows ordered by due date; by default it shows tasks due today or earlier.
+After Home Tasker is loaded, the **Home Tasker** card is available in the dashboard card picker. By default, it shows overdue tasks and tasks due today, with the oldest task first.
 
-The visual card editor provides a fixed view or edit mode, an option to fully hide the outer card background and frame while retaining every individual task-tile border, a future due-date window, and multi-select filters for groups and assignees (including unassigned tasks). Tasks are always ordered oldest first, with task name as the tie-breaker. Card settings are stored only in the dashboard configuration and do not change Home Tasker data. View mode omits all administrative controls. Edit mode shows vertical-dots edit/delete menus and a full-width, muted add-task placeholder with a dashed border and centered content above the task list, only to administrators. Tasks render as separate rounded, tile-like elements with neutral Home Assistant surfaces; only their due dates are orange for today, red when overdue, and green when upcoming.
+The visual card editor lets you configure:
 
-All authenticated Home Assistant users can open task details and complete tasks with optional notes. Creating, editing, deleting, and changing history remain administrator-only operations. Viewers, task/group editors, and confirmations use registered Home Assistant adaptive-dialog hosts opened through the native dialog contract. Viewer completion and editor save actions remain visible in native dialog footers while their content scrolls; no legacy overlay hosts are retained.
+- **View mode**, which shows tasks without management actions
+- **Edit mode**, which adds task creation and edit/delete actions for administrators
+- How many upcoming days to include, or no due-date limit
+- Group and assignee filters, including unassigned tasks
+- Whether the outer card background and frame are shown
 
-## Recurrence
+Select a task in the card to open its details and complete it. Card settings are stored only in that dashboard and do not change your tasks or integration settings.
 
-- **By calendar** schedules remain anchored to selected calendar days. Completing a task early keeps its upcoming occurrence, completing it on time advances once, and completing it late skips missed occurrences.
-- **After completion** schedules advance from the actual completion date.
-- Daily schedules advance by a number of days.
-- Weekly fixed schedules support multiple weekdays and multi-week intervals.
-- Monthly fixed schedules support days 1–31 or the last day. Dates such as day 31 are clamped to the last available day of shorter months.
-- Monthly sliding schedules use the completion day as the next monthly anchor.
+## Permissions
+
+All signed-in Home Assistant users can view tasks, open attachments and history, and complete tasks with optional notes. Only administrators can create, edit, or delete tasks and groups, remove history entries, and use the dashboard card's edit controls.
 
 ## Home Assistant entities
 
-- Every group is represented by one virtual Home Assistant device.
-- Every task exposes one problem `binary_sensor`; `on` means that the task is due.
-- Task assignment and schedule fields are available as entity attributes.
+Each group is represented as a Home Assistant device. Every task provides a problem `binary_sensor`; it is `on` while the task is due. Assignment and schedule information is available as entity attributes for use in automations and notifications.
 
-## Data storage
+## Data and privacy
 
-Metadata is stored in Home Assistant's versioned Store. Uploads live under `<config>/home_tasker/uploads`. All data stays inside the Home Assistant configuration directory.
+Home Tasker stores its data locally in your Home Assistant configuration. Attachments are stored under `<config>/home_tasker/uploads`. No task data is sent to an external service by Home Tasker.
 
-## Development and releases
+## Help and project information
 
-Release notes and changelog entries must always be written in English. Keep the versions in `manifest.json`, `const.py`, and `frontend/panel.js` aligned.
-
-Report problems through the [GitHub issue tracker](https://github.com/psym88/Home-Tasker/issues).
+- Report bugs or request features in the [GitHub issue tracker](https://github.com/psym88/Home-Tasker/issues).
+- See the [changelog](CHANGELOG.md) for release history.
+- Technical contributors can find implementation details in the [architecture documentation](ARCHITECTURE.md).
+- Home Tasker is distributed under the [MIT License](LICENSE).
