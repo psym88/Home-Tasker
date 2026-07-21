@@ -1,6 +1,6 @@
 """Admin-only WebSocket API."""
 
-from datetime import timedelta
+from datetime import date, timedelta
 from functools import wraps
 from typing import Any
 
@@ -13,7 +13,7 @@ from homeassistant.util import dt as dt_util
 
 from .const import DOWNLOAD_URL, SIGNAL_UPDATED
 from .helpers import get_store
-from .scheduler import validate_schedule
+from .scheduler import next_due, validate_schedule
 
 TEXT = vol.Any(str, None)
 GROUP_FIELDS = {vol.Required("name"): str, vol.Optional("manufacturer"): TEXT, vol.Optional("model"): TEXT, vol.Optional("icon"): TEXT, vol.Optional("description"): TEXT}
@@ -31,6 +31,20 @@ TASK_FIELDS = {
 TASK_GROUP_FIELDS = {
     vol.Optional("group_id"): vol.Any(str, None),
     vol.Optional("group_name"): TEXT,
+}
+PREVIEW_FIELDS = {
+    vol.Required("due_date"): str,
+    vol.Optional("schedule_anchor"): str,
+    vol.Required("recurrence_mode"): vol.In(("fixed", "sliding")),
+    vol.Required("frequency"): vol.In(("daily", "weekly", "monthly")),
+    vol.Required("interval"): vol.All(vol.Coerce(int), vol.Range(min=1)),
+    vol.Optional("weekdays", default=[]): [
+        vol.All(vol.Coerce(int), vol.Range(min=0, max=6))
+    ],
+    vol.Optional("day_of_month"): vol.Any(
+        vol.All(vol.Coerce(int), vol.Range(min=1, max=31)), "last", None
+    ),
+    vol.Optional("completion_date"): str,
 }
 
 
@@ -142,6 +156,23 @@ async def ws_task_delete(hass, connection, msg, store):
 
 
 @websocket_api.websocket_command(
+    {vol.Required("type"): "home_tasker/task/preview_next_due", **PREVIEW_FIELDS}
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+@require_store
+async def ws_task_preview_next_due(hass, connection, msg, store):
+    """Preview recurrence using the authoritative backend scheduler."""
+    validate_schedule(msg)
+    completed = date.fromisoformat(
+        msg.get("completion_date", dt_util.now().date().isoformat())
+    )
+    connection.send_result(
+        msg["id"], {"next_due": next_due(msg, completed).isoformat()}
+    )
+
+
+@websocket_api.websocket_command(
     {
         vol.Required("type"): "home_tasker/task/complete",
         vol.Required("task_id"): str,
@@ -222,4 +253,4 @@ async def ws_attachment_sign_all(hass, connection, msg, store):
     )
 
 
-COMMANDS = (ws_list, ws_group_create, ws_group_update, ws_group_delete, ws_task_create, ws_task_update, ws_task_delete, ws_task_complete, ws_history_list, ws_history_delete, ws_attachment_delete, ws_attachment_sign, ws_attachment_sign_all)
+COMMANDS = (ws_list, ws_group_create, ws_group_update, ws_group_delete, ws_task_create, ws_task_update, ws_task_delete, ws_task_preview_next_due, ws_task_complete, ws_history_list, ws_history_delete, ws_attachment_delete, ws_attachment_sign, ws_attachment_sign_all)
