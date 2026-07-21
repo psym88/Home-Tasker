@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.97
+
+### Added
+
+- Allow a unique Home Assistant NFC tag ID to be assigned to each task.
+- Complete matching tasks from native `tag_scanned` events, including recurrence advancement, history attribution and live entity/calendar refreshes.
+
 ## 0.2.96
 
 ### Fixed

@@ -7,7 +7,7 @@ from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from . import http, websocket
+from . import http, nfc, websocket
 from .const import CARD_JS_URL, DOMAIN, FRONTEND_URL, PANEL_JS_URL, PANEL_TITLE, PANEL_URL, PLATFORMS, TRANSLATIONS_URL
 from .models import HomeTaskerData
 from .store import HomeTaskerStore
@@ -30,6 +30,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     store = HomeTaskerStore(hass, upload_dir)
     await store.async_load()
     entry.runtime_data = HomeTaskerData(store)
+    entry.async_on_unload(nfc.async_setup_listener(hass, store))
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     frontend.add_extra_js_url(hass, CARD_JS_URL)
     await panel_custom.async_register_panel(hass, webcomponent_name="home-tasker-panel", frontend_url_path=PANEL_URL.removeprefix("/"), module_url=PANEL_JS_URL, sidebar_title=PANEL_TITLE, sidebar_icon="mdi:clipboard-check-outline", require_admin=True, config={})

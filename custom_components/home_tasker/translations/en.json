@@ -31,6 +31,7 @@
     "task.history": "History",
     "task.group": "Group",
     "task.user": "User",
+    "task.nfc_tag_id": "NFC tag ID",
     "task.no_group": "No group",
     "task.unassigned": "Unassigned",
     "task.no_description": "No description",

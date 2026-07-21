@@ -83,6 +83,17 @@ class HomeTaskerStore:
             for group in self._data["groups"]
         )
 
+    def _normalize_nfc_tag_id(
+        self, value: Any, exclude_task_id: str | None = None
+    ) -> str | None:
+        tag_id = str(value or "").strip() or None
+        if tag_id and any(
+            task["id"] != exclude_task_id and task.get("nfc_tag_id") == tag_id
+            for task in self._data["tasks"]
+        ):
+            raise ValueError("nfc_tag_already_assigned")
+        return tag_id
+
     def task(self, task_id: str) -> dict[str, Any]:
         """Return one task for validation by the API layer."""
         return dict(self._find("tasks", task_id))
@@ -181,6 +192,7 @@ class HomeTaskerStore:
         async with self._lock:
             now = _now()
             name = self._required_name(payload.get("name"))
+            nfc_tag_id = self._normalize_nfc_tag_id(payload.get("nfc_tag_id"))
             group_id = self._resolve_task_group(
                 payload.get("group_id"), payload.get("group_name"), now
             )
@@ -188,6 +200,7 @@ class HomeTaskerStore:
                 "id": uuid4().hex,
                 **{k: payload.get(k) for k in ("name", "description", "assignee_user_id", "start_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month", "month_of_year")},
                 "name": name,
+                "nfc_tag_id": nfc_tag_id,
                 "group_id": group_id,
                 "anchor_day": due.day,
                 "due_date": due.isoformat(),
@@ -204,13 +217,20 @@ class HomeTaskerStore:
             task = self._find("tasks", task_id)
             if "name" in payload:
                 payload = {**payload, "name": self._required_name(payload["name"])}
+            if "nfc_tag_id" in payload:
+                payload = {
+                    **payload,
+                    "nfc_tag_id": self._normalize_nfc_tag_id(
+                        payload["nfc_tag_id"], task_id
+                    ),
+                }
             if "group_id" in payload or "group_name" in payload:
                 task["group_id"] = self._resolve_task_group(
                     payload.get("group_id"), payload.get("group_name"), _now()
                 )
             schedule_keys = ("start_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month", "month_of_year")
             old_schedule = _schedule_signature(task)
-            for key in ("name", "description", "assignee_user_id", *schedule_keys):
+            for key in ("name", "description", "assignee_user_id", "nfc_tag_id", *schedule_keys):
                 if key in payload:
                     task[key] = payload[key]
             schedule_changed = _schedule_signature(task) != old_schedule

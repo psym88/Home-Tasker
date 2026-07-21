@@ -56,6 +56,11 @@ def test_dashboard_module_is_registered_and_removed_with_config_entry():
     assert "frontend.remove_extra_js_url(hass, CARD_JS_URL)" in source
 
 
+def test_nfc_listener_lifecycle_is_bound_to_config_entry():
+    source=(ROOT / "custom_components/home_tasker/__init__.py").read_text(encoding="utf-8")
+    assert "entry.async_on_unload(nfc.async_setup_listener(hass, store))" in source
+
+
 def test_frontend_and_consolidated_translations_are_registered_as_static_paths():
     source=(ROOT / "custom_components/home_tasker/__init__.py").read_text(encoding="utf-8")
     assert "StaticPathConfig(FRONTEND_URL, str(frontend_dir), False)" in source

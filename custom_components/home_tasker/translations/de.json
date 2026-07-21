@@ -31,6 +31,7 @@
     "task.history": "Verlauf",
     "task.group": "Gruppe",
     "task.user": "Benutzer",
+    "task.nfc_tag_id": "NFC-Tag-ID",
     "task.no_group": "Keine Gruppe",
     "task.unassigned": "Nicht zugewiesen",
     "task.no_description": "Keine Beschreibung",

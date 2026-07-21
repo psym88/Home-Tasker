@@ -10,6 +10,7 @@ Home Tasker brings recurring household tasks into Home Assistant. Organize tasks
 - Calendar-based schedules or intervals based on the last completion
 - Task groups and assignment to Home Assistant users
 - Completion notes, history, and file attachments
+- Optional NFC tag assignment to complete a task by scanning it
 - A dedicated Home Tasker panel for managing tasks
 - A configurable dashboard card for a focused task list
 - Home Assistant entities for automations and notifications
@@ -60,6 +61,14 @@ Groups can be expanded to show their tasks. The badge beside a group shows how m
 Select a task to open its details. From there you can review its Home Assistant-rendered Markdown description, schedule, files, and history, and complete it with an optional note. Viewers, editors and empty states follow Home Assistant's native typography and text colors.
 
 Use the three-dot menu beside a task or group to edit or delete it. Files can be attached from the task editor by selecting them or using drag and drop. Supported files open in a Home Assistant preview dialog.
+
+### Complete a task with an NFC tag
+
+1. Create or open a tag in **Settings → Tags** and copy its tag ID.
+2. Edit a Home Tasker task and enter that value in **NFC tag ID** under **Assignment**.
+3. Scan the tag with the Home Assistant companion app or a Home Assistant-compatible tag reader.
+
+The scan completes the task immediately, adds a history entry, and calculates its next due date. A tag ID can be assigned to only one task. When Home Assistant includes a user in the scan event, that user is recorded in the history; otherwise the entry is attributed to **NFC tag**.
 
 ### Recurring schedules
 

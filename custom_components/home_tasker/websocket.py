@@ -29,6 +29,7 @@ TASK_FIELDS = {
     vol.Required("name"): str,
     vol.Optional("description"): TEXT,
     vol.Optional("assignee_user_id"): TEXT,
+    vol.Optional("nfc_tag_id"): TEXT,
     vol.Optional("start_date"): TEXT,
     **SCHEDULE_FIELDS,
 }
