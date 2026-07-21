@@ -45,6 +45,7 @@ PREVIEW_FIELDS = {
         vol.All(vol.Coerce(int), vol.Range(min=1, max=31)), "last", None
     ),
     vol.Optional("completion_date"): str,
+    vol.Optional("count", default=2): vol.All(vol.Coerce(int), vol.Range(min=1, max=24)),
 }
 
 
@@ -167,13 +168,10 @@ async def ws_task_preview_next_due(hass, connection, msg, store):
     completed = date.fromisoformat(
         msg.get("completion_date", dt_util.now().date().isoformat())
     )
-    second_due, third_due = next_due_sequence(msg, completed)
+    due_dates = next_due_sequence(msg, completed, msg["count"])
     connection.send_result(
         msg["id"],
-        {
-            "next_due": second_due.isoformat(),
-            "following_due": third_due.isoformat(),
-        },
+        {"due_dates": [due.isoformat() for due in due_dates]},
     )
 
 

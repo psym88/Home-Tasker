@@ -24,7 +24,7 @@ Only one Home Tasker config entry can be created.
 - Files can be uploaded by browsing or drag and drop. New uploads are discarded when the editor is closed without saving.
 - History rows show the completion date, local time, user, and optional completion notes. Deleting a history entry recalculates the derived due date. If the due date is edited in the same save operation, the explicitly entered date wins.
 - The panel inherits Home Assistant theme typography, text colors, and button styling for consistent light, dark, and custom themes.
-- The editor schedule summary shows the first three due dates. Both future dates are calculated by the backend scheduler, beginning with a completion today.
+- The editor schedule summary shows the first six due dates without trailing punctuation. All future dates are calculated as a generic sequence by the backend scheduler, beginning with a completion today.
 - Collapsible scheduling, file, and history boxes use compact internal spacing and clickable headers that match their visible area.
 - Long attachment pills truncate only the base name so the file extension remains visible. Description fields can be resized vertically.
 
