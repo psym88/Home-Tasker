@@ -141,13 +141,26 @@ async def ws_task_delete(hass, connection, msg, store):
     await store.async_delete_task(msg["task_id"]); connection.send_result(msg["id"]); updated(hass)
 
 
-@websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/complete", vol.Required("task_id"): str, vol.Optional("completion_date"): str})
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "home_tasker/task/complete",
+        vol.Required("task_id"): str,
+        vol.Optional("completion_date"): str,
+        vol.Optional("notes"): TEXT,
+    }
+)
 @websocket_api.require_admin
 @websocket_api.async_response
 @require_store
 async def ws_task_complete(hass, connection, msg, store):
     user = connection.user
-    result = await store.async_complete_task(msg["task_id"], msg.get("completion_date", dt_util.now().date().isoformat()), user.id if user else None, user.name if user else "system")
+    result = await store.async_complete_task(
+        msg["task_id"],
+        msg.get("completion_date", dt_util.now().date().isoformat()),
+        user.id if user else None,
+        user.name if user else "system",
+        msg.get("notes"),
+    )
     connection.send_result(msg["id"], result); updated(hass)
 
 

@@ -20,9 +20,9 @@ Only one Home Tasker config entry can be created.
 
 - Use the global **Add task** button to create a task. Enter an existing group name or create a new group directly from the task editor.
 - Expand a group to see its tasks. The red number is the count of currently due tasks.
-- Click a task row to open its read-only viewer with rendered Markdown, schedule, files, history, and a completion action. Use the blue pencil at the right of the row to edit the task.
+- Click a task row to open its read-only viewer with rendered Markdown, schedule, collapsible files and history, completion notes, and a completion action. Use the blue pencil at the right of the row to edit the task.
 - Files can be uploaded by browsing or drag and drop. New uploads are discarded when the editor is closed without saving.
-- Deleting a history entry recalculates the derived due date. If the due date is edited in the same save operation, the explicitly entered date wins.
+- History rows show the completion date, local time, user, and optional completion notes. Deleting a history entry recalculates the derived due date. If the due date is edited in the same save operation, the explicitly entered date wins.
 
 ## Recurrence
 
