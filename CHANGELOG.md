@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.45
+
+### Fixed
+
+- Calculate due-date column widths across the complete preview table so every date starts at the same horizontal position.
+
 ## 0.2.44
 
 ### Changed
