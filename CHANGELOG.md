@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.80
+
+### Fixed
+
+- Keep the current due-date preview visible while schedule changes are recalculated, preventing transient text and layout flicker.
+
 ## 0.2.79
 
 ### Changed
