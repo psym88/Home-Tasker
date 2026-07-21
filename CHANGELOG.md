@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.104
+
+### Fixed
+
+- Mount shared pill rules as CSS in the dashboard card instead of exposing the raw styling text below the card.
+
 ## 0.2.103
 
 ### Changed
