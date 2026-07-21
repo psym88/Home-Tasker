@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.51
+
+### Fixed
+
+- Keep icon-action hover feedback visible inside hovered task-list rows in light themes by using Home Assistant's quiet primary hover fill.
+- Use Home Assistant's lighter quiet neutral fill for task-row hover so it remains distinct from pill backgrounds.
+
 ## 0.2.50
 
 ### Changed
