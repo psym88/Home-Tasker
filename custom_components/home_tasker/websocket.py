@@ -13,7 +13,7 @@ from homeassistant.util import dt as dt_util
 
 from .const import DOWNLOAD_URL, SIGNAL_UPDATED
 from .helpers import get_store
-from .scheduler import next_due, validate_schedule
+from .scheduler import next_due_sequence, validate_schedule
 
 TEXT = vol.Any(str, None)
 GROUP_FIELDS = {vol.Required("name"): str, vol.Optional("manufacturer"): TEXT, vol.Optional("model"): TEXT, vol.Optional("icon"): TEXT, vol.Optional("description"): TEXT}
@@ -167,8 +167,13 @@ async def ws_task_preview_next_due(hass, connection, msg, store):
     completed = date.fromisoformat(
         msg.get("completion_date", dt_util.now().date().isoformat())
     )
+    second_due, third_due = next_due_sequence(msg, completed)
     connection.send_result(
-        msg["id"], {"next_due": next_due(msg, completed).isoformat()}
+        msg["id"],
+        {
+            "next_due": second_due.isoformat(),
+            "following_due": third_due.isoformat(),
+        },
     )
 
 

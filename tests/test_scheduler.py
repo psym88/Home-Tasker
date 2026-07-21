@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from custom_components.home_tasker.scheduler import add_interval, next_due, validate_schedule
+from custom_components.home_tasker.scheduler import add_interval, next_due, next_due_sequence, validate_schedule
 
 
 def task(**values):
@@ -73,3 +73,15 @@ def test_monthly_legacy_data_without_selected_day_uses_anchor():
         day_of_month=None,
     )
     assert next_due(value, date(2026, 1, 31)) == date(2026, 2, 28)
+
+
+def test_next_due_sequence_uses_each_occurrence_as_the_next_completion():
+    assert next_due_sequence(
+        task(recurrence_mode="sliding", frequency="monthly", interval=1),
+        date(2026, 7, 21),
+    ) == [date(2026, 8, 21), date(2026, 9, 21)]
+
+    assert next_due_sequence(
+        task(frequency="weekly", weekdays=[0, 2, 4]),
+        date(2026, 7, 21),
+    ) == [date(2026, 7, 22), date(2026, 7, 24)]
