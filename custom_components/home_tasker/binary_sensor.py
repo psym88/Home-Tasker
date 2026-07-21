@@ -2,11 +2,12 @@
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass, BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.dispatcher import async_dispatcher_connect, async_dispatcher_send
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import async_track_time_change
 from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN, SIGNAL_UPDATED
@@ -75,12 +76,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry[HomeTaskerDa
     await sync()
     entry.async_on_unload(async_dispatcher_connect(hass, SIGNAL_UPDATED, sync))
 
+    @callback
+    def refresh_at_midnight(now) -> None:
+        # Due state flips at the local date rollover without any mutation.
+        async_dispatcher_send(hass, SIGNAL_UPDATED)
+
+    entry.async_on_unload(
+        async_track_time_change(hass, refresh_at_midnight, hour=0, minute=0, second=0)
+    )
+
 
 class TaskSensor(BinarySensorEntity):
     """One due-state entity per task."""
 
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
     _attr_has_entity_name = True
+    _attr_should_poll = False
 
     def __init__(self, store, task_id: str) -> None:
         self._store = store

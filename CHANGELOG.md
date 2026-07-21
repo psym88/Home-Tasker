@@ -2,6 +2,21 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.48
+
+### Fixed
+
+- Refresh each task's problem sensor exactly at local midnight so the due state (and any automations bound to it) flips at the date rollover without waiting for a mutation or a poll.
+
+### Changed
+
+- Turn off entity polling and rely on push updates, matching the integration's `local_push` class.
+- Use Home Assistant's `dt` utility for date and timestamp calculations so due dates follow the configured Home Assistant time zone.
+
+### Removed
+
+- Drop the unused single-file `attachment/sign` WebSocket command; the panel signs attachments through `attachment/sign_all` and the initial list response.
+
 ## 0.2.47
 
 ### Fixed

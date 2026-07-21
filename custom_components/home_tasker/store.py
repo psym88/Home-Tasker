@@ -4,20 +4,21 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from datetime import date, datetime, timezone
+from datetime import date
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
+from homeassistant.util import dt as dt_util
 
 from .const import FALLBACK_GROUP_NAME, STORAGE_KEY, STORAGE_VERSION
 from .scheduler import initial_due, next_due
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return dt_util.utcnow().isoformat()
 
 
 def _schedule_signature(task: dict[str, Any]) -> tuple[Any, ...]:
@@ -176,7 +177,7 @@ class HomeTaskerStore:
             await self._save()
 
     async def async_add_task(self, payload: dict[str, Any], today: date | None = None) -> dict[str, Any]:
-        due = initial_due(payload, today or date.today())
+        due = initial_due(payload, today or dt_util.now().date())
         async with self._lock:
             now = _now()
             name = self._required_name(payload.get("name"))
@@ -214,7 +215,7 @@ class HomeTaskerStore:
                     task[key] = payload[key]
             schedule_changed = _schedule_signature(task) != old_schedule
             if schedule_changed:
-                due = initial_due(task, today or date.today())
+                due = initial_due(task, today or dt_util.now().date())
                 task["due_date"] = due.isoformat()
                 task["anchor_day"] = due.day
                 task["schedule_anchor"] = due.isoformat()
