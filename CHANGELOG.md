@@ -2,6 +2,14 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.43
+
+### Changed
+
+- Match the optional start-date heading to the other planning subtitles in size, weight, and color.
+- Place the start-date selection action below its heading with tighter vertical spacing.
+- Present the start-date removal action in the Home Assistant error color.
+
 ## 0.2.42
 
 ### Changed
