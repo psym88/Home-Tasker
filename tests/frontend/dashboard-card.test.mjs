@@ -9,7 +9,7 @@ globalThis.CustomEvent = class {constructor(type,options){this.type=type;Object.
 const {DEFAULT_CARD_CONFIG,HomeTaskerCardEditor,UNASSIGNED,canEditCard,dashboardCardBodyHtml,dashboardTaskRowHtml,dueStatus,filterDashboardTasks,normalizeCardConfig,sortDashboardTasks}=await import("../../custom_components/home_tasker/frontend/dashboard-card.js");
 const {HomeTaskerBase,HomeTaskerPanel}=await import("../../custom_components/home_tasker/frontend/main.js");
 const {TASK_DIALOG_TAG,showTaskDialog}=await import("../../custom_components/home_tasker/frontend/native-task-dialog.js");
-const {CONFIRM_DIALOG_TAG,FORM_DIALOG_TAG,showFormDialog,showNativeConfirmation}=await import("../../custom_components/home_tasker/frontend/native-form-dialog.js");
+const {CONFIRM_DIALOG_TAG,FORM_DIALOG_TAG,formDialogLayoutStyles,showFormDialog,showNativeConfirmation}=await import("../../custom_components/home_tasker/frontend/native-form-dialog.js");
 
 const tasks=[
   {id:"old",name:"Wischen",due_date:"2026-07-20",group_id:"house",assignee_user_id:"alice"},
@@ -36,4 +36,5 @@ test("repeated hass updates do not rerender and steal editor focus",()=>{const e
 test("panel uses an unregistered shared base instead of becoming the card base",async()=>{const {HomeTaskerCard}=await import("../../custom_components/home_tasker/frontend/dashboard-card.js");assert.equal(Object.getPrototypeOf(HomeTaskerPanel),HomeTaskerBase);assert.equal(Object.getPrototypeOf(HomeTaskerCard),HomeTaskerBase);assert.notEqual(Object.getPrototypeOf(HomeTaskerCard),HomeTaskerPanel);});
 test("task viewer opens through Home Assistant's native show-dialog contract",()=>{let event;const controller={dispatchEvent:value=>{event=value;}};showTaskDialog(controller,tasks[0]);assert.equal(event.type,"show-dialog");assert.equal(event.bubbles,true);assert.equal(event.composed,true);assert.equal(event.detail.dialogTag,TASK_DIALOG_TAG);assert.equal(event.detail.dialogParams.task,tasks[0]);});
 test("editors and confirmations use registered native dialog contracts",()=>{const events=[],controller={dispatchEvent:event=>events.push(event)};showFormDialog(controller,{title:"Editor",fields:[]});showNativeConfirmation(controller,{title:"Delete",message:"Sure?",confirmLabel:"Delete"});assert.equal(events[0].detail.dialogTag,FORM_DIALOG_TAG);assert.equal(events[1].detail.dialogTag,CONFIRM_DIALOG_TAG);assert.ok(events.every(event=>event.bubbles&&event.composed));});
+test("native form dialogs include collapsible layout and chevron styles",()=>{const css="<style>.details-content{display:none}.details.open>.details-toggle ha-icon{transform:rotate(90deg)}</style>";assert.equal(formDialogLayoutStyles({dialogLayoutStyles:()=>css}),css);});
 test("dashboard add action renders before task elements",()=>{const html=dashboardCardBodyHtml('<div class="task-row"></div>',true);assert.ok(html.indexOf("card-actions")<html.indexOf("task-row"));});

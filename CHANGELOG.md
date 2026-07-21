@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.64
+
+### Fixed
+
+- Include the shared collapsible layout rules in native task and group form dialogs so sections and chevrons render and toggle correctly.
+
 ## 0.2.63
 
 ### Changed

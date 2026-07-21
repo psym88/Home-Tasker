@@ -26,7 +26,7 @@ Only one Home Tasker config entry can be created.
 - The panel inherits Home Assistant theme typography, text colors, and button styling for consistent light, dark, and custom themes. Task rows have a transparent resting background and retain the original neutral hover treatment, as do icon actions.
 - The editor uses consistent Home Assistant body typography throughout planning. It initially shows four unnumbered backend-calculated dates under "Due date preview" in normal text size and color. Weekdays and localized dates share one aligned, responsive two-column layout, ensuring every date starts at the same horizontal position below the recurrence description. "Show more" reveals one additional occurrence and retains that count when schedule options change. The final planning control presents "Optional start date" as a planning subtitle, places its selection below, and shows its removal action in the Home Assistant error color.
 - Recurrence supports daily, weekly, monthly, and yearly rhythms. Calendar-based yearly tasks select a month and day, while completion-based yearly tasks advance from the actual completion date.
-- Collapsible scheduling, file, and history boxes use compact internal spacing and clickable headers that match their visible area.
+- Collapsible scheduling, file, and history boxes use compact internal spacing and clickable headers with correctly aligned, rotating chevrons in native viewers and editors.
 - Long attachment pills truncate only the base name so the file extension remains visible. Description fields can be resized vertically.
 
 ## Dashboard card
