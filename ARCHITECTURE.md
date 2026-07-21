@@ -24,6 +24,7 @@ The list has no recurrence filters. Group editing appears as a pencil action at 
 Group headers show the number of due tasks as a red numeric pill.
 Actions use native buttons styled with Home Assistant theme variables instead of unstable internal frontend components. Popup titles remain sticky while the dialog body scrolls.
 Typography follows Home Assistant font, size, weight, line-height, and color variables. Action buttons share a 44-pixel minimum control height, while icon actions use a matching square footprint.
+Collapsible boxes remove redundant vertical padding and keep the clickable header aligned with its visible area. The editor requests its unsaved next-due preview through an admin-only WebSocket command that calls `scheduler.py`, so preview and persisted completion dates share the authoritative backend calculation.
 
 The backend supplies Home Assistant's current local date so sensors, relative dates, and the frontend agree around midnight. The panel refreshes visible data every 30 seconds and retries automatically after load failures. Attachment URLs are returned in bulk instead of requiring one WebSocket request per file.
 

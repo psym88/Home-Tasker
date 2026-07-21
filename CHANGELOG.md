@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.33
+
+### Changed
+
+- Reduce top and bottom whitespace inside collapsible editor and viewer boxes and match the clickable header to its visible area.
+- Calculate the editor's next-due preview through the backend scheduler instead of duplicating recurrence logic in the frontend.
+
 ## 0.2.32
 
 ### Changed
