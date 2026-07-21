@@ -2,6 +2,16 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.72
+
+### Changed
+
+- Render the dashboard add-task action as a full-width muted placeholder row with a dashed border above the tasks.
+
+### Fixed
+
+- Suppress Home Assistant's card border variables and force the outer background, border, and shadow off when the frameless option is enabled.
+
 ## 0.2.71
 
 ### Changed
