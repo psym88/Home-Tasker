@@ -13,6 +13,7 @@ Home Tasker brings recurring household tasks into Home Assistant. Organize tasks
 - A dedicated Home Tasker panel for managing tasks
 - A configurable dashboard card for a focused task list
 - Home Assistant entities for automations and notifications
+- A read-only Home Assistant calendar containing every current task due date
 - Local storage inside your Home Assistant configuration
 - English and German interface text that follows each user's Home Assistant language
 
@@ -96,6 +97,8 @@ All signed-in Home Assistant users can view, create, edit, delete and complete t
 ## Home Assistant entities
 
 Each group is represented as a Home Assistant device. Every task provides a problem `binary_sensor`; it is `on` while the task is due. Assignment and schedule information is available as entity attributes for use in automations and notifications.
+
+The read-only **Home Tasker** calendar shows every task as an all-day event on its current due date. Completing or rescheduling a task moves the event to its newly calculated due date, while deleting a task removes it from the calendar. The task description and group are exposed as the event description and location.
 
 ## Data and privacy
 

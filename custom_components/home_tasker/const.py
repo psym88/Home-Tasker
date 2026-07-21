@@ -1,13 +1,13 @@
 """Constants for Home Tasker."""
 
 DOMAIN = "home_tasker"
-PLATFORMS = ["binary_sensor"]
+PLATFORMS = ["binary_sensor", "calendar"]
 STORAGE_KEY = DOMAIN
 STORAGE_VERSION = 1
 SIGNAL_UPDATED = f"{DOMAIN}_updated"
 PANEL_URL = "/home-tasker"
 PANEL_TITLE = "Home Tasker"
-PANEL_VERSION = "0.2.90"
+PANEL_VERSION = "0.2.91"
 FALLBACK_GROUP_NAME = "Tasks"
 FRONTEND_URL = f"/{DOMAIN}_frontend"
 TRANSLATIONS_URL = f"/{DOMAIN}_translations"

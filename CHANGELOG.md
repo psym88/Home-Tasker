@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.91
+
+### Added
+
+- Add a read-only Home Assistant calendar named Home Tasker with one all-day event for every task's current due date.
+- Synchronize calendar events immediately when tasks are created, edited, completed or deleted, including event descriptions, group locations and stable task IDs.
+
 ## 0.2.90
 
 ### Changed

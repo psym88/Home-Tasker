@@ -9,6 +9,7 @@ Home Tasker deliberately has a small surface. The integration is local-only and 
 - Fixed weekly schedules support multiple weekdays. Fixed monthly schedules support days 1–31 or the last day. Completing a fixed task before its due date preserves the upcoming occurrence; completing it on time advances once, while late completion skips missed occurrences. Sliding schedules advance from the completion date, including the completion day for monthly schedules.
 - Before version 1.0, stored schema changes do not include compatibility normalization; development data may be reset.
 - Every task exposes one problem `binary_sensor`; `on` means due. The sensors are push-only (polling disabled) and refresh on data mutations and at local midnight so the due state flips at the date rollover. Deleting tasks or groups also removes their entity/device registry entries.
+- One read-only `calendar` entity named Home Tasker exposes each task's current due date as an all-day event. Task IDs are stable event UIDs, descriptions and group names become event details, and store mutations push state and subscribed event-list updates without duplicating future recurrence instances.
 - Attachments belong to one task. Existing browser links are pre-signed as part of the authenticated list response, while uploads return their own signed URL directly. Attachment rows reserve fixed right-side space for size and actions while their flexible filename column truncates only the base name and preserves the extension. History entries retain `due_before`, `due_after`, the recording timestamp, user, and optional completion notes. Removing an entry replays the remaining completion history chronologically from the original due date and rebuilds every due-date transition.
 
 ## Modules
@@ -18,6 +19,7 @@ Home Tasker deliberately has a small surface. The integration is local-only and 
 - `websocket.py`: authenticated metadata API
 - `http.py`: authenticated binary upload/download
 - `binary_sensor.py`: task entities and virtual device metadata
+- `calendar.py`: read-only task due-date calendar and live event updates
 - `frontend/panel.js`: lightweight ES-module entry point and custom-element registration
 - `frontend/main.js`: panel state, Home Assistant communication, shared formatting, and feature coordination
 - `frontend/localize.js` and `translations/*.json`: locale loading, English fallback, interpolation, and the consolidated Home Assistant/frontend language catalogs
