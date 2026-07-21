@@ -2,6 +2,14 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.90
+
+### Changed
+
+- Consolidate config-flow and frontend translations into the integration-level `translations/en.json` and `translations/de.json` catalogs.
+- Move the English frontend fallback out of JavaScript and load it from `en.json` before overlaying the selected language.
+- Serve the shared translation directory through its own static integration URL and remove the duplicate frontend translation directory.
+
 ## 0.2.89
 
 ### Added

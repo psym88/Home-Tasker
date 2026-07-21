@@ -1,77 +1,33 @@
-const EN = {
-  "common.add_task": "Add task", "common.edit": "Edit", "common.delete": "Delete", "common.save": "Save",
-  "common.cancel": "Cancel", "common.close": "Close", "common.remove": "Remove", "common.undo": "Undo",
-  "common.download": "Download", "common.loading": "Loading…", "common.system": "system", "common.error": "Error: {message}",
-  "task.name": "Name", "task.description": "Description", "task.planning": "Schedule", "task.assignment": "Assignment",
-  "task.files": "Files", "task.history": "History", "task.group": "Group", "task.user": "User",
-  "task.no_group": "No group", "task.unassigned": "Unassigned", "task.no_description": "No description",
-  "task.no_files": "No files", "task.no_history": "No history yet", "task.start_date": "Starts on",
-  "task.recurrence_calculation": "Calculate due date", "task.frequency": "Frequency", "task.interval": "Every",
-  "task.fixed": "By calendar", "task.sliding": "After completion", "task.daily": "Daily", "task.weekly": "Weekly",
-  "task.monthly": "Monthly", "task.yearly": "Yearly", "task.new": "New task", "task.edit": "Edit task",
-  "task.complete": "Complete", "task.completed": "Completed", "task.complete_title": "Complete task",
-  "task.complete_confirm": "Do you want to mark “{name}” as completed?", "task.completion_notes": "Completion notes",
-  "task.completion_notes_placeholder": "Optional notes for the history", "task.delete_title": "Delete task",
-  "task.delete_confirm": "Do you really want to delete “{name}”? Files and history will also be deleted.",
-  "task.actions": "Task actions", "task.due": "Due", "task.due_dates": "Due dates",
-  "task.preview_due_dates": "Due date preview", "task.calculating_due_dates": "Calculating due dates…",
-  "task.due_dates_failed": "Due dates could not be calculated", "task.show_more": "Show more…",
-  "task.optional_start_date": "Optional start date", "task.select": "select", "task.weekdays": "Weekdays",
-  "task.day": "Day", "task.month": "Month", "task.on_day": "On day", "task.last_day": "Last day",
-  "task.interval_decrease": "Decrease interval", "task.interval_increase": "Increase interval", "task.interval_label": "Interval",
-  "group.name": "Name", "group.manufacturer": "Manufacturer", "group.model": "Model", "group.description": "Description",
-  "group.new": "New group", "group.edit": "Edit group", "group.delete_title": "Delete group",
-  "group.delete_confirm": "Do you really want to delete “{name}”? Contained tasks, files, and history will also be deleted.",
-  "group.actions": "Group actions", "group.search_placeholder": "Search for or create a group",
-  "group.open_picker": "Open group selection", "group.create": "Create “{name}” as a new group", "group.none": "No groups available",
-  "file.drop": "Drag files here or tap to select", "file.remove": "Remove file", "file.undo_remove": "Undo file removal",
-  "file.default_name": "File", "file.preview_failed": "This file cannot be previewed.",
-  "history.date": "Date", "history.time": "Time", "history.user": "User", "history.notes": "Notes",
-  "history.remove": "Remove history entry", "history.undo_remove": "Undo history entry removal",
-  "history.load_failed": "History could not be loaded: {message}",
-  "schedule.after_completion_one": "Occurs {period} after completion.", "schedule.after_completion_many": "Occurs every {interval} {period} after completion.",
-  "schedule.fixed_one": "Occurs {period}.", "schedule.fixed_many": "Occurs every {interval} {period}.",
-  "schedule.weekly_one": "Occurs every week{days}.", "schedule.weekly_many": "Occurs every {interval} weeks{days}.",
-  "schedule.monthly_one": "Occurs every month {day}.", "schedule.monthly_many": "Occurs every {interval} months {day}.",
-  "schedule.yearly_one": "Occurs every year {day}.", "schedule.yearly_many": "Occurs every {interval} years {day}.",
-  "schedule.on_days": " on {days}", "schedule.and": " and ", "schedule.on_last_day": "on the last day",
-  "schedule.on_last_day_of_month": "on the last day of {month}", "schedule.on_day_number": "on day {day}",
-  "schedule.on_day_of_month": "on {day} {month}", "schedule.period_day": "every day", "schedule.period_week": "every week",
-  "schedule.period_month": "every month", "schedule.period_year": "every year", "schedule.period_days": "days",
-  "schedule.period_weeks": "weeks", "schedule.period_months": "months", "schedule.period_years": "years",
-  "panel.subtitle": "Keep recurring tasks in view", "panel.collapse_all": "Collapse all", "panel.expand_all": "Expand all",
-  "panel.sort": "Sort", "panel.sort_name": "Name", "panel.sort_due": "Due date", "panel.load_failed": "The data could not be loaded. Another attempt will follow automatically.",
-  "form.required": "Please fill in all required fields.", "upload.failed": "Upload failed ({status})",
-  "menu.edit": "Edit", "menu.delete": "Delete", "attachment.close": "Close", "attachment.download": "Download",
-  "card.add": "Add task", "card.empty": "No matching tasks", "card.mode": "Mode", "card.mode_view": "View",
-  "card.mode_edit": "Edit", "card.hide_background": "Hide background and outer border",
-  "card.due_days": "Days into the future (empty = all)", "card.groups": "Groups (no selection = all)",
-  "card.users": "Users (no selection = all)", "card.description": "Due Home Tasker tasks as a flat list"
-};
-export const translationKeys=Object.freeze(Object.keys(EN));
+const CATALOG_URL="/home_tasker_translations";
 
-let messages = {};
-let language = "en";
-let appliedLanguage = "en";
-const loaded = new Map();
+let messages={};
+let language="en";
+let appliedLanguage=null;
+const loaded=new Map();
 
-function interpolate(value, variables) {
-  return String(value).replace(/\{(\w+)\}/g, (_, key) => variables[key] ?? `{${key}}`);
+function interpolate(value,variables){
+  return String(value).replace(/\{(\w+)\}/g,(_,key)=>variables[key]??`{${key}}`);
 }
 
-export function t(key, variables = {}) { return interpolate(messages[key] ?? EN[key] ?? key, variables); }
-export function locale() { return language; }
-
-export async function setLanguage(value) {
-  const next = String(value || "en").toLowerCase().split(/[-_]/)[0] || "en";
-  language = next;
-  if (next === "en") { const changed=appliedLanguage!==next;messages={};appliedLanguage=next;return changed; }
-  if (!loaded.has(next)) {
-    loaded.set(next, fetch(new URL(`./translations/${next}.json`, import.meta.url)).then(response => response.ok ? response.json() : {}).catch(() => ({})));
+async function loadCatalog(code){
+  if(!loaded.has(code)){
+    loaded.set(code,fetch(`${CATALOG_URL}/${code}.json`).then(response=>response.ok?response.json():{}).then(catalog=>catalog.frontend||{}).catch(()=>({})));
   }
-  const translated=await loaded.get(next),changed=appliedLanguage!==next;
-  if(language===next){messages=translated;appliedLanguage=next;}
+  return loaded.get(code);
+}
+
+export function t(key,variables={}){return interpolate(messages[key]??key,variables);}
+export function locale(){return language;}
+
+export async function setLanguage(value){
+  const requested=String(value||"en").toLowerCase().split(/[-_]/)[0];
+  const next=/^[a-z]{2,3}$/.test(requested)?requested:"en";
+  language=next;
+  const fallback=await loadCatalog("en");
+  const translated=next==="en"?fallback:await loadCatalog(next);
+  const changed=appliedLanguage!==next;
+  if(language===next){messages={...fallback,...translated};appliedLanguage=next;}
   return changed;
 }
 
-void setLanguage(globalThis.navigator?.language);
+export const ready=setLanguage(globalThis.navigator?.language);

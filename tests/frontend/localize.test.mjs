@@ -2,18 +2,32 @@ import assert from "node:assert/strict";
 import {readFileSync,readdirSync} from "node:fs";
 import test from "node:test";
 
-const {setLanguage,t,translationKeys}=await import("../../custom_components/home_tasker/frontend/localize.js");
+const catalog=language=>JSON.parse(readFileSync(new URL(`../../custom_components/home_tasker/translations/${language}.json`,import.meta.url),"utf8"));
+globalThis.fetch=async url=>{const language=String(url).match(/\/([a-z]{2,3})\.json$/)?.[1]||"en";return {ok:true,json:async()=>catalog(language)};};
 
-test("English is the complete built-in fallback",async()=>{
+const {ready,setLanguage,t}=await import("../../custom_components/home_tasker/frontend/localize.js");
+await ready;
+
+test("English is loaded as the complete fallback catalog",async()=>{
   await setLanguage("en-US");
   assert.equal(t("common.add_task"),"Add task");
   assert.equal(t("task.complete_confirm",{name:"Laundry"}),"Do you want to mark “Laundry” as completed?");
-  assert.ok(translationKeys.length>50);
+  assert.ok(Object.keys(catalog("en").frontend).length>50);
 });
 
-test("German translations cover every frontend key",()=>{
-  const messages=JSON.parse(readFileSync(new URL("../../custom_components/home_tasker/frontend/translations/de.json",import.meta.url),"utf8"));
-  assert.deepEqual(Object.keys(messages).sort(),[...translationKeys].sort());
+test("German translations share the consolidated Home Assistant catalog",async()=>{
+  const english=catalog("en"),german=catalog("de");
+  assert.ok(english.config&&german.config);
+  assert.deepEqual(Object.keys(german.frontend).sort(),Object.keys(english.frontend).sort());
+  await setLanguage("de-CH");
+  assert.equal(t("common.add_task"),german.frontend["common.add_task"]);
+  await setLanguage("en");
+});
+
+test("missing language catalogs retain the English fallback",async()=>{
+  await setLanguage("fr");
+  assert.equal(t("common.add_task"),catalog("en").frontend["common.add_task"]);
+  await setLanguage("en");
 });
 
 test("frontend source contains no embedded German UI copy",()=>{

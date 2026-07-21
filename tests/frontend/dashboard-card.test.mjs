@@ -6,7 +6,15 @@ globalThis.HTMLElement = class {};
 globalThis.customElements = {definitions:new Map(),get(name){return this.definitions.get(name);},define(name,value){this.definitions.set(name,value);}};
 globalThis.window = {};
 globalThis.CustomEvent = class {constructor(type,options){this.type=type;Object.assign(this,options);}};
+globalThis.fetch = async url => {
+  const language=String(url).match(/\/([a-z]{2,3})\.json$/)?.[1]||"en";
+  const catalog=JSON.parse(readFileSync(new URL(`../../custom_components/home_tasker/translations/${language}.json`,import.meta.url),"utf8"));
+  return {ok:true,json:async()=>catalog};
+};
 
+const {ready,setLanguage}=await import("../../custom_components/home_tasker/frontend/localize.js");
+await ready;
+await setLanguage("en");
 const {DEFAULT_CARD_CONFIG,HomeTaskerCardEditor,UNASSIGNED,canEditCard,dashboardCardBodyHtml,dashboardTaskRowHtml,dueStatus,filterDashboardTasks,normalizeCardConfig,sortDashboardTasks}=await import("../../custom_components/home_tasker/frontend/dashboard-card.js");
 const {HomeTaskerBase,HomeTaskerPanel}=await import("../../custom_components/home_tasker/frontend/main.js");
 const {EDITOR_FILE_GRID}=await import("../../custom_components/home_tasker/frontend/task-editor.js");

@@ -54,3 +54,12 @@ def test_dashboard_module_is_registered_and_removed_with_config_entry():
     source=(ROOT / "custom_components/home_tasker/__init__.py").read_text(encoding="utf-8")
     assert "frontend.add_extra_js_url(hass, CARD_JS_URL)" in source
     assert "frontend.remove_extra_js_url(hass, CARD_JS_URL)" in source
+
+
+def test_frontend_and_consolidated_translations_are_registered_as_static_paths():
+    source=(ROOT / "custom_components/home_tasker/__init__.py").read_text(encoding="utf-8")
+    assert "StaticPathConfig(FRONTEND_URL, str(frontend_dir), False)" in source
+    assert "StaticPathConfig(TRANSLATIONS_URL, str(translations_dir), False)" in source
+    component=ROOT / "custom_components/home_tasker"
+    assert list(component.rglob("de.json")) == [component / "translations/de.json"]
+    assert list(component.rglob("en.json")) == [component / "translations/en.json"]

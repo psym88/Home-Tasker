@@ -4,7 +4,15 @@ import test from "node:test";
 
 globalThis.HTMLElement = class {};
 globalThis.customElements = { get: () => undefined, define: () => undefined };
+globalThis.fetch = async url => {
+  const language = String(url).match(/\/([a-z]{2,3})\.json$/)?.[1] || "en";
+  const catalog = JSON.parse(readFileSync(new URL(`../../custom_components/home_tasker/translations/${language}.json`, import.meta.url), "utf8"));
+  return { ok: true, json: async () => catalog };
+};
 
+const {ready,setLanguage}=await import("../../custom_components/home_tasker/frontend/localize.js");
+await ready;
+await setLanguage("en");
 const { LIST_SECONDARY_ACTION_COLOR, TASK_ROW_BACKGROUND, TASK_ROW_HOVER_BACKGROUND, sortTasksByDue, withTaskList } = await import("../../custom_components/home_tasker/frontend/task-list.js");
 
 test("task rows remain transparent", () => {

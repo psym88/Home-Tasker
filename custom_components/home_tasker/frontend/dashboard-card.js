@@ -1,7 +1,7 @@
 import { HomeTaskerBase } from "./main.js";
 import { esc } from "./shared.js";
 import { ROW_ACTION_MENU_STYLES, rowActionButtonHtml } from "./action-menu.js";
-import { setLanguage, t } from "./localize.js";
+import { ready, setLanguage, t } from "./localize.js";
 
 export const UNASSIGNED = "__unassigned__";
 export const DEFAULT_CARD_CONFIG = Object.freeze({
@@ -68,7 +68,7 @@ export class HomeTaskerCard extends HomeTaskerBase {
 
 export class HomeTaskerCardEditor extends HTMLElement {
   constructor(){super();this.attachShadow({mode:"open"});this.config={...DEFAULT_CARD_CONFIG};this.groups=[];this.users=[];this.loaded=false;}
-  set hass(value){this._hass=value;setLanguage(value?.locale?.language).then(changed=>{if(!this.loaded){this.loaded=true;this.load();}else if(changed)this.render();});}
+  set hass(value){this._hass=value;setLanguage(value?.locale?.language).then(changed=>{updateCardMetadata();if(!this.loaded){this.loaded=true;this.load();}else if(changed)this.render();});}
   setConfig(config){this.config=normalizeCardConfig(config);this.render();}
   async load(){try{const data=await this._hass.connection.sendMessagePromise({type:"home_tasker/list"});this.groups=data.groups||[];this.users=data.users||[];}catch(error){console.error("Home Tasker card editor load failed",error);}this.render();}
   update(patch){this.config=normalizeCardConfig({...this.config,...patch});this.dispatchEvent(new CustomEvent("config-changed",{detail:{config:{...this.config}},bubbles:true,composed:true}));this.render();}
@@ -81,4 +81,5 @@ export class HomeTaskerCardEditor extends HTMLElement {
 if(!customElements.get("home-tasker-card"))customElements.define("home-tasker-card",HomeTaskerCard);
 if(!customElements.get("home-tasker-card-editor"))customElements.define("home-tasker-card-editor",HomeTaskerCardEditor);
 window.customCards=window.customCards||[];
-if(!window.customCards.some(card=>card.type==="home-tasker-card"))window.customCards.push({type:"home-tasker-card",name:"Home Tasker",description:t("card.description")});
+function updateCardMetadata(){const card=window.customCards.find(item=>item.type==="home-tasker-card");if(card)card.description=t("card.description");}
+ready.then(()=>{if(!window.customCards.some(card=>card.type==="home-tasker-card"))window.customCards.push({type:"home-tasker-card",name:"Home Tasker",description:t("card.description")});else updateCardMetadata();});

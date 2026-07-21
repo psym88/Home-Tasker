@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from . import http, websocket
-from .const import CARD_JS_URL, DOMAIN, FRONTEND_URL, PANEL_JS_URL, PANEL_TITLE, PANEL_URL, PLATFORMS
+from .const import CARD_JS_URL, DOMAIN, FRONTEND_URL, PANEL_JS_URL, PANEL_TITLE, PANEL_URL, PLATFORMS, TRANSLATIONS_URL
 from .models import HomeTaskerData
 from .store import HomeTaskerStore
 
@@ -17,7 +17,11 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     websocket.async_register(hass)
     http.async_register_views(hass)
     frontend_dir = Path(__file__).parent / "frontend"
-    await hass.http.async_register_static_paths([StaticPathConfig(FRONTEND_URL, str(frontend_dir), False)])
+    translations_dir = Path(__file__).parent / "translations"
+    await hass.http.async_register_static_paths([
+        StaticPathConfig(FRONTEND_URL, str(frontend_dir), False),
+        StaticPathConfig(TRANSLATIONS_URL, str(translations_dir), False),
+    ])
     return True
 
 
