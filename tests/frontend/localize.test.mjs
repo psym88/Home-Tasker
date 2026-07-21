@@ -5,7 +5,7 @@ import test from "node:test";
 const catalog=language=>JSON.parse(readFileSync(new URL(`../../custom_components/home_tasker/translations/${language}.json`,import.meta.url),"utf8"));
 globalThis.fetch=async url=>{const language=String(url).match(/\/([a-z]{2,3})\.json$/)?.[1]||"en";return {ok:true,json:async()=>catalog(language)};};
 
-const {ready,setLanguage,t}=await import("../../custom_components/home_tasker/frontend/localize.js");
+const {errorMessage,historyNote,ready,setLanguage,t}=await import("../../custom_components/home_tasker/frontend/localize.js");
 await ready;
 
 test("English is loaded as the complete fallback catalog",async()=>{
@@ -21,6 +21,8 @@ test("German translations share the consolidated Home Assistant catalog",async()
   assert.deepEqual(Object.keys(german.frontend).sort(),Object.keys(english.frontend).sort());
   await setLanguage("de-CH");
   assert.equal(t("common.add_task"),german.frontend["common.add_task"]);
+  assert.equal(errorMessage({code:"nfc_tag_already_assigned",message:"nfc_tag_already_assigned"}),german.frontend["error.nfc_tag_already_assigned"]);
+  assert.equal(historyNote("home_tasker.history.completed_via_nfc"),"Erledigt durch NFC Scan");
   await setLanguage("en");
 });
 

@@ -17,6 +17,8 @@ async function loadCatalog(code){
 }
 
 export function t(key,variables={}){return interpolate(messages[key]??key,variables);}
+export function errorMessage(error){const key=String(error?.code||error?.message||error||"");return messages[`error.${key}`]??error?.message??key;}
+export function historyNote(value){return value==="home_tasker.history.completed_via_nfc"?t("history.completed_via_nfc"):value;}
 export function locale(){return language;}
 
 export async function setLanguage(value){

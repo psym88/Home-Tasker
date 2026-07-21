@@ -10,6 +10,7 @@ from .const import SIGNAL_UPDATED
 from .store import HomeTaskerStore
 
 EVENT_TAG_SCANNED = "tag_scanned"
+NFC_COMPLETION_NOTE = "home_tasker.history.completed_via_nfc"
 
 
 async def async_handle_tag_scanned(
@@ -28,7 +29,7 @@ async def async_handle_tag_scanned(
         dt_util.now().date().isoformat(),
         user.id if user else None,
         user.name if user and user.name else "NFC tag",
-        "NFC Tag",
+        NFC_COMPLETION_NOTE,
     )
     async_dispatcher_send(hass, SIGNAL_UPDATED)
 

@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.101
+
+### Changed
+
+- Localize the NFC completion history note and show it as `Erledigt durch NFC Scan` in German.
+- Add localized feedback when an NFC tag is already assigned to another task.
+
 ## 0.2.100
 
 ### Changed
