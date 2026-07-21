@@ -68,7 +68,7 @@ Use the three-dot menu beside a task or group to edit or delete it. Files can be
 2. Edit a Home Tasker task and select it under **Assignment → NFC tag**.
 3. Scan the tag with the Home Assistant companion app or a Home Assistant-compatible tag reader.
 
-Home Tasker reads the available names and IDs directly from Home Assistant. The assigned tag is shown after the assignee in the task list and as a pill in the task viewer. A scan completes the task immediately, adds a history entry, and calculates its next due date. A tag can be assigned to only one task. When Home Assistant includes a user in the scan event, that user is recorded in the history; otherwise the entry is attributed to **NFC tag**.
+Home Tasker reads the available names and IDs directly from Home Assistant. The assigned tag is shown after the assignee in the task list and as a pill in the task viewer. A scan completes the task immediately, adds **NFC Tag** to the history notes, and calculates its next due date. A tag can be assigned to only one task. When Home Assistant includes a user in the scan event, that user is recorded in the history; otherwise the entry is attributed to **NFC tag**.
 
 ### Recurring schedules
 

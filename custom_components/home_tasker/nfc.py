@@ -28,6 +28,7 @@ async def async_handle_tag_scanned(
         dt_util.now().date().isoformat(),
         user.id if user else None,
         user.name if user and user.name else "NFC tag",
+        "NFC Tag",
     )
     async_dispatcher_send(hass, SIGNAL_UPDATED)
 

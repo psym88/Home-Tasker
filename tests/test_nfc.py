@@ -76,6 +76,7 @@ def test_matching_scan_completes_task_with_event_user(monkeypatch):
         assert len(history) == 1
         assert history[0]["user_id"] == "user-1"
         assert history[0]["user_name"] == "Alex"
+        assert history[0]["notes"] == "NFC Tag"
         assert updates
 
     asyncio.run(run())

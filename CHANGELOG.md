@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.100
+
+### Changed
+
+- Record `NFC Tag` in completion notes when a task is completed by scanning its assigned tag.
+- Share the viewer's compact pill typography, spacing and icon alignment with grouped task rows.
+
 ## 0.2.99
 
 ### Changed

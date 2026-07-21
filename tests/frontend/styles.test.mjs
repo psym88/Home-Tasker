@@ -34,8 +34,8 @@ test("all pills use Home Assistant's small font size", () => {
 test("pill icons use one compact shared size", () => {
   class StyleModel extends withStyles(class {}) {}
   const css = new StyleModel().pillIconCss();
-  assert.match(css, /\.pill\{display:inline-flex;align-items:center;gap:5px\}/);
-  assert.match(css, /\.pill ha-icon\{--mdc-icon-size:14px;width:14px;height:14px;flex:0 0 14px\}/);
+  assert.match(css, /\.pill\{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:12px;background:var\(--secondary-background-color\);font-size:var\(--ha-font-size-s,12px\);font-weight:var\(--ha-font-weight-normal,400\);line-height:normal\}/);
+  assert.match(css, /\.pill ha-icon\{display:block;align-self:center;--mdc-icon-size:14px;width:14px;height:14px;flex:0 0 14px\}/);
 });
 
 test("each task-list group has a theme-aware outer border", () => {
