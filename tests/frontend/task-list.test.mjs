@@ -116,10 +116,10 @@ test("task-list attachment pills open in-app instead of a new browser page", () 
   assert.doesNotMatch(html, /target="_blank"|<a /);
 });
 
-test("task-list sorting uses Home Assistant's native select components", () => {
+test("task-list sorting uses the planning-style themed select", () => {
   const source = readFileSync(new URL("../../custom_components/home_tasker/frontend/task-list.js", import.meta.url), "utf8");
-  assert.match(source, /<ha-select class="sort" label="Sortierung">/);
-  assert.match(source, /<ha-list-item value="name">Name<\/ha-list-item>/);
-  assert.match(source, /addEventListener\("selected"/);
-  assert.doesNotMatch(source, /<select class="sort">/);
+  assert.match(source, /<select class="sort" aria-label="Sortierung">/);
+  assert.match(source, /\.sort\{[^}]*padding:9px[^}]*border:1px solid var\(--divider-color\)[^}]*background:var\(--primary-background-color\)[^}]*color:var\(--primary-text-color\)[^}]*font:inherit/);
+  assert.match(source, /\.sort"\)\.onchange/);
+  assert.doesNotMatch(source, /<ha-select class="sort"/);
 });

@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.77
+
+### Changed
+
+- Restore a compact standard sorting dropdown in the task list and style it consistently with the themed planning selects.
+- Keep dashboard task tile surfaces neutral while retaining status colors exclusively on due-date text.
+
 ## 0.2.76
 
 ### Changed
