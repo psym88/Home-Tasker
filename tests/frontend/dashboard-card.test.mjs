@@ -7,6 +7,7 @@ globalThis.window = {};
 globalThis.CustomEvent = class {constructor(type,options){this.type=type;Object.assign(this,options);}};
 
 const {DEFAULT_CARD_CONFIG,HomeTaskerCardEditor,UNASSIGNED,canEditCard,dashboardTaskRowHtml,filterDashboardTasks,normalizeCardConfig,sortDashboardTasks}=await import("../../custom_components/home_tasker/frontend/dashboard-card.js");
+const {HomeTaskerBase,HomeTaskerPanel}=await import("../../custom_components/home_tasker/frontend/main.js");
 
 const tasks=[
   {id:"old",name:"Wischen",due_date:"2026-07-20",group_id:"house",assignee_user_id:"alice"},
@@ -28,3 +29,4 @@ test("edit rows contain the pencil control",()=>assert.match(dashboardTaskRowHtm
 test("edit mode falls back to view for non-admin users",()=>{assert.equal(canEditCard({mode:"edit"},{user:{is_admin:false}}),false);assert.equal(canEditCard({mode:"edit"},{user:{is_admin:true}}),true);});
 
 test("editor update emits a dashboard-local config change",()=>{const editor=Object.create(HomeTaskerCardEditor.prototype);editor.config={...DEFAULT_CARD_CONFIG};editor.render=()=>{};let event;editor.dispatchEvent=value=>{event=value;};editor.update({mode:"edit",group_ids:["house"]});assert.equal(event.type,"config-changed");assert.equal(event.detail.config.mode,"edit");assert.deepEqual(event.detail.config.group_ids,["house"]);});
+test("panel uses an unregistered shared base instead of becoming the card base",async()=>{const {HomeTaskerCard}=await import("../../custom_components/home_tasker/frontend/dashboard-card.js");assert.equal(Object.getPrototypeOf(HomeTaskerPanel),HomeTaskerBase);assert.equal(Object.getPrototypeOf(HomeTaskerCard),HomeTaskerBase);assert.notEqual(Object.getPrototypeOf(HomeTaskerCard),HomeTaskerPanel);});

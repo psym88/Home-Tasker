@@ -21,7 +21,8 @@ Home Tasker deliberately has a small surface. The integration is local-only and 
 - `frontend/panel.js`: lightweight ES-module entry point and custom-element registration
 - `frontend/main.js`: panel state, Home Assistant communication, shared formatting, and feature coordination
 - `frontend/task-list.js`: grouped panel list plus reusable flat due-date sorting for a future dashboard card
-- `frontend/dashboard-card.js`: automatically loaded Lovelace card, visual card editor, flat filtering, and due-date sorting
+- `frontend/main.js`: shared unregistered frontend base plus the registered sidebar panel class
+- `frontend/dashboard-card.js`: automatically loaded Lovelace card, visual card editor, flat filtering, and due-date sorting; the card and panel are sibling custom elements for scoped-registry compatibility
 - `frontend/task-editor.js`, `task-viewer.js`, and `group-editor.js`: task and group workflows
 - `frontend/dialogs.js`, `shared.js`, and `styles.js`: dialog primitives, escaping, Markdown helpers, and shared panel styling
 

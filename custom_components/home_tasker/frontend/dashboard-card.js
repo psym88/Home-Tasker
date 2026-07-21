@@ -1,4 +1,4 @@
-import { HomeTaskerPanel } from "./main.js";
+import { HomeTaskerBase } from "./main.js";
 import { esc } from "./shared.js";
 
 export const UNASSIGNED = "__unassigned__";
@@ -44,7 +44,7 @@ export function sortDashboardTasks(tasks,direction="asc",locale="de"){
 export function dashboardTaskRowHtml(task,editable,relativeDate){return `<div class="task-row${editable?" editable":""}" data-task="${esc(task.id)}" tabindex="0"><div><div class="task-name">${esc(task.name)}</div><div class="due-label">${esc(relativeDate)}</div></div>${editable?'<button type="button" class="edit-task-row icon" aria-label="Task bearbeiten" title="Task bearbeiten"><ha-icon icon="mdi:pencil"></ha-icon></button>':""}</div>`;}
 export function canEditCard(config,hass){return normalizeCardConfig(config).mode==="edit"&&Boolean(hass?.user?.is_admin);}
 
-export class HomeTaskerCard extends HomeTaskerPanel {
+export class HomeTaskerCard extends HomeTaskerBase {
   static getStubConfig(){return {...DEFAULT_CARD_CONFIG};}
   static async getConfigElement(){return document.createElement("home-tasker-card-editor");}
   setConfig(config){this.config=normalizeCardConfig(config);if(this.loaded)this.render();}

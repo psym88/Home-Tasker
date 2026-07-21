@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.59
+
+### Fixed
+
+- Make the dashboard card and sidebar panel inherit from a shared unregistered base class so scoped custom-element registries such as Browser Mod can construct the card.
+
 ## 0.2.58
 
 ### Added

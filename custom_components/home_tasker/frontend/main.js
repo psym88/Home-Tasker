@@ -6,7 +6,7 @@ import { withGroupEditor } from "./group-editor.js";
 import { withTaskEditor } from "./task-editor.js";
 import { withDialogs } from "./dialogs.js";
 
-export class HomeTaskerPanel extends withDialogs(withTaskEditor(withGroupEditor(withTaskViewer(withTaskList(withStyles(HTMLElement)))))) {
+export class HomeTaskerBase extends withDialogs(withTaskEditor(withGroupEditor(withTaskViewer(withTaskList(withStyles(HTMLElement)))))) {
   constructor(){ super(); this.attachShadow({mode:"open"}); this.groups=[]; this.tasks=[]; this.attachments=[]; this.users=[]; this.today=""; this.signedFiles=new Map(); this.expanded=new Set(); this.sort="name"; this.loading=false; this.refreshTimer=null; this.detailsObserver=new MutationObserver(()=>this.prepareDetails());this.detailsObserver.observe(this.shadowRoot,{childList:true,subtree:true}); }
   connectedCallback(){if(!this.refreshTimer)this.refreshTimer=setInterval(()=>{if(document.visibilityState==="visible")this.load();},30000);}
   disconnectedCallback(){clearInterval(this.refreshTimer);this.refreshTimer=null;}
@@ -27,3 +27,5 @@ export class HomeTaskerPanel extends withDialogs(withTaskEditor(withGroupEditor(
   relativeDate(v){const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||""),base=/^(\d{4})-(\d{2})-(\d{2})/.exec(this.today||"");if(!m||!base)return v;const target=Date.UTC(+m[1],+m[2]-1,+m[3]),today=Date.UTC(+base[1],+base[2]-1,+base[3]),days=Math.round((target-today)/86400000),absolute=Math.abs(days);let value=days,unit="day";if(absolute>=730){value=Math.round(days/365.2425);unit="year";}else if(absolute>=60){value=Math.round(days/30.4375);unit="month";}else if(absolute>=14){value=Math.round(days/7);unit="week";}return new Intl.RelativeTimeFormat("de",{numeric:"auto"}).format(value,unit);}
   size(n){return n<1024?`${n} B`:n<1048576?`${Math.round(n/1024)} KB`:`${(n/1048576).toFixed(1)} MB`;}
 }
+
+export class HomeTaskerPanel extends HomeTaskerBase {}
