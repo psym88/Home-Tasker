@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.52
+
+### Fixed
+
+- Give task rows an explicitly transparent resting background while retaining the original neutral row hover, restoring clear pill and icon feedback.
+- Restore the original neutral Home Assistant hover treatment for icon actions.
+
 ## 0.2.51
 
 ### Fixed

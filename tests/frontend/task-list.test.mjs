@@ -4,11 +4,10 @@ import test from "node:test";
 globalThis.HTMLElement = class {};
 globalThis.customElements = { get: () => undefined, define: () => undefined };
 
-const { TASK_ROW_HOVER_BACKGROUND, sortTasksByDue, withTaskList } = await import("../../custom_components/home_tasker/frontend/task-list.js");
+const { TASK_ROW_BACKGROUND, sortTasksByDue, withTaskList } = await import("../../custom_components/home_tasker/frontend/task-list.js");
 
-test("task-row hover uses a lighter Home Assistant fill than pills", () => {
-  assert.equal(TASK_ROW_HOVER_BACKGROUND, "var(--ha-color-fill-neutral-quiet-resting,var(--primary-background-color))");
-  assert.ok(!TASK_ROW_HOVER_BACKGROUND.includes("secondary-background-color"));
+test("task rows remain transparent", () => {
+  assert.equal(TASK_ROW_BACKGROUND, "transparent");
 });
 
 test("sortTasksByDue sorts by due date and then by name", () => {
