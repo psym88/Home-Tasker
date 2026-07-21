@@ -7,8 +7,6 @@ export function showFormDialog(controller,params){controller.dispatchEvent(new C
 
 export function showNativeConfirmation(controller,{title,message,confirmLabel,tone="danger"}){return new Promise(resolve=>controller.dispatchEvent(new CustomEvent("show-dialog",{bubbles:true,composed:true,detail:{dialogTag:CONFIRM_DIALOG_TAG,dialogImport:()=>customElements.whenDefined(CONFIRM_DIALOG_TAG),dialogParams:{title,message,confirmLabel,tone,resolve}}})));}
 
-export function formDialogLayoutStyles(controller){return controller.dialogLayoutStyles();}
-
 export function formDialogFooterHtml(){return `<ha-dialog-footer slot="footer" style="padding:0 24px max(16px,var(--safe-area-inset-bottom))"><ha-button class="save" slot="primaryAction" variant="brand">Speichern</ha-button></ha-dialog-footer>`;}
 
 export class HomeTaskerConfirmDialog extends HTMLElement {
@@ -22,7 +20,7 @@ export class HomeTaskerConfirmDialog extends HTMLElement {
 
 export class HomeTaskerFormDialog extends HTMLElement {
   constructor(){super();this.attachShadow({mode:"open"});this.open=false;this.saved=false;this.cancelled=false;}
-  showDialog(params){Object.assign(this,params);this.open=true;this.saved=false;this.cancelled=false;this.controller._activeFormDialog=this;this.render();this.shadowRoot.querySelector("style").insertAdjacentHTML("beforebegin",formDialogLayoutStyles(this.controller));const modal=this.shadowRoot.querySelector(".modal");if(this.after)Promise.resolve(this.after(modal)).finally(()=>this.controller.prepareDetails(this.shadowRoot));else this.controller.prepareDetails(this.shadowRoot);}
+  showDialog(params){Object.assign(this,params);this.open=true;this.saved=false;this.cancelled=false;this.controller._activeFormDialog=this;this.render();this.shadowRoot.querySelector("style").insertAdjacentHTML("beforebegin",this.controller.dialogLayoutStyles());const modal=this.shadowRoot.querySelector(".modal");if(this.after)Promise.resolve(this.after(modal)).finally(()=>this.controller.prepareDetails(this.shadowRoot));else this.controller.prepareDetails(this.shadowRoot);}
   async closeDialog(saved=false){if(!this.open)return true;this.saved=saved;if(!saved&&!this.cancelled&&this.onCancel){this.cancelled=true;await this.onCancel();}this.open=false;const dialog=this.shadowRoot.querySelector("ha-adaptive-dialog");if(dialog)dialog.open=false;return true;}
   dialogClosed(){if(this.open&&!this.saved&&!this.cancelled&&this.onCancel){this.cancelled=true;Promise.resolve(this.onCancel());}this.open=false;if(this.controller?._activeFormDialog===this)this.controller._activeFormDialog=null;this.dispatchEvent(new CustomEvent("dialog-closed",{bubbles:true,composed:true,detail:{dialog:this.localName}}));this.shadowRoot.innerHTML="";}
   async submit(event){event.preventDefault();const form=event.currentTarget,error=form.querySelector(".error"),values=Object.fromEntries(this.fields.map(field=>[field[0],form.elements[field[0]].value.trim()]));if(this.fields.some(field=>field[3]&&!values[field[0]])){error.style.display="block";error.textContent="Bitte Pflichtfelder ausfüllen.";return;}const save=this.shadowRoot.querySelector(".save");save.disabled=true;try{await this.onSave(values);await this.closeDialog(true);}catch(exception){error.style.display="block";error.textContent=`Fehler: ${exception.message||exception}`;save.disabled=false;}}

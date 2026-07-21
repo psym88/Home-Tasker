@@ -17,17 +17,20 @@ from .scheduler import due_sequence, next_due_sequence, validate_schedule
 
 TEXT = vol.Any(str, None)
 GROUP_FIELDS = {vol.Required("name"): str, vol.Optional("manufacturer"): TEXT, vol.Optional("model"): TEXT, vol.Optional("icon"): TEXT, vol.Optional("description"): TEXT}
-TASK_FIELDS = {
-    vol.Required("name"): str,
-    vol.Optional("description"): TEXT,
-    vol.Optional("assignee_user_id"): TEXT,
-    vol.Optional("start_date"): TEXT,
+SCHEDULE_FIELDS = {
     vol.Required("recurrence_mode"): vol.In(("fixed", "sliding")),
     vol.Required("frequency"): vol.In(("daily", "weekly", "monthly", "yearly")),
     vol.Required("interval"): vol.All(vol.Coerce(int), vol.Range(min=1)),
     vol.Optional("weekdays", default=[]): [vol.All(vol.Coerce(int), vol.Range(min=0, max=6))],
     vol.Optional("day_of_month"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=1, max=31)), "last", None),
     vol.Optional("month_of_year"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=1, max=12)), None),
+}
+TASK_FIELDS = {
+    vol.Required("name"): str,
+    vol.Optional("description"): TEXT,
+    vol.Optional("assignee_user_id"): TEXT,
+    vol.Optional("start_date"): TEXT,
+    **SCHEDULE_FIELDS,
 }
 TASK_GROUP_FIELDS = {
     vol.Optional("group_id"): vol.Any(str, None),
@@ -37,18 +40,7 @@ PREVIEW_FIELDS = {
     vol.Optional("due_date"): str,
     vol.Optional("schedule_anchor"): str,
     vol.Optional("start_date"): TEXT,
-    vol.Required("recurrence_mode"): vol.In(("fixed", "sliding")),
-    vol.Required("frequency"): vol.In(("daily", "weekly", "monthly", "yearly")),
-    vol.Required("interval"): vol.All(vol.Coerce(int), vol.Range(min=1)),
-    vol.Optional("weekdays", default=[]): [
-        vol.All(vol.Coerce(int), vol.Range(min=0, max=6))
-    ],
-    vol.Optional("day_of_month"): vol.Any(
-        vol.All(vol.Coerce(int), vol.Range(min=1, max=31)), "last", None
-    ),
-    vol.Optional("month_of_year"): vol.Any(
-        vol.All(vol.Coerce(int), vol.Range(min=1, max=12)), None
-    ),
+    **SCHEDULE_FIELDS,
     vol.Optional("count", default=2): vol.All(vol.Coerce(int), vol.Range(min=1, max=24)),
 }
 
@@ -110,7 +102,6 @@ async def ws_list(hass, connection, msg, store):
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/group/create", **GROUP_FIELDS})
-@websocket_api.require_admin
 @websocket_api.async_response
 @require_store
 async def ws_group_create(hass, connection, msg, store):
@@ -118,7 +109,6 @@ async def ws_group_create(hass, connection, msg, store):
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/group/update", vol.Required("group_id"): str, **{vol.Optional(k.schema): v for k, v in GROUP_FIELDS.items()}})
-@websocket_api.require_admin
 @websocket_api.async_response
 @require_store
 async def ws_group_update(hass, connection, msg, store):
@@ -126,7 +116,6 @@ async def ws_group_update(hass, connection, msg, store):
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/group/delete", vol.Required("group_id"): str})
-@websocket_api.require_admin
 @websocket_api.async_response
 @require_store
 async def ws_group_delete(hass, connection, msg, store):
@@ -220,24 +209,4 @@ async def ws_attachment_delete(hass, connection, msg, store):
     await store.async_delete_attachment(msg["attachment_id"]); connection.send_result(msg["id"])
 
 
-@websocket_api.websocket_command({vol.Required("type"): "home_tasker/attachment/sign_all"})
-@websocket_api.async_response
-@require_store
-async def ws_attachment_sign_all(hass, connection, msg, store):
-    connection.send_result(
-        msg["id"],
-        {
-            "urls": {
-                item["id"]: async_sign_path(
-                    hass,
-                    f"{DOWNLOAD_URL}/{item['id']}",
-                    timedelta(hours=1),
-                    refresh_token_id=connection.refresh_token_id,
-                )
-                for item in store.snapshot()["attachments"]
-            }
-        },
-    )
-
-
-COMMANDS = (ws_list, ws_group_create, ws_group_update, ws_group_delete, ws_task_create, ws_task_update, ws_task_delete, ws_task_preview_next_due, ws_task_complete, ws_history_list, ws_history_delete, ws_attachment_delete, ws_attachment_sign_all)
+COMMANDS = (ws_list, ws_group_create, ws_group_update, ws_group_delete, ws_task_create, ws_task_update, ws_task_delete, ws_task_preview_next_due, ws_task_complete, ws_history_list, ws_history_delete, ws_attachment_delete)

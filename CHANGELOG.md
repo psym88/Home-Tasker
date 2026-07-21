@@ -2,6 +2,14 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.83
+
+### Changed
+
+- Allow every authenticated Home Assistant user to perform group mutations while keeping the sidebar panel administrator-only.
+- Return a signed attachment URL directly from uploads and remove the redundant attachment-signing WebSocket request.
+- Consolidate shared recurrence validation schemas and remove obsolete administrator and dialog helper code.
+
 ## 0.2.82
 
 ### Changed

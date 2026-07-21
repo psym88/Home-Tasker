@@ -86,7 +86,7 @@ Select a task in the card to open its details and complete it. Card settings are
 
 ## Permissions
 
-All signed-in Home Assistant users can view, create, edit, delete and complete tasks, manage task attachments and remove task history entries. The dashboard card exposes editing controls whenever its Lovelace configuration uses **Edit mode**; the user's administrator flag does not override that card setting. Group administration and access to the Home Tasker sidebar panel remain administrator-only.
+All signed-in Home Assistant users can view, create, edit, delete and complete tasks and groups, manage task attachments and remove task history entries. The dashboard card exposes editing controls whenever its Lovelace configuration uses **Edit mode**. Only access to the Home Tasker sidebar panel is restricted to administrators.
 
 ## Home Assistant entities
 

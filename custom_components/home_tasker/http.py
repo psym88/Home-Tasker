@@ -1,7 +1,10 @@
 """Authenticated file upload and download."""
 
+from datetime import timedelta
+
 from aiohttp import web
 from homeassistant.components.http import HomeAssistantView
+from homeassistant.components.http.auth import async_sign_path
 from homeassistant.core import HomeAssistant
 
 from .const import DOWNLOAD_URL, UPLOAD_URL
@@ -34,7 +37,14 @@ class UploadView(HomeAssistantView):
             record = await store.async_add_attachment(task_id, *uploaded)
         except ValueError as err:
             raise web.HTTPBadRequest(text=str(err)) from err
-        return web.json_response(record)
+        return web.json_response({
+            **record,
+            "signed_url": async_sign_path(
+                request.app["hass"],
+                f"{DOWNLOAD_URL}/{record['id']}",
+                timedelta(hours=1),
+            ),
+        })
 
 
 class DownloadView(HomeAssistantView):
