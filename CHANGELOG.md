@@ -2,6 +2,14 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.40
+
+### Changed
+
+- Show the optional start date directly under its heading without a collapsible box.
+- Add a "Due date preview" heading and remove the repeated "Due date" label from occurrence rows.
+- Preserve the expanded occurrence count when schedule options change.
+
 ## 0.2.39
 
 ### Changed
