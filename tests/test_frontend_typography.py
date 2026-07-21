@@ -10,12 +10,21 @@ def panel_source() -> str:
     return PANEL.read_text(encoding="utf-8")
 
 
-def test_small_font_is_reserved_for_due_date_preview() -> None:
+def test_due_date_preview_uses_normal_body_typography() -> None:
     source = panel_source()
 
-    assert source.count("var(--ha-font-size-s,13px)") == 2
+    assert "var(--ha-font-size-s,13px)" not in source
     assert ".schedule-summary{" in source
-    assert 'summary.style.cssText="' in source
+    assert 'summary.style.cssText="margin:2px 0 0;color:var(--primary-text-color);font-size:var(--ha-font-size-m,14px)' in source
+
+
+def test_due_dates_use_aligned_dynamic_columns_below_rule() -> None:
+    source = panel_source()
+
+    assert 'role="table" aria-label="Fälligkeiten"' in source
+    assert "grid-template-columns:max-content max-content;column-gap:12px" in source
+    assert 'style="display:grid;justify-content:start;margin-top:8px"' in source
+    assert "editorScheduleHtml(task,result.due_dates)" in source
 
 
 def test_group_name_is_larger_than_normal_weight_task_name() -> None:
@@ -28,7 +37,7 @@ def test_group_name_is_larger_than_normal_weight_task_name() -> None:
 def test_supporting_text_uses_normal_body_typography() -> None:
     source = panel_source()
 
-    assert "p,small,label,.pill,.schedule-options,.version,header p" in source
+    assert "p,small,label,.pill,.schedule-options,.schedule-summary,.version,header p" in source
     assert ".history-entry{font-size:var(--ha-font-size-m,14px)" in source
 
 
