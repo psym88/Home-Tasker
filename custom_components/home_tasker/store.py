@@ -273,9 +273,18 @@ class HomeTaskerStore:
             removed = next((x for x in entries if x["id"] == entry_id), None)
             if removed is None:
                 raise ValueError("unknown_history_entry")
-            remaining = [x for x in entries if x["id"] != entry_id]
+            chronological = sorted(entries, key=lambda entry: entry["recorded_at"])
+            original_due = chronological[0]["due_before"]
+            remaining = [entry for entry in chronological if entry["id"] != entry_id]
+            replay_task = {**task, "due_date": original_due}
+            for entry in remaining:
+                entry["due_before"] = replay_task["due_date"]
+                entry["due_after"] = next_due(
+                    replay_task, date.fromisoformat(entry["completion_date"])
+                ).isoformat()
+                replay_task["due_date"] = entry["due_after"]
             self._data["history"][task_id] = remaining
-            task["due_date"] = (max(remaining, key=lambda x: x["recorded_at"])["due_after"] if remaining else removed["due_before"])
+            task["due_date"] = replay_task["due_date"]
             task["updated_at"] = _now()
             await self._save()
             return task

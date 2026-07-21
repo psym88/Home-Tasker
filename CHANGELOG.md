@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.84
+
+### Fixed
+
+- Recalculate the due date from the remaining completion history when entries are removed in any order.
+- Rebuild each remaining history entry's due-date transition so subsequent deletions continue to restore the correct schedule.
+
 ## 0.2.83
 
 ### Changed
