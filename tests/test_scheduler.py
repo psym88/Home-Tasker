@@ -41,7 +41,18 @@ def test_fixed_schedule_requires_calendar_selection():
 
 def test_fixed_daily_skips_overdue_occurrences():
     assert next_due(task(interval=3), date(2026, 7, 27)) == date(2026, 7, 29)
-    assert next_due(task(interval=3), date(2026, 7, 18)) == date(2026, 7, 23)
+
+
+def test_completing_fixed_schedule_early_keeps_upcoming_occurrence():
+    cases = (
+        task(due_date="2026-07-21", schedule_anchor="2026-07-21", frequency="daily", interval=3),
+        task(due_date="2026-07-22", schedule_anchor="2026-07-22", frequency="weekly", weekdays=[2]),
+        task(due_date="2026-07-31", schedule_anchor="2026-07-31", frequency="monthly", day_of_month=31),
+        task(due_date="2026-12-25", schedule_anchor="2026-12-25", frequency="yearly", month_of_year=12, day_of_month=25),
+    )
+
+    for value in cases:
+        assert next_due(value, date(2026, 7, 20)) == date.fromisoformat(value["due_date"])
 
 
 def test_fixed_weekdays():

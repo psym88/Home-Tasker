@@ -88,10 +88,13 @@ def next_due(task: dict[str, Any], completed: date) -> date:
         unit = {"daily": "day", "weekly": "week", "monthly": "month", "yearly": "year"}[frequency]
         return add_interval(completed, interval, unit)
 
+    # Completing a calendar task early must not consume its upcoming occurrence.
+    if completed < due:
+        return due
+
     anchor = date.fromisoformat(task.get("schedule_anchor") or task["due_date"])
-    # Completing early still consumes the currently scheduled occurrence;
-    # completing late skips missed fixed occurrences and selects a future one.
-    cursor = max(completed, due) + timedelta(days=1)
+    # Completing on time advances once; completing late skips missed occurrences.
+    cursor = completed + timedelta(days=1)
     if frequency == "daily":
         elapsed = (cursor - anchor).days
         steps = max(1, (elapsed + interval - 1) // interval)
