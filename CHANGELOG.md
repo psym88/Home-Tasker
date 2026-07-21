@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.68
+
+### Fixed
+
+- Use the composed event path for overflow-menu outside-click detection so Shadow DOM retargeting no longer removes the menu before Edit or Delete can run.
+
 ## 0.2.67
 
 ### Changed

@@ -26,7 +26,7 @@ Home Tasker deliberately has a small surface. The integration is local-only and 
 - `frontend/task-editor.js`, `task-viewer.js`, and `group-editor.js`: task and group workflows
 - `frontend/native-task-dialog.js`: Home Assistant `show-dialog` contract and `ha-adaptive-dialog` host for the complete task viewer
 - `frontend/native-form-dialog.js`: adaptive-dialog hosts for task/group forms and confirmations, including the shared collapsible-section layout rules
-- `frontend/action-menu.js`: shared anchored task/group overflow menu with accessible focus and dismissal behavior
+- `frontend/action-menu.js`: shared anchored task/group overflow menu with accessible focus and Shadow-DOM-aware dismissal through the event's composed path
 - `frontend/dialogs.js`, `shared.js`, and `styles.js`: dialog primitives, escaping, Markdown helpers, and shared panel styling
 
 Dialog header, collapsible-section, icon, and theme rules live in the shared style mixin so both the sidebar panel and dashboard card can host the same viewer and editor workflows without layout differences.

@@ -11,7 +11,7 @@ const {HomeTaskerBase,HomeTaskerPanel}=await import("../../custom_components/hom
 const {EDITOR_FILE_GRID}=await import("../../custom_components/home_tasker/frontend/task-editor.js");
 const {TASK_DIALOG_TAG,showTaskDialog}=await import("../../custom_components/home_tasker/frontend/native-task-dialog.js");
 const {CONFIRM_DIALOG_TAG,FORM_DIALOG_TAG,formDialogFooterHtml,formDialogLayoutStyles,showFormDialog,showNativeConfirmation}=await import("../../custom_components/home_tasker/frontend/native-form-dialog.js");
-const {ROW_ACTION_MENU_STYLES}=await import("../../custom_components/home_tasker/frontend/action-menu.js");
+const {ROW_ACTION_MENU_STYLES,actionMenuEventIsInside}=await import("../../custom_components/home_tasker/frontend/action-menu.js");
 
 const tasks=[
   {id:"old",name:"Wischen",due_date:"2026-07-20",group_id:"house",assignee_user_id:"alice"},
@@ -32,6 +32,7 @@ test("due status separates overdue, today, and future dates",()=>{assert.equal(d
 test("view rows omit action controls and assignment metadata",()=>{const html=dashboardTaskRowHtml(tasks[0],false,"gestern","overdue");assert.doesNotMatch(html,/dots-vertical|row-action-toggle|alice|house/);assert.match(html,/Wischen/);assert.match(html,/due-label overdue/);});
 test("edit rows contain an accessible vertical-dots action control",()=>{const html=dashboardTaskRowHtml(tasks[0],true,"gestern","overdue");assert.match(html,/class="row-action-toggle icon"/);assert.match(html,/aria-haspopup="menu"/);assert.match(html,/mdi:dots-vertical/);});
 test("row action menu has neutral edit and red delete hover treatments",()=>{assert.match(ROW_ACTION_MENU_STYLES,/button:hover[^}]+ha-color-fill-neutral-quiet-hover/);assert.match(ROW_ACTION_MENU_STYLES,/button\.danger:hover[^}]+ha-color-fill-alert-quiet-hover/);assert.match(ROW_ACTION_MENU_STYLES,/error-color/);});
+test("shadow-DOM retargeting does not close the menu before an action click",()=>{const host={},menu={contains:()=>false},anchor={};assert.equal(actionMenuEventIsInside({target:host,composedPath:()=>[{},menu,host]},menu,anchor),true);assert.equal(actionMenuEventIsInside({target:host,composedPath:()=>[{},host]},menu,anchor),false);});
 test("edit mode falls back to view for non-admin users",()=>{assert.equal(canEditCard({mode:"edit"},{user:{is_admin:false}}),false);assert.equal(canEditCard({mode:"edit"},{user:{is_admin:true}}),true);});
 
 test("editor update emits a dashboard-local config change",()=>{const editor=Object.create(HomeTaskerCardEditor.prototype);editor.config={...DEFAULT_CARD_CONFIG};editor.render=()=>{};let event;editor.dispatchEvent=value=>{event=value;};editor.update({mode:"edit",group_ids:["house"]});assert.equal(event.type,"config-changed");assert.equal(event.detail.config.mode,"edit");assert.deepEqual(event.detail.config.group_ids,["house"]);});
