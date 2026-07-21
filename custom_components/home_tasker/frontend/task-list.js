@@ -5,7 +5,7 @@ import { t } from "./localize.js";
 export const TASK_ROW_BACKGROUND = "transparent";
 export const TASK_ROW_HOVER_BACKGROUND = "rgba(var(--rgb-primary-text-color),0.04)";
 export const LIST_SECONDARY_ACTION_COLOR = "var(--secondary-text-color)";
-export const DUE_DATE_STYLES = `<style>.due-date.overdue{color:var(--error-color,#d32f2f);font-weight:600}.due-date.today{color:var(--warning-color,#f57c00);font-weight:600}</style>`;
+export const DUE_DATE_STYLES = `<style>.due-date.overdue{color:var(--error-color,#d32f2f)}.due-date.today{color:var(--warning-color,#f57c00)}</style>`;
 
 export function sortTasksByDue(tasks, locale="en") {
   return [...tasks].sort((a,b)=>(a.due_date||"").localeCompare(b.due_date||"")||(a.name||"").localeCompare(b.name||"",locale));

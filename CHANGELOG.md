@@ -2,6 +2,16 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.103
+
+### Changed
+
+- Show the same compact due-date, assignee and NFC-tag pill row in dashboard tasks as in the grouped task list.
+
+### Fixed
+
+- Keep colored due-date pills at normal font weight.
+
 ## 0.2.102
 
 ### Fixed

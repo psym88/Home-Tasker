@@ -179,4 +179,5 @@ test("task-list due pills distinguish today from overdue", async () => {
   assert.match(model.taskRow({ id: "old", name: "Old", due_date: "2026-07-20" }), /due-date overdue/);
   assert.match(DUE_DATE_STYLES, /\.due-date\.today\{color:var\(--warning-color/);
   assert.match(DUE_DATE_STYLES, /\.due-date\.overdue\{color:var\(--error-color/);
+  assert.doesNotMatch(DUE_DATE_STYLES, /font-weight/);
 });
