@@ -60,4 +60,5 @@ test("native editors use the requested primary labels and secondary values", () 
   assert.match(css, /group-form label>span[^}]+primary-text-color[^}]+ha-font-size-m[^}]+ha-font-weight-medium/);
   assert.match(css, /task-form input[^}]+secondary-text-color[^}]+ha-font-size-m[^}]+ha-font-weight-normal/);
   assert.match(css, /task-form \.history-entry[^}]+secondary-text-color/);
+  assert.match(css, /task-form \.details-content small[^}]+secondary-text-color/);
 });

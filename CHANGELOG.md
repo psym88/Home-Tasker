@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.87
+
+### Changed
+
+- Keep task viewer pills on Home Assistant's small font size while retaining normal secondary typography.
+- Use secondary text colors for empty file and history states and for task titles in the sidebar task list.
+
 ## 0.2.86
 
 ### Changed

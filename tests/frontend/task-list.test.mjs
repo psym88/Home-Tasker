@@ -78,6 +78,17 @@ test("grouped task rows preserve panel sorting and due badges", () => {
   assert.ok(html.indexOf('data-task="due"') < html.indexOf('data-task="later"'));
 });
 
+test("task-list titles use the secondary text color", () => {
+  class TaskListModel extends withTaskList(class {}) {}
+  const model = new TaskListModel();
+  model.attachments = [];
+  model.users = [];
+  model.due = () => false;
+  model.date = value => value;
+  model.relativeDate = value => value;
+  assert.match(model.taskRow({ id: "task", name: "Task", due_date: "2026-07-21" }), /<strong style="color:var\(--secondary-text-color\)">Task<\/strong>/);
+});
+
 test("expanded groups end with a group-bound add-task placeholder", () => {
   class TaskListModel extends withTaskList(class {}) {}
   const model = new TaskListModel();
