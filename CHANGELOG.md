@@ -2,6 +2,26 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.3.0
+
+### Added
+
+- Add a read-only Home Tasker calendar with projected recurring task occurrences.
+- Add NFC tag assignment and task completion through Home Assistant tag scans.
+- Add complete English and German frontend localization with English fallback.
+
+### Changed
+
+- Make authenticated task and group operations available to all signed-in users while keeping sidebar discovery administrator-only.
+- Standardize the panel, dashboard card, viewers and editors on native Home Assistant dialogs, Markdown rendering, typography, attachment previews and compact metadata pills.
+- Show due-date, assignee and NFC-tag pills consistently in grouped and dashboard task lists.
+
+### Fixed
+
+- Recalculate recurring due dates reliably after history entries are removed in any order.
+- Keep calendar entities available and update them safely after task mutations.
+- Correct dashboard resource, dialog, card-editor, filename, footer and theme styling regressions.
+
 ## 0.2.105
 
 ### Fixed
