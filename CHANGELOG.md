@@ -2,6 +2,17 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.71
+
+### Changed
+
+- Always sort dashboard-card tasks from oldest to newest and remove the sorting-direction option from the visual editor.
+- Add a dashboard-local option to hide the card's outer background, border, and shadow while retaining the separate task elements.
+
+### Fixed
+
+- Add a registration regression guard confirming that the dashboard card uses guarded global custom-element definitions without a Browser Mod dependency.
+
 ## 0.2.70
 
 ### Changed
