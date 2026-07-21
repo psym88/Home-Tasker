@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.105
+
+### Fixed
+
+- Mount the identical shared pill stylesheet in the dashboard and grouped task list and explicitly center pill icons vertically.
+
 ## 0.2.104
 
 ### Fixed
