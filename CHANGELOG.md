@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.86
+
+### Changed
+
+- Standardize task viewer and editor labels on Home Assistant's medium primary typography.
+- Render planning and assignment labels with normal primary typography and form, preview and history content with normal secondary typography.
+
 ## 0.2.85
 
 ### Changed

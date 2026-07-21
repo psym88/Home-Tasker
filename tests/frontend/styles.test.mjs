@@ -50,3 +50,14 @@ test("panel styles exclude legacy overlays and editor-only layout", () => {
   assert.match(model.formStyles(), /form,label/);
   assert.match(model.formStyles(), /\.details\{/);
 });
+
+test("native editors use the requested primary labels and secondary values", () => {
+  class StyleModel extends withStyles(class {}) {}
+  const css = new StyleModel().editorTypographyStyles();
+
+  assert.match(css, /task-form \[data-field="name"\][^}]+primary-text-color[^}]+ha-font-size-m[^}]+ha-font-weight-medium/);
+  assert.match(css, /task-form \[data-field="recurrence_mode"\][^}]+primary-text-color[^}]+ha-font-size-m[^}]+ha-font-weight-normal/);
+  assert.match(css, /group-form label>span[^}]+primary-text-color[^}]+ha-font-size-m[^}]+ha-font-weight-medium/);
+  assert.match(css, /task-form input[^}]+secondary-text-color[^}]+ha-font-size-m[^}]+ha-font-weight-normal/);
+  assert.match(css, /task-form \.history-entry[^}]+secondary-text-color/);
+});
