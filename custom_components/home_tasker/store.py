@@ -13,11 +13,25 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 
 from .const import FALLBACK_GROUP_NAME, STORAGE_KEY, STORAGE_VERSION
-from .scheduler import next_due
+from .scheduler import initial_due, next_due
 
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _schedule_signature(task: dict[str, Any]) -> tuple[Any, ...]:
+    """Return only values that affect the active recurrence rule."""
+    mode = task.get("recurrence_mode")
+    frequency = task.get("frequency")
+    values: list[Any] = [task.get("start_date") or None, mode, frequency, int(task.get("interval") or 1)]
+    if mode == "fixed" and frequency == "weekly":
+        values.append(tuple(sorted(int(day) for day in task.get("weekdays") or [])))
+    elif mode == "fixed" and frequency == "monthly":
+        values.append(task.get("day_of_month"))
+    elif mode == "fixed" and frequency == "yearly":
+        values.extend((task.get("month_of_year"), task.get("day_of_month")))
+    return tuple(values)
 
 
 class HomeTaskerStore:
@@ -161,8 +175,8 @@ class HomeTaskerStore:
                 await self._unlink(file_id)
             await self._save()
 
-    async def async_add_task(self, payload: dict[str, Any]) -> dict[str, Any]:
-        due = date.fromisoformat(payload["due_date"])
+    async def async_add_task(self, payload: dict[str, Any], today: date | None = None) -> dict[str, Any]:
+        due = initial_due(payload, today or date.today())
         async with self._lock:
             now = _now()
             name = self._required_name(payload.get("name"))
@@ -171,11 +185,12 @@ class HomeTaskerStore:
             )
             task = {
                 "id": uuid4().hex,
-                **{k: payload.get(k) for k in ("name", "description", "assignee_user_id", "due_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month")},
+                **{k: payload.get(k) for k in ("name", "description", "assignee_user_id", "start_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month", "month_of_year")},
                 "name": name,
                 "group_id": group_id,
                 "anchor_day": due.day,
-                "schedule_anchor": payload["due_date"],
+                "due_date": due.isoformat(),
+                "schedule_anchor": due.isoformat(),
                 "created_at": now,
                 "updated_at": now,
             }
@@ -183,7 +198,7 @@ class HomeTaskerStore:
             await self._save()
             return task
 
-    async def async_update_task(self, task_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    async def async_update_task(self, task_id: str, payload: dict[str, Any], today: date | None = None) -> dict[str, Any]:
         async with self._lock:
             task = self._find("tasks", task_id)
             if "name" in payload:
@@ -192,12 +207,17 @@ class HomeTaskerStore:
                 task["group_id"] = self._resolve_task_group(
                     payload.get("group_id"), payload.get("group_name"), _now()
                 )
-            for key in ("name", "description", "assignee_user_id", "due_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month"):
+            schedule_keys = ("start_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month", "month_of_year")
+            old_schedule = _schedule_signature(task)
+            for key in ("name", "description", "assignee_user_id", *schedule_keys):
                 if key in payload:
                     task[key] = payload[key]
-            if "due_date" in payload:
-                task["anchor_day"] = date.fromisoformat(payload["due_date"]).day
-                task["schedule_anchor"] = payload["due_date"]
+            schedule_changed = _schedule_signature(task) != old_schedule
+            if schedule_changed:
+                due = initial_due(task, today or date.today())
+                task["due_date"] = due.isoformat()
+                task["anchor_day"] = due.day
+                task["schedule_anchor"] = due.isoformat()
             task["updated_at"] = _now()
             await self._save()
             return task

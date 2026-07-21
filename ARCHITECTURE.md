@@ -5,11 +5,11 @@ Home Tasker deliberately has a small surface. The integration is local-only and 
 ## Model
 
 - A group stores `id`, `name`, `manufacturer`, `model`, and `description` and is represented by a virtual Home Assistant device. A legacy/API-only `icon` value is retained but is not exposed by the panel. Group names are unique when compared case-insensitively.
-- A task belongs to exactly one group and stores its name, description, due date, recurrence mode (`fixed` or `sliding`), frequency (`daily`, `weekly`, or `monthly`), interval, and calendar anchor.
+- A task belongs to exactly one group and stores its name, description, calculated due date, optional start boundary, recurrence mode (`fixed` or `sliding`), frequency (`daily`, `weekly`, `monthly`, or `yearly`), interval, and calendar anchor.
 - Fixed weekly schedules support multiple weekdays. Fixed monthly schedules support days 1–31 or the last day. Sliding schedules advance from the completion date, including the completion day for monthly schedules.
 - Before version 1.0, stored schema changes do not include compatibility normalization; development data may be reset.
 - Every task exposes one problem `binary_sensor`; `on` means due. Deleting tasks or groups also removes their entity/device registry entries.
-- Attachments belong to one task. Their browser links are pre-signed through admin-only WebSocket commands and rendered as native anchors for authenticated mobile/browser access. History entries retain `due_before`, `due_after`, the recording timestamp, user, and optional completion notes so deleting an entry restores the derived due date. An explicit due-date edit is applied after pending history deletions and therefore wins.
+- Attachments belong to one task. Their browser links are pre-signed through admin-only WebSocket commands and rendered as native anchors for authenticated mobile/browser access. History entries retain `due_before`, `due_after`, the recording timestamp, user, and optional completion notes so deleting an entry restores the derived due date.
 
 ## Modules
 
@@ -20,11 +20,11 @@ Home Tasker deliberately has a small surface. The integration is local-only and 
 - `binary_sensor.py`: task entities and virtual device metadata
 - `frontend/panel.js`: dependency-free list and the group/task dialogs
 
-The list has no recurrence filters. Group editing appears as a pencil action at the right of the group header; deletion is available at the lower left of the group editor. Clicking a task opens a read-only viewer with rendered Markdown, a human-readable schedule, collapsible attachments and history, optional completion notes, and completion. The blue pencil action at the right of a task row opens its editor, where deletion is available. The editor repeats the human-readable schedule at the end of its scheduling box, shows the entered first due date, and previews the next due date using the same fixed/sliding recurrence rules as a completion today. Viewer and editor history rows show date, local time, user, and notes; only the editor exposes the delete action.
+The list has no recurrence filters. Group editing appears as a pencil action at the right of the group header; deletion is available at the lower left of the group editor. Clicking a task opens a read-only viewer with rendered Markdown, a human-readable schedule, collapsible attachments and history, optional completion notes, and completion. The blue pencil action at the right of a task row opens its editor, where deletion is available. The editor labels recurrence as "By calendar" or "After completion" and previews six backend-calculated due dates. Viewer and editor history rows show date, local time, user, and notes; only the editor exposes the delete action.
 Group headers show the number of due tasks as a red numeric pill.
 Actions use native buttons styled with Home Assistant theme variables instead of unstable internal frontend components. Popup titles remain sticky while the dialog body scrolls.
 Typography follows Home Assistant font, size, weight, line-height, and color variables. Action buttons share a 44-pixel minimum control height, while icon actions use a matching square footprint.
-Collapsible boxes remove redundant vertical padding and keep the clickable header aligned with its visible area. The editor requests a configurable sequence of future due dates through an admin-only WebSocket command. The backend calls the generic sequence helper in `scheduler.py`, so previews and persisted completion dates share the authoritative calculation without hardcoded occurrence fields. Icon actions use circular theme-aware hover and focus treatments.
+Collapsible boxes remove redundant vertical padding and keep the clickable header aligned with its visible area. The optional start boundary uses the same chevron treatment and opens automatically when populated. The editor requests a configurable sequence beginning with the backend-calculated initial due date through an admin-only WebSocket command. The backend uses the same scheduler for previews, task creation, schedule updates, and persisted completion dates. Icon actions use circular theme-aware hover and focus treatments.
 
 The backend supplies Home Assistant's current local date so sensors, relative dates, and the frontend agree around midnight. The panel refreshes visible data every 30 seconds and retries automatically after load failures. Attachment URLs are returned in bulk instead of requiring one WebSocket request per file.
 
