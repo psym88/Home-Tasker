@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.55
+
+### Changed
+
+- Swap the resting group-header and task-row background colors while preserving the existing task-row hover tint.
+
 ## 0.2.54
 
 ### Changed

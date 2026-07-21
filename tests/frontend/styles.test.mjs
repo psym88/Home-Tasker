@@ -3,9 +3,9 @@ import test from "node:test";
 
 const { GROUP_LIST_BACKGROUND, GROUP_HEADER_BACKGROUND, withStyles } = await import("../../custom_components/home_tasker/frontend/styles.js");
 
-test("group list follows Home Assistant data-table backgrounds", () => {
-  assert.equal(GROUP_LIST_BACKGROUND, "var(--data-table-background-color,var(--card-background-color,#fff))");
-  assert.equal(GROUP_HEADER_BACKGROUND, "var(--primary-background-color)");
+test("group list swaps Home Assistant data-table row and header backgrounds", () => {
+  assert.equal(GROUP_LIST_BACKGROUND, "var(--primary-background-color)");
+  assert.equal(GROUP_HEADER_BACKGROUND, "var(--data-table-background-color,var(--card-background-color,#fff))");
 });
 
 test("icon hover uses the neutral Home Assistant fill", () => {
