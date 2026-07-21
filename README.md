@@ -14,6 +14,7 @@ Home Tasker brings recurring household tasks into Home Assistant. Organize tasks
 - A configurable dashboard card for a focused task list
 - Home Assistant entities for automations and notifications
 - Local storage inside your Home Assistant configuration
+- English and German interface text that follows each user's Home Assistant language
 
 ## Requirements
 
@@ -57,7 +58,7 @@ Groups can be expanded to show their tasks. The badge beside a group shows how m
 
 Select a task to open its details. From there you can review its Home Assistant-rendered Markdown description, schedule, files, and history, and complete it with an optional note. Viewers, editors and empty states follow Home Assistant's native typography and text colors.
 
-Administrators can use the three-dot menu beside a task or group to edit or delete it. Files can be attached from the task editor by selecting them or using drag and drop. Supported files open in a Home Assistant preview dialog.
+Use the three-dot menu beside a task or group to edit or delete it. Files can be attached from the task editor by selecting them or using drag and drop. Supported files open in a Home Assistant preview dialog.
 
 ### Recurring schedules
 
@@ -83,6 +84,10 @@ The visual card editor lets you configure:
 - Whether the outer card background and frame are shown
 
 Select a task in the card to open its details and complete it. Card settings are stored only in that dashboard and do not change your tasks or integration settings.
+
+## Languages
+
+Home Tasker follows the language selected in each user's Home Assistant profile. English is the fallback language and German is included. Dates, weekdays, month names, times and relative due dates also use the selected locale. Additional translations can be added without changing the application logic.
 
 ## Permissions
 

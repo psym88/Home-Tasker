@@ -1,25 +1,26 @@
 import { L, esc } from "./shared.js";
 import { ROW_ACTION_MENU_STYLES, rowActionButtonHtml } from "./action-menu.js";
+import { t } from "./localize.js";
 
 export const TASK_ROW_BACKGROUND = "transparent";
 export const TASK_ROW_HOVER_BACKGROUND = "rgba(var(--rgb-primary-text-color),0.04)";
 export const LIST_SECONDARY_ACTION_COLOR = "var(--secondary-text-color)";
 
-export function sortTasksByDue(tasks, locale="de") {
+export function sortTasksByDue(tasks, locale="en") {
   return [...tasks].sort((a,b)=>(a.due_date||"").localeCompare(b.due_date||"")||(a.name||"").localeCompare(b.name||"",locale));
 }
 
 export const withTaskList = Base => class extends Base {
   tasksOf(id){ return this.tasks.filter(t=>t.group_id===id); }
-  sortedTasks(tasks){if(this.sort==="due")return sortTasksByDue(tasks);return [...tasks].sort((a,b)=>a.name.localeCompare(b.name,"de"));}
+  sortedTasks(tasks){if(this.sort==="due")return sortTasksByDue(tasks,this.locale());return [...tasks].sort((a,b)=>a.name.localeCompare(b.name,this.locale()));}
   due(t){return Boolean(this.today&&t.due_date<=this.today);}
-  sorted(){ const g=[...this.groups]; if(this.sort==="due"){const first=x=>this.tasksOf(x.id).reduce((date,t)=>t.due_date<date?t.due_date:date,"9999-12-31");g.sort((a,b)=>first(a).localeCompare(first(b))||a.name.localeCompare(b.name,"de"));}else g.sort((a,b)=>a.name.localeCompare(b.name,"de")); return g; }
+  sorted(){ const g=[...this.groups]; if(this.sort==="due"){const first=x=>this.tasksOf(x.id).reduce((date,t)=>t.due_date<date?t.due_date:date,"9999-12-31");g.sort((a,b)=>first(a).localeCompare(first(b))||a.name.localeCompare(b.name,this.locale()));}else g.sort((a,b)=>a.name.localeCompare(b.name,this.locale())); return g; }
   render(){
     this.closeActionMenu();
     if(!this.shadowRoot.querySelector(".app")) this.shadowRoot.innerHTML=`${this.styles()}<style>.task:hover{background:${TASK_ROW_HOVER_BACKGROUND}}.task{background:${TASK_ROW_BACKGROUND};cursor:grab;user-select:none}.task.dragging{opacity:.45}.group-head.drop-target{outline:2px solid var(--primary-color);outline-offset:-2px;background:var(--secondary-background-color)}</style><div class="app"></div>`;
     const app=this.shadowRoot.querySelector(".app");
-    app.innerHTML=`<style>main{padding-bottom:36px}.task{cursor:pointer;user-select:auto}.sort{box-sizing:border-box;min-height:44px;padding:9px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:var(--primary-text-color);font:inherit}.placeholder-add{display:flex;align-items:center;justify-content:flex-start;gap:7px;width:100%;min-height:52px;padding:4px 12px;border:1px dashed var(--divider-color);border-radius:10px;background:transparent;color:var(--secondary-text-color);font:inherit;text-align:left}.placeholder-add:hover,.placeholder-add:focus-visible{background:${TASK_ROW_HOVER_BACKGROUND};border-color:var(--secondary-text-color);outline:0}.list-add{margin-bottom:8px}.group-add{width:calc(100% - 20px);margin:8px 10px}.version{right:10px;left:auto;top:8px;bottom:auto}</style><main><header><div><h1>Home Tasker</h1><p>Wiederkehrende Aufgaben im Blick behalten</p></div></header>
-      <nav><i></i><button class="link expand" style="color:${LIST_SECONDARY_ACTION_COLOR}">${this.groups.every(g=>this.expanded.has(g.id))?"Alle zuklappen":"Alle aufklappen"}</button><select class="sort" aria-label="Sortierung"><option value="name">Name</option><option value="due">Fälligkeit</option></select></nav>
+    app.innerHTML=`<style>main{padding-bottom:36px}.task{cursor:pointer;user-select:auto}.sort{box-sizing:border-box;min-height:44px;padding:9px;border:1px solid var(--divider-color);border-radius:8px;background:var(--primary-background-color);color:var(--primary-text-color);font:inherit}.placeholder-add{display:flex;align-items:center;justify-content:flex-start;gap:7px;width:100%;min-height:52px;padding:4px 12px;border:1px dashed var(--divider-color);border-radius:10px;background:transparent;color:var(--secondary-text-color);font:inherit;text-align:left}.placeholder-add:hover,.placeholder-add:focus-visible{background:${TASK_ROW_HOVER_BACKGROUND};border-color:var(--secondary-text-color);outline:0}.list-add{margin-bottom:8px}.group-add{width:calc(100% - 20px);margin:8px 10px}.version{right:10px;left:auto;top:8px;bottom:auto}</style><main><header><div><h1>Home Tasker</h1><p>${t("panel.subtitle")}</p></div></header>
+      <nav><i></i><button class="link expand" style="color:${LIST_SECONDARY_ACTION_COLOR}">${t(this.groups.every(g=>this.expanded.has(g.id))?"panel.collapse_all":"panel.expand_all")}</button><select class="sort" aria-label="${t("panel.sort")}"><option value="name">${t("panel.sort_name")}</option><option value="due">${t("panel.sort_due")}</option></select></nav>
       <button class="placeholder-add list-add"><ha-icon icon="mdi:plus"></ha-icon><span>${L.addTask}</span></button><section>${this.sorted().map(g=>this.groupRow(g)).join("")}</section><small class="version">v${this.constructor.version}</small></main>`;
     app.insertAdjacentHTML("beforeend",'<style>.placeholder-add{justify-content:center;text-align:center}</style>'+ROW_ACTION_MENU_STYLES+this.themeStyles()+this.typographyStyles()+this.buttonThemeStyles()+this.iconHoverStyles()+this.groupListStyles());
     app.querySelector(".sort").value=this.sort;

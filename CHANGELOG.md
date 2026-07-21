@@ -2,6 +2,17 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.89
+
+### Added
+
+- Add complete runtime localization for the sidebar panel, dashboard card, card editor, viewers, editors, confirmations, action menus, schedules and errors.
+- Add German frontend translations with English fallback and Home Assistant locale-aware dates, times, weekdays, months, sorting and relative due dates.
+
+### Changed
+
+- Remove embedded German UI copy from frontend source and use stable translation keys throughout.
+
 ## 0.2.88
 
 ### Changed

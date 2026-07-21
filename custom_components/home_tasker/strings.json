@@ -2,12 +2,12 @@
   "config": {
     "step": {
       "user": {
-        "title": "Home Tasker einrichten",
-        "description": "Erstellt die lokale Home-Tasker-Konfiguration."
+        "title": "Set up Home Tasker",
+        "description": "Creates the local Home Tasker configuration."
       }
     },
     "abort": {
-      "already_configured": "Home Tasker ist bereits eingerichtet."
+      "already_configured": "Home Tasker is already configured."
     }
   }
 }

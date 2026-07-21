@@ -24,6 +24,7 @@ test("list rows use vertical-dots action menus", () => {
   model.due = () => false;
   model.date = value => value;
   model.relativeDate = value => value;
+  model.locale = () => "en";
 
   assert.equal(LIST_SECONDARY_ACTION_COLOR, "var(--secondary-text-color)");
   assert.match(model.groupRow({ id: "group", name: "Group" }), /data-action-kind="group"[\s\S]*?mdi:dots-vertical/);
@@ -32,9 +33,9 @@ test("list rows use vertical-dots action menus", () => {
 
 test("sortTasksByDue sorts by due date and then by name", () => {
   const tasks = [
-    { id: "3", name: "Wischen", due_date: "2026-07-23" },
-    { id: "2", name: "Bad", due_date: "2026-07-22" },
-    { id: "1", name: "Abwasch", due_date: "2026-07-22" },
+    { id: "3", name: "Mopping", due_date: "2026-07-23" },
+    { id: "2", name: "Laundry", due_date: "2026-07-22" },
+    { id: "1", name: "Dishes", due_date: "2026-07-22" },
   ];
 
   assert.deepEqual(sortTasksByDue(tasks).map(task => task.id), ["1", "2", "3"]);
@@ -46,8 +47,8 @@ test("sortTasksByDue handles an empty list", () => {
 
 test("sortTasksByDue does not mutate its input", () => {
   const tasks = [
-    { id: "2", name: "Später", due_date: "2026-07-24" },
-    { id: "1", name: "Früher", due_date: "2026-07-21" },
+    { id: "2", name: "Later", due_date: "2026-07-24" },
+    { id: "1", name: "Earlier", due_date: "2026-07-21" },
   ];
   const original = [...tasks];
 
@@ -60,8 +61,8 @@ test("grouped task rows preserve panel sorting and due badges", () => {
   class TaskListModel extends withTaskList(class {}) {}
   const model = new TaskListModel();
   model.tasks = [
-    { id: "later", group_id: "chores", name: "Wischen", due_date: "2026-07-23" },
-    { id: "due", group_id: "chores", name: "Abwasch", due_date: "2026-07-21" },
+    { id: "later", group_id: "chores", name: "Mopping", due_date: "2026-07-23" },
+    { id: "due", group_id: "chores", name: "Dishes", due_date: "2026-07-21" },
   ];
   model.attachments = [];
   model.users = [];
@@ -71,8 +72,9 @@ test("grouped task rows preserve panel sorting and due badges", () => {
   model.today = "2026-07-21";
   model.date = value => value;
   model.relativeDate = value => value;
+  model.locale = () => "en";
 
-  const html = model.groupRow({ id: "chores", name: "Haushalt" });
+  const html = model.groupRow({ id: "chores", name: "Household" });
 
   assert.ok(html.includes('<span class="pill open-count">1</span>'));
   assert.ok(html.indexOf('data-task="due"') < html.indexOf('data-task="later"'));
@@ -86,6 +88,7 @@ test("task-list titles use the secondary text color", () => {
   model.due = () => false;
   model.date = value => value;
   model.relativeDate = value => value;
+  model.locale = () => "en";
   assert.match(model.taskRow({ id: "task", name: "Task", due_date: "2026-07-21" }), /<strong class="ht-content">Task<\/strong>/);
 });
 
@@ -101,12 +104,13 @@ test("expanded groups end with a group-bound add-task placeholder", () => {
   model.today = "2026-07-21";
   model.date = value => value;
   model.relativeDate = value => value;
+  model.locale = () => "en";
 
-  const html = model.groupRow({ id: "chores", name: "Haushalt" });
+  const html = model.groupRow({ id: "chores", name: "Household" });
   assert.ok(html.indexOf('data-task="task"') < html.indexOf('class="placeholder-add group-add"'));
-  assert.match(html, /mdi:plus[\s\S]*Task hinzufügen/);
+  assert.match(html, /mdi:plus[\s\S]*Add task/);
   model.expanded.clear();
-  assert.doesNotMatch(model.groupRow({ id: "chores", name: "Haushalt" }), /group-add/);
+  assert.doesNotMatch(model.groupRow({ id: "chores", name: "Household" }), /group-add/);
 });
 
 test("task list replaces the floating action with top and group placeholders", () => {
@@ -129,7 +133,7 @@ test("task-list attachment pills open in-app instead of a new browser page", () 
 
 test("task-list sorting uses the planning-style themed select", () => {
   const source = readFileSync(new URL("../../custom_components/home_tasker/frontend/task-list.js", import.meta.url), "utf8");
-  assert.match(source, /<select class="sort" aria-label="Sortierung">/);
+  assert.match(source, /<select class="sort" aria-label="\$\{t\("panel\.sort"\)\}">/);
   assert.match(source, /\.sort\{[^}]*padding:9px[^}]*border:1px solid var\(--divider-color\)[^}]*background:var\(--primary-background-color\)[^}]*color:var\(--primary-text-color\)[^}]*font:inherit/);
   assert.match(source, /\.sort"\)\.onchange/);
   assert.doesNotMatch(source, /<ha-select class="sort"/);
