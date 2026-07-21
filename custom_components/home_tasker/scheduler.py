@@ -5,6 +5,16 @@ from datetime import date, timedelta
 from typing import Any
 
 
+def validate_schedule(task: dict[str, Any]) -> None:
+    """Reject incomplete fixed calendar rules."""
+    if task.get("recurrence_mode") != "fixed":
+        return
+    if task.get("frequency") == "weekly" and not task.get("weekdays"):
+        raise ValueError("select_at_least_one_weekday")
+    if task.get("frequency") == "monthly" and task.get("day_of_month") is None:
+        raise ValueError("select_day_of_month")
+
+
 def add_interval(value: date, interval: int, unit: str, anchor_day: int | None = None) -> date:
     """Advance a date by a simple sliding interval."""
     if unit == "day":
@@ -27,7 +37,7 @@ def next_due(task: dict[str, Any], completed: date) -> date:
 
     if task["recurrence_mode"] == "sliding":
         unit = {"daily": "day", "weekly": "week", "monthly": "month"}[frequency]
-        return add_interval(completed, interval, unit, int(task.get("anchor_day") or due.day))
+        return add_interval(completed, interval, unit)
 
     anchor = date.fromisoformat(task.get("schedule_anchor") or task["due_date"])
     # Completing early still consumes the currently scheduled occurrence;
@@ -50,7 +60,7 @@ def next_due(task: dict[str, Any], completed: date) -> date:
         raise ValueError("invalid_weekly_schedule")
 
     if frequency == "monthly":
-        selected = task.get("day_of_month", anchor.day)
+        selected = task.get("day_of_month") or anchor.day
         month_delta = (cursor.year - anchor.year) * 12 + cursor.month - anchor.month
         for offset in range(max(0, month_delta), max(0, month_delta) + interval + 2):
             if offset % interval:

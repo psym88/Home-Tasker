@@ -53,6 +53,25 @@ class HomeTaskerStore:
             raise ValueError(f"unknown_{kind[:-1]}")
         return item
 
+    @staticmethod
+    def _required_name(value: Any) -> str:
+        name = str(value or "").strip()
+        if not name:
+            raise ValueError("name_required")
+        return name
+
+    def _group_name_exists(self, name: str, exclude_id: str | None = None) -> bool:
+        normalized = name.casefold()
+        return any(
+            group["id"] != exclude_id
+            and group.get("name", "").strip().casefold() == normalized
+            for group in self._data["groups"]
+        )
+
+    def task(self, task_id: str) -> dict[str, Any]:
+        """Return one task for validation by the API layer."""
+        return dict(self._find("tasks", task_id))
+
     async def _save(self) -> None:
         await self._store.async_save(self._data)
 
@@ -103,9 +122,12 @@ class HomeTaskerStore:
     async def async_add_group(self, payload: dict[str, Any]) -> dict[str, Any]:
         async with self._lock:
             now = _now()
+            name = self._required_name(payload.get("name"))
+            if self._group_name_exists(name):
+                raise ValueError("group_name_exists")
             group = {"id": uuid4().hex, **{k: payload.get(k) for k in (
                 "name", "manufacturer", "model", "icon", "description"
-            )}, "created_at": now, "updated_at": now}
+            )}, "name": name, "created_at": now, "updated_at": now}
             self._data["groups"].append(group)
             await self._save()
             return group
@@ -113,6 +135,11 @@ class HomeTaskerStore:
     async def async_update_group(self, group_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         async with self._lock:
             group = self._find("groups", group_id)
+            if "name" in payload:
+                name = self._required_name(payload["name"])
+                if self._group_name_exists(name, group_id):
+                    raise ValueError("group_name_exists")
+                payload = {**payload, "name": name}
             for key in ("name", "manufacturer", "model", "icon", "description"):
                 if key in payload:
                     group[key] = payload[key]
@@ -138,12 +165,14 @@ class HomeTaskerStore:
         due = date.fromisoformat(payload["due_date"])
         async with self._lock:
             now = _now()
+            name = self._required_name(payload.get("name"))
             group_id = self._resolve_task_group(
                 payload.get("group_id"), payload.get("group_name"), now
             )
             task = {
                 "id": uuid4().hex,
                 **{k: payload.get(k) for k in ("name", "description", "assignee_user_id", "due_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month")},
+                "name": name,
                 "group_id": group_id,
                 "anchor_day": due.day,
                 "schedule_anchor": payload["due_date"],
@@ -157,6 +186,8 @@ class HomeTaskerStore:
     async def async_update_task(self, task_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         async with self._lock:
             task = self._find("tasks", task_id)
+            if "name" in payload:
+                payload = {**payload, "name": self._required_name(payload["name"])}
             if "group_id" in payload or "group_name" in payload:
                 task["group_id"] = self._resolve_task_group(
                     payload.get("group_id"), payload.get("group_name"), _now()
