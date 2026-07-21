@@ -29,3 +29,12 @@ test("all pills use Home Assistant's small font size", () => {
   assert.match(model.themeStyles(), /\.pill\{font-size:var\(--ha-font-size-s\)\}/);
   assert.doesNotMatch(model.styles(), /\.count,\.pill\{[^}]*font-size:/);
 });
+
+test("shared dialog layout aligns headers and collapsible content", () => {
+  class StyleModel extends withStyles(class {}) {}
+  const css = new StyleModel().dialogLayoutStyles();
+  assert.match(css, /\.modal-header\{[^}]*display:flex;align-items:center/);
+  assert.match(css, /\.modal-header h2\{[^}]*position:static/);
+  assert.match(css, /\.details-content\{display:none/);
+  assert.match(css, /\.details\.open>\.details-content\{display:flex/);
+});

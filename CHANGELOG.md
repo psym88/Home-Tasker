@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.61
+
+### Fixed
+
+- Use the neutral secondary action color for dashboard task pencil icons.
+- Restore the shared horizontal sticky dialog header and collapsible-section layout when viewers and editors are opened from the dashboard card.
+
 ## 0.2.60
 
 ### Changed

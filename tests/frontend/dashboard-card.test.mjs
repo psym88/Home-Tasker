@@ -26,7 +26,7 @@ test("normalization preserves null and sanitizes invalid values",()=>{assert.equ
 
 test("due status separates overdue, today, and future dates",()=>{assert.equal(dueStatus("2026-07-20","2026-07-21"),"overdue");assert.equal(dueStatus("2026-07-21","2026-07-21"),"today");assert.equal(dueStatus("2026-07-22","2026-07-21"),"future");});
 test("view rows omit edit controls and assignment metadata",()=>{const html=dashboardTaskRowHtml(tasks[0],false,"gestern","overdue");assert.doesNotMatch(html,/pencil|edit-task-row|alice|house/);assert.match(html,/Wischen/);assert.match(html,/due-label overdue/);});
-test("edit rows contain the pencil control",()=>assert.match(dashboardTaskRowHtml(tasks[0],true,"gestern","overdue"),/edit-task-row/));
+test("edit rows contain a secondary-color pencil control",()=>assert.match(dashboardTaskRowHtml(tasks[0],true,"gestern","overdue"),/class="edit-task-row icon"[^>]+color:var\(--secondary-text-color\)/));
 test("edit mode falls back to view for non-admin users",()=>{assert.equal(canEditCard({mode:"edit"},{user:{is_admin:false}}),false);assert.equal(canEditCard({mode:"edit"},{user:{is_admin:true}}),true);});
 
 test("editor update emits a dashboard-local config change",()=>{const editor=Object.create(HomeTaskerCardEditor.prototype);editor.config={...DEFAULT_CARD_CONFIG};editor.render=()=>{};let event;editor.dispatchEvent=value=>{event=value;};editor.update({mode:"edit",group_ids:["house"]});assert.equal(event.type,"config-changed");assert.equal(event.detail.config.mode,"edit");assert.deepEqual(event.detail.config.group_ids,["house"]);});
