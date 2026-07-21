@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.66
+
+### Changed
+
+- Move task and group editor save actions into Home Assistant's native adaptive-dialog footer, matching the task viewer and keeping the primary action visible while content scrolls.
+
 ## 0.2.65
 
 ### Fixed
