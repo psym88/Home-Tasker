@@ -84,4 +84,11 @@ def test_next_due_sequence_uses_each_occurrence_as_the_next_completion():
     assert next_due_sequence(
         task(frequency="weekly", weekdays=[0, 2, 4]),
         date(2026, 7, 21),
-    ) == [date(2026, 7, 22), date(2026, 7, 24)]
+        count=5,
+    ) == [
+        date(2026, 7, 22),
+        date(2026, 7, 24),
+        date(2026, 7, 27),
+        date(2026, 7, 29),
+        date(2026, 7, 31),
+    ]

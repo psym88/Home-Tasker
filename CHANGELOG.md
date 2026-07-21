@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.35
+
+### Changed
+
+- Show the first six due dates in the task editor and remove trailing punctuation from each due-date line.
+- Return a configurable due-date sequence from the backend preview API instead of hardcoding individual occurrence fields.
+
 ## 0.2.34
 
 ### Changed
