@@ -2,6 +2,14 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.44
+
+### Changed
+
+- Display the due-date preview in normal Home Assistant body size and primary text color.
+- Align weekdays and dates in a responsive two-column layout.
+- Add spacing between the recurrence description and the due-date table.
+
 ## 0.2.43
 
 ### Changed
