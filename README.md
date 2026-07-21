@@ -2,18 +2,49 @@
 
 Home Tasker is a local Home Assistant custom integration for recurring household tasks.
 
-## Features
+## Requirements
 
-- Expandable group/task list in a bundled admin panel
-- One virtual Home Assistant device per group
-- One due-state problem `binary_sensor` per task
-- Fixed calendar schedules or sliding completion-based schedules
-- Daily intervals, weekly intervals with multiple weekdays, and monthly intervals with a calendar day
-- Task completion history with undo by deleting a history entry
-- Task-owned file uploads via browse or drag and drop
+- Home Assistant 2026.7.0 or newer
+- HACS for the recommended installation method
 
 ## Installation
 
-Add this repository to HACS as a custom integration repository, install **Home Tasker**, restart Home Assistant, and add the integration under **Settings → Devices & services**.
+1. Add this repository to HACS as a custom integration repository.
+2. Install **Home Tasker**.
+3. Restart Home Assistant.
+4. Add the integration under **Settings → Devices & services**.
 
-All data and uploaded files stay inside the Home Assistant configuration directory.
+Only one Home Tasker config entry can be created.
+
+## Usage
+
+- Use the global **Add task** button to create a task. Enter an existing group name or create a new group directly from the task editor.
+- Expand a group to see its tasks. The red number is the count of currently due tasks.
+- Use the check-circle action in a task row to complete it. Click the rest of the row to edit the task.
+- Files can be uploaded by browsing or drag and drop. New uploads are discarded when the editor is closed without saving.
+- Deleting a history entry recalculates the derived due date. If the due date is edited in the same save operation, the explicitly entered date wins.
+
+## Recurrence
+
+- **Fixed** schedules remain anchored to their calendar. Completing an overdue task skips missed occurrences and selects the next future occurrence.
+- **Sliding** schedules advance from the completion date.
+- Daily schedules advance by a number of days.
+- Weekly fixed schedules support multiple weekdays and multi-week intervals.
+- Monthly fixed schedules support days 1–31 or the last day. Dates such as day 31 are clamped to the last available day of shorter months.
+- Monthly sliding schedules use the completion day as the next monthly anchor.
+
+## Home Assistant entities
+
+- Every group is represented by one virtual Home Assistant device.
+- Every task exposes one problem `binary_sensor`; `on` means that the task is due.
+- Task assignment and schedule fields are available as entity attributes.
+
+## Data storage
+
+Metadata is stored in Home Assistant's versioned Store. Uploads live under `<config>/home_tasker/uploads`. All data stays inside the Home Assistant configuration directory.
+
+## Development and releases
+
+Release notes and changelog entries must always be written in English. Keep the versions in `manifest.json`, `const.py`, and `frontend/panel.js` aligned.
+
+Report problems through the [GitHub issue tracker](https://github.com/psym88/Home-Tasker/issues).

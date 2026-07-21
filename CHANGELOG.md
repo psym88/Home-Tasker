@@ -1,129 +1,114 @@
 # Changelog
 
-## 0.2.28
+All release notes and changelog entries are written in English.
 
-- Das Entitäts-Icon wurde aus den Task-Zeilen entfernt.
-- Task-Name und Metadaten beginnen nun direkt am linken Innenrand der Zeile.
-
-## 0.2.27
-
-- Task-Metadaten sind klar aufgeteilt: Aufgabendatum und Zuordnung stehen gemeinsam, Dateianhänge in einer eigenen Zeile.
-- Das Aufgabendatum wird relativ angezeigt, das exakte Datum bleibt als Tooltip verfügbar.
-- Die Wiederholungsart wird in der Listenansicht nicht mehr als Pille angezeigt.
-- Zwischen den Pillen sorgt ein einheitlicher Abstand für bessere Lesbarkeit.
-
-## 0.2.26
-
-- Jede Task-Zeile besitzt rechts eine Aktion mit `mdi:check-circle-outline` und einer Bestätigung vor dem Erledigen.
-- Dateianhänge werden am Ende der Task-Pills einzeln mit Dateinamen und als authentifizierte Links angezeigt.
-- Der „Erledigt“-Button wurde aus dem Task-Editor entfernt.
-- Der Bestätigungsdialog unterstützt nun sowohl destruktive als auch erfolgreiche Aktionen.
-
-## 0.2.25
-
-- Zugeordnete Home-Assistant-Benutzer werden als zusätzliche Pille in der Task-Zeile angezeigt.
-- Tasks ohne Benutzerzuweisung zeigen keine Benutzer-Pille.
-
-## 0.2.24
-
-- Browser-`confirm()`-Abfragen wurden für Gruppen und Tasks entfernt.
-- Löschvorgänge verwenden einen gemeinsamen HA-nahen Bestätigungsdialog innerhalb des Panels.
-- Abbrechen, Außenklick und Escape schließen die Abfrage ohne Löschung; die destruktive Bestätigung ist deutlich rot markiert.
-
-## 0.2.23
-
-- Die Browser-`datalist` für Gruppen wurde durch eine eigene HA-nahe Combobox ersetzt.
-- Bestehende Gruppen werden in einem eindeutig anwendungseigenen Ergebnisbereich gefiltert angezeigt.
-- Neue Gruppennamen erscheinen als explizite Aktion „als neue Gruppe erstellen“.
-- Such-, Aufklapp- und Löschen-Symbole verdeutlichen den Zustand der Auswahl.
-
-## 0.2.22
-
-- Die Versionsnummer steht oben rechts.
-- Die Box „Zuordnung“ folgt direkt auf „Planung“ und enthält zusätzlich eine optionale Auswahl aktiver Home-Assistant-Benutzer.
-- Die Benutzerzuweisung wird am Task und als Entitätsattribut gespeichert.
-- „Abbrechen“ wurde durch ein X oben links im fixierten Editor-Header ersetzt.
-
-## 0.2.21
-
-- Drag-and-drop für Tasks wurde wieder entfernt.
-- Die Gruppenzuweisung befindet sich in einer eigenen Box „Zuordnung“ ohne Fallback-Hinweis.
-- Das Pflichtfeld „Name“ zeigt einen roten Asterisk.
-- Gruppeninterne Hinzufügen-Zeilen wurden durch einen einzigen fixierten globalen „Task hinzufügen“-Button unten rechts ersetzt.
-
-## 0.2.20
-
-- Tasks können in der Listenansicht per Drag-and-drop auf eine andere Gruppenzeile verschoben werden.
-- Auf Touch-Geräten startet das Verschieben durch kurzes Gedrückthalten einer Task-Zeile.
-- Das Ziel wird hervorgehoben und nach dem Verschieben aufgeklappt.
-
-## 0.2.19
-
-- Beim Wechsel der Task-Gruppe wird die Entity-ID passend zum neuen virtuellen Gerät kollisionsfrei neu generiert.
-- Die stabile Unique-ID der Entität bleibt dabei erhalten.
-
-## 0.2.18
-
-- Der globale Eintrag „Gruppe hinzufügen“ wurde durch „Task hinzufügen“ ersetzt.
-- Der Task-Editor unterstützt Gruppen-Autovervollständigung, das Erstellen neuer Gruppen und die Fallback-Gruppe „Tasks“ bei leerer Eingabe.
-- Die Gruppenzuweisung bestehender Tasks kann geändert werden; ihre Home-Assistant-Entität wird dem passenden virtuellen Gerät zugeordnet.
-
-## 0.2.17
-
-- Tasks ohne Gruppenzuweisung werden der automatisch angelegten Fallback-Gruppe „Tasks“ zugeordnet.
-- Die Fallback-Gruppe bleibt ein normales virtuelles Home-Assistant-Gerät, damit Task-Entitäten für Automationen verfügbar sind.
-
-## 0.2.16
-
-- Der Editor ist mit Abstand zum oberen Bildschirmrand fixiert, damit aufklappende Bereiche ihn nicht mehr vertikal verschieben.
-
-## 0.2.15
-
-- Planung, Dateien und Verlauf im Task-Editor sind standardmäßig eingeklappt.
-- Die drei Bereiche lassen sich über einen Chevron im Box-Titel auf- und zuklappen.
-
-## Unreleased
-
-### Added
-
-- Added pre-signed authenticated attachment links that open natively in browsers and the iOS Companion App.
-- Apply the selected name/state sort order to tasks inside every group.
-- Initial Home Tasker Home Assistant integration.
-- Expandable group/task panel with fixed/sliding filters, sorting, state and file pills.
-- Group and task editors.
-- Virtual group devices and due-state task entities.
-- Task history, calendar-anchor scheduling, and task-owned uploads.
+## 0.2.29
 
 ### Fixed
 
-- Remove deleted task entities and orphaned group devices from Home Assistant's registries.
-- Render task entity icons with Home Assistant's current state-icon component.
-- Schedule dynamic entity additions in the dispatcher callback on Home Assistant's running event loop.
-- Keep the task editor open and refresh its due date/history after completion.
+- Use Home Assistant's configured local date consistently for due sensors, frontend due states, relative dates, and new-task defaults.
+- Validate partial schedule updates against the complete stored task and reject incomplete fixed weekly or monthly rules.
+- Fall back to the calendar anchor for legacy fixed monthly tasks without a stored day.
+- Advance sliding monthly schedules from the actual completion day.
+- Apply explicit due-date edits after pending history deletions so the entered date is preserved.
+- Clean up files uploaded while editing when the dialog is closed without saving.
+- Keep untouched weekly and monthly defaults aligned when the date of a new task changes.
+- Show upload failures while preserving successfully uploaded files in the editor.
+- Prevent empty task/group names and duplicate group names.
+- Retry failed panel loads and refresh visible panel data periodically.
+- Avoid retry failures after a partially completed set of pending file or history deletions.
 
 ### Changed
 
-- Made description fields non-resizable and renamed the visible due-date field to task date.
-- Boxed the scheduling controls and renamed fixed/sliding recurrence to task-date/completion-date wording.
-- Limited sorting to name and due date, removed header totals, truncated long filenames, and removed the empty validation gap above files.
-- Replaced the file browse link with a visible clickable drop zone and distributed weekday buttons evenly across the full mobile width.
-- Balanced task-row spacing and replaced all task-editor delete text/emoji controls with red MDI delete icons.
-- Centered task icons in a padded leading column, hid zero-count open pills, and replaced group edit/delete text actions with icons.
-- Removed the task-row indent and total-task pill, and shortened the open-task pill to its number.
-- Added expansion chevrons to group rows and the original Home Assistant entity icon to each task row.
-- Moved group editing to the right side of the group header and group deletion to the lower-left corner of the group editor.
-- Match list and task-editor actions to the Save/Cancel button treatment; delete uses the neutral button with red text.
-- Show each group's due-task count as a red `N offen` pill.
-- Display attachment counts as `N Dateien` and remove added sizing/padding from text action buttons.
-- Keep popup titles visible while their content scrolls.
-- Render mobile-friendly HA-themed native action buttons with 44-pixel touch targets.
-- Removed recurrence filter chips and all list action icons.
-- Made task rows open the editor and moved task completion/deletion into that editor.
-- Moved group edit/delete actions to the bottom of expanded groups and added list hover states.
-- Replaced the attachment icon pill with a text label.
-- Compacted the list and task editor.
-- Separated files and history into distinct task-editor sections and removed the group icon field from the editor.
-- Replaced the temporary weekly type with a Todoist-style recurrence model: fixed or sliding calculation combined with daily, weekly, or monthly frequency.
-- Added multiple weekday selection, monthly day/last-day selection, and right-aligned file actions.
-- Keep panel and integration versions aligned and default new tasks to sliding recurrence.
-- Drop pre-1.0 compatibility normalization for superseded development schemas.
+- Return signed attachment URLs in bulk instead of issuing one WebSocket request per attachment.
+- Add the GitHub issue tracker to the integration manifest.
+- Expand and synchronize the README and architecture documentation with current behavior.
+- Add repository instructions requiring English release notes.
+
+## 0.2.28
+
+- Removed the entity icon from task rows.
+- Task names and metadata now start at the left content edge of each row.
+
+## 0.2.27
+
+- Split task metadata clearly: task date and assignment share one row, while attachments use a separate row.
+- Display task dates relatively and keep the exact date in a tooltip.
+- Removed the recurrence-mode pill from the list.
+- Standardized spacing between pills.
+
+## 0.2.26
+
+- Added a check-circle completion action with confirmation to every task row.
+- Display attachments as individual authenticated filename links at the end of the task metadata.
+- Removed the completion button from the task editor.
+- Extended the confirmation dialog to support both destructive and successful actions.
+
+## 0.2.25
+
+- Display assigned Home Assistant users as an additional task pill.
+- Hide the user pill for unassigned tasks.
+
+## 0.2.24
+
+- Replaced browser `confirm()` prompts for groups and tasks with a shared Home Assistant-style dialog.
+- Cancel, outside click, and Escape close the prompt without deleting; destructive confirmation is highlighted in red.
+
+## 0.2.23
+
+- Replaced the browser group `datalist` with a custom Home Assistant-style combobox.
+- Display matching existing groups in a dedicated result area.
+- Display new group names as an explicit create action.
+- Added search, expand, and clear icons to clarify selection state.
+
+## 0.2.22
+
+- Display the version in the upper-right corner.
+- Moved assignment directly after scheduling and added optional active Home Assistant user selection.
+- Store the assigned user on the task and expose it as an entity attribute.
+- Replaced the Cancel button with a close action in the fixed editor header.
+
+## 0.2.21
+
+- Removed task drag and drop.
+- Moved group selection into its own Assignment section.
+- Marked the required Name field with a red asterisk.
+- Replaced per-group add rows with one fixed global Add task button.
+
+## 0.2.20
+
+- Added drag and drop between groups in the list.
+- Added short-hold movement on touch devices.
+- Highlighted the target group and expanded it after a move.
+
+## 0.2.19
+
+- Regenerate the entity ID without collisions when a task changes groups.
+- Preserve the stable unique ID during a move.
+
+## 0.2.18
+
+- Replaced the global Add group entry with Add task.
+- Added group autocomplete, inline group creation, and the Tasks fallback group to the task editor.
+- Allow existing tasks to change groups and move their entity to the matching virtual device.
+
+## 0.2.17
+
+- Assign tasks without a group to an automatically created Tasks fallback group.
+- Keep the fallback group as a regular virtual Home Assistant device so task entities remain available to automations.
+
+## 0.2.16
+
+- Fixed the editor below the top edge so expanding sections no longer moves it vertically.
+
+## 0.2.15
+
+- Collapse Scheduling, Files, and History by default in the task editor.
+- Added chevrons to expand and collapse those sections.
+
+## 0.2.14 and earlier
+
+- Added the initial Home Tasker integration, virtual group devices, due-state task entities, task history, recurrence scheduling, and task-owned uploads.
+- Added the expandable group/task panel and iterated on its filters, sorting, actions, dialogs, mobile layout, and attachment presentation.
+- Replaced the temporary recurrence implementation with fixed and sliding daily, weekly, and monthly schedules.
+- Added registry cleanup for deleted tasks and groups and dynamic entity creation for new tasks.

@@ -1,7 +1,5 @@
 """Task problem sensors."""
 
-from datetime import date
-
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass, BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -9,6 +7,7 @@ from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN, SIGNAL_UPDATED
 from .models import HomeTaskerData
@@ -102,7 +101,7 @@ class TaskSensor(BinarySensorEntity):
 
     @property
     def is_on(self) -> bool:
-        return bool(self._task and self._store.is_due(self._task, date.today()))
+        return bool(self._task and self._store.is_due(self._task, dt_util.now().date()))
 
     @property
     def device_info(self) -> DeviceInfo | None:

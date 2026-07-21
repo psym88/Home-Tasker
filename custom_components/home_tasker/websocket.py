@@ -9,9 +9,11 @@ from homeassistant.components import websocket_api
 from homeassistant.components.http.auth import async_sign_path
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.util import dt as dt_util
 
 from .const import DOWNLOAD_URL, SIGNAL_UPDATED
 from .helpers import get_store
+from .scheduler import validate_schedule
 
 TEXT = vol.Any(str, None)
 GROUP_FIELDS = {vol.Required("name"): str, vol.Optional("manufacturer"): TEXT, vol.Optional("model"): TEXT, vol.Optional("icon"): TEXT, vol.Optional("description"): TEXT}
@@ -56,10 +58,12 @@ def updated(hass: HomeAssistant) -> None:
     async_dispatcher_send(hass, SIGNAL_UPDATED)
 
 
-def validate_task_schedule(msg: dict[str, Any]) -> None:
+def validate_task_schedule(
+    msg: dict[str, Any], existing: dict[str, Any] | None = None
+) -> None:
     """Reject incomplete fixed calendar rules."""
-    if msg.get("recurrence_mode") == "fixed" and msg.get("frequency") == "weekly" and not msg.get("weekdays"):
-        raise ValueError("select_at_least_one_weekday")
+    values = {**(existing or {}), **msg}
+    validate_schedule(values)
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/list"})
@@ -68,6 +72,16 @@ def validate_task_schedule(msg: dict[str, Any]) -> None:
 @require_store
 async def ws_list(hass, connection, msg, store):
     result = store.snapshot()
+    result["today"] = dt_util.now().date().isoformat()
+    result["signed_files"] = {
+        item["id"]: async_sign_path(
+            hass,
+            f"{DOWNLOAD_URL}/{item['id']}",
+            timedelta(hours=1),
+            refresh_token_id=connection.refresh_token_id,
+        )
+        for item in result["attachments"]
+    }
     result["users"] = [
         {"id": user.id, "name": user.name or user.id}
         for user in await hass.auth.async_get_users()
@@ -115,7 +129,7 @@ async def ws_task_create(hass, connection, msg, store):
 @websocket_api.async_response
 @require_store
 async def ws_task_update(hass, connection, msg, store):
-    validate_task_schedule(msg)
+    validate_task_schedule(msg, store.task(msg["task_id"]))
     connection.send_result(msg["id"], await store.async_update_task(msg["task_id"], msg)); updated(hass)
 
 
@@ -132,7 +146,6 @@ async def ws_task_delete(hass, connection, msg, store):
 @websocket_api.async_response
 @require_store
 async def ws_task_complete(hass, connection, msg, store):
-    from homeassistant.util import dt as dt_util
     user = connection.user
     result = await store.async_complete_task(msg["task_id"], msg.get("completion_date", dt_util.now().date().isoformat()), user.id if user else None, user.name if user else "system")
     connection.send_result(msg["id"], result); updated(hass)
@@ -175,4 +188,25 @@ async def ws_attachment_sign(hass, connection, msg, store):
     connection.send_result(msg["id"], {"url": url})
 
 
-COMMANDS = (ws_list, ws_group_create, ws_group_update, ws_group_delete, ws_task_create, ws_task_update, ws_task_delete, ws_task_complete, ws_history_list, ws_history_delete, ws_attachment_delete, ws_attachment_sign)
+@websocket_api.websocket_command({vol.Required("type"): "home_tasker/attachment/sign_all"})
+@websocket_api.require_admin
+@websocket_api.async_response
+@require_store
+async def ws_attachment_sign_all(hass, connection, msg, store):
+    connection.send_result(
+        msg["id"],
+        {
+            "urls": {
+                item["id"]: async_sign_path(
+                    hass,
+                    f"{DOWNLOAD_URL}/{item['id']}",
+                    timedelta(hours=1),
+                    refresh_token_id=connection.refresh_token_id,
+                )
+                for item in store.snapshot()["attachments"]
+            }
+        },
+    )
+
+
+COMMANDS = (ws_list, ws_group_create, ws_group_update, ws_group_delete, ws_task_create, ws_task_update, ws_task_delete, ws_task_complete, ws_history_list, ws_history_delete, ws_attachment_delete, ws_attachment_sign, ws_attachment_sign_all)
