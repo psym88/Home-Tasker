@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.2.62
+
+### Changed
+
+- Open the complete task viewer through Home Assistant's native `show-dialog` contract and `ha-adaptive-dialog`, including native header, responsive dialog sizing, footer action, and nested confirmation dialog.
+
 ## 0.2.61
 
 ### Fixed

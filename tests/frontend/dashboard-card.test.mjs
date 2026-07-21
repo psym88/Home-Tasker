@@ -8,6 +8,7 @@ globalThis.CustomEvent = class {constructor(type,options){this.type=type;Object.
 
 const {DEFAULT_CARD_CONFIG,HomeTaskerCardEditor,UNASSIGNED,canEditCard,dashboardTaskRowHtml,dueStatus,filterDashboardTasks,normalizeCardConfig,sortDashboardTasks}=await import("../../custom_components/home_tasker/frontend/dashboard-card.js");
 const {HomeTaskerBase,HomeTaskerPanel}=await import("../../custom_components/home_tasker/frontend/main.js");
+const {TASK_DIALOG_TAG,showTaskDialog}=await import("../../custom_components/home_tasker/frontend/native-task-dialog.js");
 
 const tasks=[
   {id:"old",name:"Wischen",due_date:"2026-07-20",group_id:"house",assignee_user_id:"alice"},
@@ -32,3 +33,4 @@ test("edit mode falls back to view for non-admin users",()=>{assert.equal(canEdi
 test("editor update emits a dashboard-local config change",()=>{const editor=Object.create(HomeTaskerCardEditor.prototype);editor.config={...DEFAULT_CARD_CONFIG};editor.render=()=>{};let event;editor.dispatchEvent=value=>{event=value;};editor.update({mode:"edit",group_ids:["house"]});assert.equal(event.type,"config-changed");assert.equal(event.detail.config.mode,"edit");assert.deepEqual(event.detail.config.group_ids,["house"]);});
 test("repeated hass updates do not rerender and steal editor focus",()=>{const editor=Object.create(HomeTaskerCardEditor.prototype);editor.loaded=true;let renders=0;editor.render=()=>{renders++;};Object.getOwnPropertyDescriptor(HomeTaskerCardEditor.prototype,"hass").set.call(editor,{user:{is_admin:true}});assert.equal(renders,0);});
 test("panel uses an unregistered shared base instead of becoming the card base",async()=>{const {HomeTaskerCard}=await import("../../custom_components/home_tasker/frontend/dashboard-card.js");assert.equal(Object.getPrototypeOf(HomeTaskerPanel),HomeTaskerBase);assert.equal(Object.getPrototypeOf(HomeTaskerCard),HomeTaskerBase);assert.notEqual(Object.getPrototypeOf(HomeTaskerCard),HomeTaskerPanel);});
+test("task viewer opens through Home Assistant's native show-dialog contract",()=>{let event;const controller={dispatchEvent:value=>{event=value;}};showTaskDialog(controller,tasks[0]);assert.equal(event.type,"show-dialog");assert.equal(event.bubbles,true);assert.equal(event.composed,true);assert.equal(event.detail.dialogTag,TASK_DIALOG_TAG);assert.equal(event.detail.dialogParams.task,tasks[0]);});
