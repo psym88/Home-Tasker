@@ -96,20 +96,18 @@ The read-only **Home Tasker** calendar exposes current and projected task due da
 
 ### Due-task notifications
 
-Home Tasker fires one `home_tasker_task_due` event when a task crosses from not due to due. This can happen at local midnight or when creating or changing a task makes it immediately due. The following automation sends a notification for all current and future tasks:
+Home Tasker fires one `home_tasker_task_due` event when a task crosses from not due to due. This can happen at local midnight or when creating or changing a task makes it immediately due. Create a new automation in Home Assistant, open **Edit in YAML**, and paste:
 
 ```yaml
-automation:
-  - alias: "Home Tasker task is due"
-    triggers:
-      - trigger: event
-        event_type: home_tasker_task_due
-    actions:
-      - action: notify.notify
-        data:
-          title: "Home Tasker"
-          message: >
-            {{ trigger.event.data.task_name }} is due.
+alias: Home Tasker task is due
+triggers:
+  - trigger: event
+    event_type: home_tasker_task_due
+actions:
+  - action: notify.notify
+    data:
+      title: Home Tasker
+      message: "{{ trigger.event.data.task_name }} is due."
 ```
 
 The event contains `task_id`, `task_name`, `group_id`, `due_date`, and `source`. It is not replayed when Home Assistant starts or when an archive is imported, and changes to an already-due task do not fire it again.
@@ -118,21 +116,20 @@ The event contains `task_id`, `task_name`, `group_id`, `due_date`, and `source`.
 
 Home Tasker fires `home_tasker_event` after every stored change. Automations can filter its `resource_type` and `action` data. Resource types are `task`, `group`, `history`, `attachment`, and `archive`; actions are `created`, `updated`, `deleted`, `completed`, and `imported` where applicable.
 
-Example automation triggered when any task is completed:
+To receive a notification when any task is completed, create another automation, open **Edit in YAML**, and paste:
 
 ```yaml
-automation:
-  - alias: "Home Tasker task completed"
-    triggers:
-      - trigger: event
-        event_type: home_tasker_event
-        event_data:
-          resource_type: task
-          action: completed
-    actions:
-      - action: notify.notify
-        data:
-          message: "Task {{ trigger.event.data.resource_name }} was completed."
+alias: Home Tasker task completed
+triggers:
+  - trigger: event
+    event_type: home_tasker_event
+    event_data:
+      resource_type: task
+      action: completed
+actions:
+  - action: notify.notify
+    data:
+      message: "Task {{ trigger.event.data.resource_name }} was completed."
 ```
 
 Every event includes `resource_id` when the changed resource has one. Task and group events also include `resource_name`; related identifiers such as `group_id` or `task_id` are included when available. A system refresh is also emitted at local midnight with `resource_type: system`, `action: refreshed`, and `reason: local_midnight`.
