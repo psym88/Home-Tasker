@@ -55,6 +55,11 @@ test("shared dialog layout contains only collapsible content rules", () => {
   assert.doesNotMatch(css, /modal-header|modal-close/);
   assert.match(css, /\.details-content\{display:none/);
   assert.match(css, /\.details\.open>\.details-content\{display:flex/);
+  assert.match(css, /\.details-toggle ha-icon\{color:var\(--secondary-text-color\)/);
+});
+
+test("native collapsible chevrons use the shared secondary text color", () => {
+  assert.match(TYPOGRAPHY_STYLES, /summary::after\{color:var\(--secondary-text-color\)\}/);
 });
 
 test("panel styles exclude legacy overlays and editor-only layout", () => {

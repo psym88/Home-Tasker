@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.3.8
+
+### Fixed
+
+- Keep the direct iOS start-date input while opening the native picker explicitly in supporting desktop browsers.
+- Use the Home Assistant secondary text color for collapsible-section chevrons on iOS.
+
 ## 0.3.7
 
 ### Changed
