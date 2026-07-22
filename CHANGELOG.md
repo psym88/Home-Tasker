@@ -2,6 +2,16 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.3.6
+
+### Fixed
+
+- Present attachment controls as signed native links for iOS compatibility while retaining the existing in-app preview dialog.
+
+### Documentation
+
+- Add a Navbar Card badge example for the number of currently due and overdue tasks.
+
 ## 0.3.5
 
 ### Added

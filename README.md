@@ -129,6 +129,28 @@ template:
              | count }}
 ```
 
+The same attribute can drive a badge on a route in the [Navbar Card](https://github.com/joseluis9595/lovelace-navbar-card). This route fragment shows the number of due and overdue tasks and hides the badge when the count is zero:
+
+```yaml
+badge:
+  count: |
+    [[[
+      return Object.keys(states).filter(id =>
+        id.startsWith('binary_sensor.') &&
+        states[id].attributes.home_tasker_entity_type === 'task' &&
+        states[id].state === 'on'
+      ).length;
+    ]]]
+  show: |
+    [[[
+      return Object.keys(states).filter(id =>
+        id.startsWith('binary_sensor.') &&
+        states[id].attributes.home_tasker_entity_type === 'task' &&
+        states[id].state === 'on'
+      ).length > 0;
+    ]]]
+```
+
 The read-only **Home Tasker** calendar shows every task as an all-day event on its current due date and expands its future repetitions into individual events in the visible calendar range. Completing or rescheduling a task recalculates those events from its newly calculated due date, while deleting a task removes them. For **After completion** schedules, future entries are projections that assume completion on each displayed due date. The task description and group are exposed as the event description and location.
 
 ## Data and privacy

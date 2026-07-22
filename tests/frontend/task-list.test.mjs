@@ -161,8 +161,9 @@ test("task-list attachment pills open in-app instead of a new browser page", () 
   model.signedFiles = new Map([["file", "/signed/file"]]);
   const html = model.filePill({ id: "file", filename: "manual.pdf" });
   assert.match(html, /class="pill file-pill file-open" data-file-open="file"/);
+  assert.match(html, /<a [^>]*href="\/signed\/file"/);
   assert.match(html, /mdi:paperclip/);
-  assert.doesNotMatch(html, /target="_blank"|<a /);
+  assert.doesNotMatch(html, /target="_blank"|<button/);
 });
 
 test("task-list sorting uses the planning-style themed select", () => {
