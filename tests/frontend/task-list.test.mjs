@@ -70,11 +70,11 @@ test("only the requested dimensions can group the native table",()=>{
 
 test("native filter pane exposes group assignee and recurrence filters",()=>{
   assert.deepEqual(TASK_FILTER_COLUMNS,["group","assignee","recurrence"]);
-  assert.match(source,/createElement\("ha-filter-states"\)/);
-  assert.match(source,/filter\.slot="filter-pane"/);
-  assert.match(source,/data-table-filter-changed/);
-  assert.match(source,/expanded-changed/);
-  assert.doesNotMatch(source,/createElement\("ha-form"\)|filterSchema|computeLabel/);
+  assert.match(source,/createElement\("ha-form"\)/);
+  assert.match(source,/filters\.className="filters"/);
+  assert.match(source,/filters\.slot="filter-pane"/);
+  assert.match(source,/\.filters\{margin:16px\}/);
+  assert.doesNotMatch(source,/ha-filter-states|expandedTableFilter|filterDefinitionPending/);
   assert.match(source,/wrapper\.setAttribute\("has-filters",""\)/);
   assert.match(source,/wrapper\.filters=this\.activeFilterCount\(\)/);
   assert.match(source,/wrapper\.data=filterTaskTableRows\(rows,this\.tableFilters\)/);
