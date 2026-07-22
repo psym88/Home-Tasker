@@ -137,6 +137,7 @@
     "panel.load_failed": "The data could not be loaded. Another attempt will follow automatically.",
     "table.task": "Task",
     "table.recurrence": "Recurrence",
+    "table.rhythm": "Frequency",
     "table.assignee": "Person",
     "table.search": "Search tasks",
     "table.empty": "No matching tasks",

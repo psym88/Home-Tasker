@@ -18,11 +18,11 @@ const {INITIAL_TASK_SORTING,NO_DUE_TIMESTAMP,TASK_FILTER_COLUMNS,TASK_GROUP_COLU
 const source=readFileSync(new URL("../../custom_components/home_tasker/frontend/task-list.js",import.meta.url),"utf8");
 
 test("task rows flatten every grouping dimension and resolve ids to names",()=>{
-  const tasks=[{id:"laundry",name:"Laundry",due_date:"2026-07-24",frequency:"weekly",group_id:"house",assignee_user_id:"alex",nfc_tag_id:"washer"}];
+  const tasks=[{id:"laundry",name:"Laundry",due_date:"2026-07-24",recurrence_mode:"fixed",frequency:"weekly",group_id:"house",assignee_user_id:"alex",nfc_tag_id:"washer"}];
   const original=structuredClone(tasks);
   const attachments=[{id:"a",task_id:"laundry"},{id:"b",task_id:"laundry"},{id:"c",task_id:"other"}];
   const [row]=taskTableRows(tasks,{groups:[{id:"house",name:"House"}],users:[{id:"alex",name:"Alex"}],tags:[{id:"washer",name:"Washer"}],attachments,translate:key=>key});
-  assert.deepEqual({id:row.id,name:row.name,recurrence:row.recurrence,group:row.group,assignee:row.assignee,nfc_tag:row.nfc_tag,files:row.files},{id:"laundry",name:"Laundry",recurrence:"task.weekly",group:"House",assignee:"Alex",nfc_tag:"Washer",files:2});
+  assert.deepEqual({id:row.id,name:row.name,recurrence:row.recurrence,rhythm:row.rhythm,group:row.group,assignee:row.assignee,nfc_tag:row.nfc_tag,files:row.files},{id:"laundry",name:"Laundry",recurrence:"task.fixed",rhythm:"task.weekly",group:"House",assignee:"Alex",nfc_tag:"Washer",files:2});
   assert.equal(row.task,tasks[0]);
   assert.deepEqual(tasks,original);
 });
@@ -43,12 +43,13 @@ test("due timestamps validate calendar dates and represent missing dates as the 
 
 test("native pane filters combine dimensions and allow multiple values within one dimension",()=>{
   const rows=[
-    {id:"1",group:"House",assignee:"Alex",recurrence:"Weekly"},
-    {id:"2",group:"Garden",assignee:"Alex",recurrence:"Monthly"},
-    {id:"3",group:"House",assignee:"Sam",recurrence:"Daily"},
+    {id:"1",group:"House",assignee:"Alex",recurrence:"Fixed",rhythm:"Weekly"},
+    {id:"2",group:"Garden",assignee:"Alex",recurrence:"Sliding",rhythm:"Monthly"},
+    {id:"3",group:"House",assignee:"Sam",recurrence:"Fixed",rhythm:"Daily"},
   ];
   assert.deepEqual(filterTaskTableRows(rows,{group:["House"],assignee:["Alex"]}).map(row=>row.id),["1"]);
-  assert.deepEqual(filterTaskTableRows(rows,{recurrence:["Weekly","Daily"]}).map(row=>row.id),["1","3"]);
+  assert.deepEqual(filterTaskTableRows(rows,{rhythm:["Weekly","Daily"]}).map(row=>row.id),["1","3"]);
+  assert.deepEqual(filterTaskTableRows(rows,{recurrence:["Fixed"]}).map(row=>row.id),["1","3"]);
   assert.equal(filterTaskTableRows(rows,{}).length,3);
 });
 
@@ -61,15 +62,15 @@ test("panel uses the native Home Assistant data-table wrapper",()=>{
 });
 
 test("only the requested dimensions can group the native table",()=>{
-  assert.deepEqual(TASK_GROUP_COLUMNS,["recurrence","group","assignee"]);
+  assert.deepEqual(TASK_GROUP_COLUMNS,["recurrence","rhythm","group","assignee"]);
   for(const column of TASK_GROUP_COLUMNS)assert.match(source,new RegExp(`${column}:\\{title:[^}]+\\.\\.\\.groupable`));
   assert.match(source,/nfc_tag:\{title:[^}]+sortable:true,filterable:true\}/);
   assert.doesNotMatch(source,/initialGroupColumn/);
   assert.doesNotMatch(source,/tableGrouping|table\.groupColumn=/);
 });
 
-test("native filter pane exposes group assignee and recurrence filters",()=>{
-  assert.deepEqual(TASK_FILTER_COLUMNS,["group","assignee","recurrence"]);
+test("native filter pane exposes group assignee recurrence and rhythm filters",()=>{
+  assert.deepEqual(TASK_FILTER_COLUMNS,["group","assignee","recurrence","rhythm"]);
   assert.match(source,/filterPane\.className="filters"/);
   assert.match(source,/filterPane\.slot="filter-pane"/);
   assert.match(source,/for\(const column of TASK_FILTER_COLUMNS\)/);

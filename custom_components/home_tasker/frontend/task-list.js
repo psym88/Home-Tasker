@@ -4,8 +4,8 @@ import "./filter-category.js";
 
 export const NO_DUE_TIMESTAMP = Number.MAX_SAFE_INTEGER;
 export const INITIAL_TASK_SORTING = {column:"due_ts",direction:"asc"};
-export const TASK_GROUP_COLUMNS = ["recurrence","group","assignee"];
-export const TASK_FILTER_COLUMNS = ["group","assignee","recurrence"];
+export const TASK_GROUP_COLUMNS = ["recurrence","rhythm","group","assignee"];
+export const TASK_FILTER_COLUMNS = ["group","assignee","recurrence","rhythm"];
 
 export function dueTimestamp(value) {
   const match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value||""));
@@ -27,7 +27,8 @@ export function taskTableRows(tasks,{groups=[],users=[],tags=[],attachments=[],t
       task,
       name:task.name||"",
       due_ts:dueTimestamp(task.due_date),
-      recurrence:translate(`task.${frequency}`),
+      recurrence:translate(`task.${task.recurrence_mode==="fixed"?"fixed":"sliding"}`),
+      rhythm:translate(`task.${frequency}`),
       group:groupNames.get(task.group_id)||task.group_id||translate("task.no_group"),
       assignee:userNames.get(task.assignee_user_id)||task.assignee_user_id||translate("task.unassigned"),
       nfc_tag:tagNames.get(task.nfc_tag_id)||task.nfc_tag_id||translate("task.no_nfc_tag"),
@@ -50,7 +51,7 @@ function textCell(value,title) {
 export const withTaskList = Base => class extends Base {
   tagName(task){const id=task?.nfc_tag_id;return id?(this.tags?.find(tag=>tag.id===id)?.name||id):"";}
   tableRows(){return taskTableRows(this.tasks,{groups:this.groups,users:this.users,tags:this.tags,attachments:this.attachments,translate:t});}
-  filterLabel(schema){return {group:t("task.group"),assignee:t("table.assignee"),recurrence:t("table.recurrence")}[schema.name]||schema.name;}
+  filterLabel(schema){return {group:t("task.group"),assignee:t("table.assignee"),recurrence:t("table.recurrence"),rhythm:t("table.rhythm")}[schema.name]||schema.name;}
   filterItems(rows,column){return column==="group"?this.groups.map(group=>({value:group.name,label:group.name,source:group})):[...new Set(rows.map(row=>row[column]))].map(value=>({value,label:value}));}
   activeFilterCount(){return TASK_FILTER_COLUMNS.reduce((count,column)=>count+(this.tableFilters?.[column]?.length||0),0);}
   tableColumns(){
@@ -59,6 +60,7 @@ export const withTaskList = Base => class extends Base {
       name:{title:t("table.task"),main:true,sortable:true,filterable:true,flex:3},
       due_ts:{title:t("task.due"),sortable:true,filterable:false,template:row=>textCell(row.task.due_date?this.relativeDate(row.task.due_date):"–",row.task.due_date?this.date(row.task.due_date):"")},
       recurrence:{title:t("table.recurrence"),...groupable},
+      rhythm:{title:t("table.rhythm"),...groupable},
       group:{title:t("task.group"),...groupable},
       assignee:{title:t("table.assignee"),...groupable},
       nfc_tag:{title:t("task.nfc_tag_id"),sortable:true,filterable:true},
@@ -109,7 +111,7 @@ export const withTaskList = Base => class extends Base {
     const settings=wrapper.querySelector('[slot="toolbar-icon"]'),fab=wrapper.querySelector('[slot="fab"]'),rows=this.tableRows();
     if(settings){settings.label=t("settings.title");settings.title=t("settings.title");settings.setAttribute("aria-label",t("settings.title"));}
     if(fab){for(const node of [...fab.childNodes])if(node.nodeType===3)node.remove();fab.append(document.createTextNode(t("common.add_task")));}
-    wrapper.querySelectorAll("home-tasker-filter-category").forEach(filter=>{const column=filter.dataset.column;filter.controller=this;filter.label=this.filterLabel({name:column});filter.icon={group:"mdi:devices",assignee:"mdi:account",recurrence:"mdi:calendar-sync"}[column];filter.actions=column==="group";filter.items=this.filterItems(rows,column);filter.value=this.tableFilters?.[column]||[];});
+    wrapper.querySelectorAll("home-tasker-filter-category").forEach(filter=>{const column=filter.dataset.column;filter.controller=this;filter.label=this.filterLabel({name:column});filter.icon={group:"mdi:devices",assignee:"mdi:account",recurrence:"mdi:calendar-sync",rhythm:"mdi:repeat"}[column];filter.actions=column==="group";filter.items=this.filterItems(rows,column);filter.value=this.tableFilters?.[column]||[];});
     wrapper.hass=this._hass;
     wrapper.route=this.route;
     wrapper.tabs=[{name:"Home Tasker",path:""}];
