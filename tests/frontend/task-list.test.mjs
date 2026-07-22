@@ -20,8 +20,9 @@ const source=readFileSync(new URL("../../custom_components/home_tasker/frontend/
 test("task rows flatten every grouping dimension and resolve ids to names",()=>{
   const tasks=[{id:"laundry",name:"Laundry",due_date:"2026-07-24",frequency:"weekly",group_id:"house",assignee_user_id:"alex",nfc_tag_id:"washer"}];
   const original=structuredClone(tasks);
-  const [row]=taskTableRows(tasks,{groups:[{id:"house",name:"House"}],users:[{id:"alex",name:"Alex"}],tags:[{id:"washer",name:"Washer"}],translate:key=>key});
-  assert.deepEqual({id:row.id,name:row.name,recurrence:row.recurrence,group:row.group,assignee:row.assignee,nfc_tag:row.nfc_tag},{id:"laundry",name:"Laundry",recurrence:"task.weekly",group:"House",assignee:"Alex",nfc_tag:"Washer"});
+  const attachments=[{id:"a",task_id:"laundry"},{id:"b",task_id:"laundry"},{id:"c",task_id:"other"}];
+  const [row]=taskTableRows(tasks,{groups:[{id:"house",name:"House"}],users:[{id:"alex",name:"Alex"}],tags:[{id:"washer",name:"Washer"}],attachments,translate:key=>key});
+  assert.deepEqual({id:row.id,name:row.name,recurrence:row.recurrence,group:row.group,assignee:row.assignee,nfc_tag:row.nfc_tag,files:row.files},{id:"laundry",name:"Laundry",recurrence:"task.weekly",group:"House",assignee:"Alex",nfc_tag:"Washer",files:2});
   assert.equal(row.task,tasks[0]);
   assert.deepEqual(tasks,original);
 });
@@ -31,6 +32,7 @@ test("missing assignments receive localized searchable group values",()=>{
   assert.equal(row.group,"translated:task.no_group");
   assert.equal(row.assignee,"translated:task.unassigned");
   assert.equal(row.nfc_tag,"translated:task.no_nfc_tag");
+  assert.equal(row.files,0);
 });
 
 test("due timestamps validate calendar dates and represent missing dates as the maximum",()=>{
@@ -91,6 +93,11 @@ test("panel keeps native settings and add-task controls",()=>{
   assert.match(source,/fab\.setAttribute\("size","l"\)/);
   assert.doesNotMatch(source,/fab\.setAttribute\("variant","brand"\)/);
   assert.match(source,/this\.taskEditor\(null\)/);
+});
+
+test("files column shows the sortable attachment count",()=>{
+  assert.match(source,/files:\{title:t\("task\.files"\),sortable:true,filterable:false\}/);
+  assert.match(source,/attachments:this\.attachments/);
 });
 
 test("task action menu stops pointer and click propagation",()=>{

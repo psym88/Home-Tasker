@@ -12,10 +12,12 @@ export function dueTimestamp(value) {
   return date.getFullYear()===year&&date.getMonth()===month-1&&date.getDate()===day?date.getTime():NO_DUE_TIMESTAMP;
 }
 
-export function taskTableRows(tasks,{groups=[],users=[],tags=[],translate=t}={}) {
+export function taskTableRows(tasks,{groups=[],users=[],tags=[],attachments=[],translate=t}={}) {
   const groupNames=new Map(groups.map(group=>[group.id,group.name]));
   const userNames=new Map(users.map(user=>[user.id,user.name]));
   const tagNames=new Map(tags.map(tag=>[tag.id,tag.name]));
+  const fileCounts=new Map();
+  for(const file of attachments)fileCounts.set(file.task_id,(fileCounts.get(file.task_id)||0)+1);
   return tasks.map(task=>{
     const frequency=["daily","weekly","monthly","yearly"].includes(task.frequency)?task.frequency:"monthly";
     return {
@@ -27,6 +29,7 @@ export function taskTableRows(tasks,{groups=[],users=[],tags=[],translate=t}={})
       group:groupNames.get(task.group_id)||task.group_id||translate("task.no_group"),
       assignee:userNames.get(task.assignee_user_id)||task.assignee_user_id||translate("task.unassigned"),
       nfc_tag:tagNames.get(task.nfc_tag_id)||task.nfc_tag_id||translate("task.no_nfc_tag"),
+      files:fileCounts.get(task.id)||0,
     };
   });
 }
@@ -44,7 +47,7 @@ function textCell(value,title) {
 
 export const withTaskList = Base => class extends Base {
   tagName(task){const id=task?.nfc_tag_id;return id?(this.tags?.find(tag=>tag.id===id)?.name||id):"";}
-  tableRows(){return taskTableRows(this.tasks,{groups:this.groups,users:this.users,tags:this.tags,translate:t});}
+  tableRows(){return taskTableRows(this.tasks,{groups:this.groups,users:this.users,tags:this.tags,attachments:this.attachments,translate:t});}
   filterSchema(rows){return TASK_FILTER_COLUMNS.map(column=>({name:column,selector:{select:{multiple:true,mode:"dropdown",options:[...new Set(rows.map(row=>row[column]))].map(value=>({value,label:value}))}}}));}
   filterLabel(schema){return {group:t("task.group"),assignee:t("table.assignee"),recurrence:t("table.recurrence")}[schema.name]||schema.name;}
   activeFilterCount(){return TASK_FILTER_COLUMNS.reduce((count,column)=>count+(this.tableFilters?.[column]?.length||0),0);}
@@ -57,6 +60,7 @@ export const withTaskList = Base => class extends Base {
       group:{title:t("task.group"),...groupable},
       assignee:{title:t("table.assignee"),...groupable},
       nfc_tag:{title:t("task.nfc_tag_id"),sortable:true,filterable:true},
+      files:{title:t("task.files"),sortable:true,filterable:false},
       actions:{title:"",label:t("task.actions"),type:"overflow-menu",moveable:false,hideable:false,showNarrow:true,template:row=>this.taskActionButton(row.task)},
     };
   }
