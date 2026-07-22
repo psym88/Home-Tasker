@@ -45,7 +45,7 @@ The frontend is split into native ES modules under `custom_components/home_taske
 
 The sidebar panel and dashboard card share the same controller, viewer/editor workflows, typography, collapsible sections, icons, and theme rules. Dialogs use Home Assistant's composed `show-dialog` contract. Attachments are real signed anchors whose click handler opens the native preview dialog.
 
-The frontend loads an initial snapshot and reloads it from `home_tasker_event`. The same event updates task entities and the calendar after stored mutations and at local midnight; no dispatcher, entity fingerprint, or periodic polling is used. A task-level `due` action is emitted once when a task crosses from not due to due, including at the local date rollover, without replaying due events at startup or archive import.
+The frontend loads an initial snapshot and reloads it from `home_tasker_event`. The same event updates task entities and the calendar after stored mutations and at local midnight; no dispatcher, entity fingerprint, or periodic polling is used. A task-level `due` action replaces the ordinary mutation or midnight refresh event when a task crosses from not due to due, so each transition emits exactly once without replaying due events at startup or archive import.
 
 ## Security and permissions
 

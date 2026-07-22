@@ -5,6 +5,7 @@ from types import SimpleNamespace
 
 from custom_components.home_tasker.const import EVENT_HOME_TASKER
 from custom_components.home_tasker.events import (
+    async_fire_change_or_due_event,
     async_fire_home_tasker_event,
     async_fire_task_due_event,
     task_became_due,
@@ -94,3 +95,61 @@ def test_task_due_event_exposes_notification_fields():
             None,
         )
     ]
+
+
+def test_change_that_becomes_due_emits_exactly_one_due_event():
+    fired = []
+    hass = SimpleNamespace(
+        bus=SimpleNamespace(
+            async_fire=lambda event_type, data, context=None: fired.append(data)
+        )
+    )
+    before = {"id": "task-1", "due_date": "2026-07-24"}
+    after = {
+        "id": "task-1",
+        "name": "Change filter",
+        "group_id": "group-1",
+        "due_date": "2026-07-23",
+    }
+
+    async_fire_change_or_due_event(
+        hass,
+        before,
+        after,
+        date(2026, 7, 23),
+        "updated",
+        "updated",
+        "task",
+        "task-1",
+        resource_name="Change filter",
+    )
+
+    assert len(fired) == 1
+    assert fired[0]["action"] == "due"
+    assert fired[0]["source"] == "updated"
+
+
+def test_change_without_due_transition_emits_exactly_one_fallback_event():
+    fired = []
+    hass = SimpleNamespace(
+        bus=SimpleNamespace(
+            async_fire=lambda event_type, data, context=None: fired.append(data)
+        )
+    )
+    before = {"id": "task-1", "due_date": "2026-07-24"}
+    after = {"id": "task-1", "due_date": "2026-07-25"}
+
+    async_fire_change_or_due_event(
+        hass,
+        before,
+        after,
+        date(2026, 7, 23),
+        "updated",
+        "updated",
+        "task",
+        "task-1",
+    )
+
+    assert len(fired) == 1
+    assert fired[0]["action"] == "updated"
+    assert "source" not in fired[0]

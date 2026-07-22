@@ -89,12 +89,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry[HomeTaskerDa
     def refresh_at_midnight(now) -> None:
         # Due state flips at the local date rollover without any mutation.
         today = dt_util.now().date()
-        async_fire_home_tasker_event(
-            hass, "refreshed", "system", reason="local_midnight"
-        )
-        for task in store.tasks:
-            if task.get("due_date") == today.isoformat():
+        newly_due = [
+            task for task in store.tasks if task.get("due_date") == today.isoformat()
+        ]
+        if newly_due:
+            for task in newly_due:
                 async_fire_task_due_event(hass, task, "local_midnight")
+        else:
+            async_fire_home_tasker_event(
+                hass, "refreshed", "system", reason="local_midnight"
+            )
 
     entry.async_on_unload(
         async_track_time_change(hass, refresh_at_midnight, hour=0, minute=0, second=0)
