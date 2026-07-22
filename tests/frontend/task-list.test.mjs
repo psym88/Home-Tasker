@@ -66,6 +66,11 @@ test("table starts with the requested visible columns in order",()=>{
   assert.deepEqual(DEFAULT_HIDDEN_TASK_COLUMNS,["recurrence","rhythm"]);
   assert.match(source,/wrapper\.columnOrder=\[\.\.\.DEFAULT_TASK_COLUMN_ORDER\]/);
   assert.match(source,/wrapper\.hiddenColumns=\[\.\.\.DEFAULT_HIDDEN_TASK_COLUMNS\]/);
+  assert.match(source,/recurrence:\{title:t\("table\.recurrence"\),defaultHidden:true,\.\.\.groupable\}/);
+  assert.match(source,/rhythm:\{title:t\("table\.rhythm"\),defaultHidden:true,\.\.\.groupable\}/);
+  assert.ok(source.indexOf('assignee:{title:t("table.assignee")')<source.indexOf('group:{title:t("task.group")'));
+  assert.ok(source.indexOf('files:{title:t("task.files")')<source.indexOf('recurrence:{title:t("table.recurrence")'));
+  assert.ok(source.indexOf('rhythm:{title:t("table.rhythm")')<source.indexOf('actions:{title:""'));
 });
 
 test("only the requested dimensions can group the native table",()=>{

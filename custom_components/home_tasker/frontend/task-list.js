@@ -61,12 +61,12 @@ export const withTaskList = Base => class extends Base {
     return {
       name:{title:t("table.task"),main:true,sortable:true,filterable:true,flex:3},
       due_ts:{title:t("task.due"),sortable:true,filterable:false,template:row=>textCell(row.task.due_date?this.relativeDate(row.task.due_date):"–",row.task.due_date?this.date(row.task.due_date):"")},
-      recurrence:{title:t("table.recurrence"),...groupable},
-      rhythm:{title:t("table.rhythm"),...groupable},
-      group:{title:t("task.group"),...groupable},
       assignee:{title:t("table.assignee"),...groupable},
+      group:{title:t("task.group"),...groupable},
       nfc_tag:{title:t("task.nfc_tag_id"),sortable:true,filterable:true},
       files:{title:t("task.files"),sortable:true,filterable:false},
+      recurrence:{title:t("table.recurrence"),defaultHidden:true,...groupable},
+      rhythm:{title:t("table.rhythm"),defaultHidden:true,...groupable},
       actions:{title:"",label:t("task.actions"),type:"overflow-menu",moveable:false,hideable:false,showNarrow:true,template:row=>this.taskActionButton(row.task)},
     };
   }
