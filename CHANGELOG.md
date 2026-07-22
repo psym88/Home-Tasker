@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.3.4
+
+### Fixed
+
+- Use Home Assistant's primary text color for task names instead of the accent primary color.
+- Centralize task-name and metadata-pill colors in shared styles reused by the panel, dashboard card and task viewer.
+
 ## 0.3.3
 
 ### Changed

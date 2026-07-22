@@ -97,9 +97,10 @@ test("task-list titles use the primary theme color", () => {
   model.date = value => value;
   model.relativeDate = value => value;
   model.locale = () => "en";
-  assert.match(model.taskRow({ id: "task", name: "Task", due_date: "2026-07-21" }), /<strong class="ht-content">Task<\/strong>/);
+  assert.match(model.taskRow({ id: "task", name: "Task", due_date: "2026-07-21" }), /<strong class="task-name ht-content">Task<\/strong>/);
   const source = readFileSync(new URL("../../custom_components/home_tasker/frontend/task-list.js", import.meta.url), "utf8");
-  assert.match(source, /\.task-body>strong\{color:var\(--primary-color\)!important\}/);
+  assert.match(source, /this\.pillStyles\(\)\+this\.taskSurfaceStyles\(\)/);
+  assert.doesNotMatch(source, /\.task-body>strong\{color:/);
 });
 
 test("task-list titles show the assigned Home Assistant tag name as a small pill", () => {
