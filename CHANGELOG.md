@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.3.5
+
+### Added
+
+- Add a stable `home_tasker_entity_type: task` attribute to task binary sensors for reliable filtering and aggregation in Home Assistant templates.
+- Document a template sensor that counts all currently due and overdue Home Tasker tasks.
+
 ## 0.3.4
 
 ### Fixed
