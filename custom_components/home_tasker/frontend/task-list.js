@@ -4,6 +4,8 @@ import "./filter-category.js";
 
 export const NO_DUE_TIMESTAMP = Number.MAX_SAFE_INTEGER;
 export const INITIAL_TASK_SORTING = {column:"due_ts",direction:"asc"};
+export const DEFAULT_TASK_COLUMN_ORDER = ["name","due_ts","assignee","group","nfc_tag","files","actions","recurrence","rhythm"];
+export const DEFAULT_HIDDEN_TASK_COLUMNS = ["recurrence","rhythm"];
 export const TASK_GROUP_COLUMNS = ["recurrence","rhythm","group","assignee"];
 export const TASK_FILTER_COLUMNS = ["group","assignee","recurrence","rhythm"];
 
@@ -84,6 +86,8 @@ export const withTaskList = Base => class extends Base {
       wrapper.setAttribute("clickable","");
       wrapper.setAttribute("has-fab","");
       wrapper.setAttribute("has-filters","");
+      wrapper.columnOrder=[...DEFAULT_TASK_COLUMN_ORDER];
+      wrapper.hiddenColumns=[...DEFAULT_HIDDEN_TASK_COLUMNS];
       settings.slot="toolbar-icon";
       settings.label=t("settings.title");
       settings.setAttribute("aria-label",t("settings.title"));

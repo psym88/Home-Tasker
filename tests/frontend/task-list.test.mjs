@@ -13,7 +13,7 @@ globalThis.fetch = async url => {
 const {ready,setLanguage}=await import("../../custom_components/home_tasker/frontend/localize.js");
 await ready;
 await setLanguage("en");
-const {INITIAL_TASK_SORTING,NO_DUE_TIMESTAMP,TASK_FILTER_COLUMNS,TASK_GROUP_COLUMNS,dueTimestamp,filterTaskTableRows,taskTableRows}=await import("../../custom_components/home_tasker/frontend/task-list.js");
+const {DEFAULT_HIDDEN_TASK_COLUMNS,DEFAULT_TASK_COLUMN_ORDER,INITIAL_TASK_SORTING,NO_DUE_TIMESTAMP,TASK_FILTER_COLUMNS,TASK_GROUP_COLUMNS,dueTimestamp,filterTaskTableRows,taskTableRows}=await import("../../custom_components/home_tasker/frontend/task-list.js");
 
 const source=readFileSync(new URL("../../custom_components/home_tasker/frontend/task-list.js",import.meta.url),"utf8");
 
@@ -59,6 +59,13 @@ test("panel uses the native Home Assistant data-table wrapper",()=>{
   assert.match(source,/wrapper\.initialSorting=INITIAL_TASK_SORTING/);
   assert.deepEqual(INITIAL_TASK_SORTING,{column:"due_ts",direction:"asc"});
   assert.doesNotMatch(source,/groupRow\(|wireGroup\(|placeholder-add|class="group"/);
+});
+
+test("table starts with the requested visible columns in order",()=>{
+  assert.deepEqual(DEFAULT_TASK_COLUMN_ORDER,["name","due_ts","assignee","group","nfc_tag","files","actions","recurrence","rhythm"]);
+  assert.deepEqual(DEFAULT_HIDDEN_TASK_COLUMNS,["recurrence","rhythm"]);
+  assert.match(source,/wrapper\.columnOrder=\[\.\.\.DEFAULT_TASK_COLUMN_ORDER\]/);
+  assert.match(source,/wrapper\.hiddenColumns=\[\.\.\.DEFAULT_HIDDEN_TASK_COLUMNS\]/);
 });
 
 test("only the requested dimensions can group the native table",()=>{
