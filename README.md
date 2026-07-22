@@ -96,37 +96,30 @@ The read-only **Home Tasker** calendar exposes current and projected task due da
 
 ### Due-task notifications
 
-Each task binary sensor changes from `off` to `on` when the task becomes due. To notify one person about a specific task, create an automation in Home Assistant with a **State** trigger, select the task's binary sensor, set **From** to `off` and **To** to `on`, then add the desired notification action.
-
-The following YAML automation watches all current and future Home Tasker task entities. Replace `notify.mobile_app_your_phone` with your notification action:
+Home Tasker fires one `home_tasker_event` with `action: due` when a task becomes due. This happens at local midnight or when creating or changing a task makes it immediately due. The following automation sends a notification for all current and future tasks:
 
 ```yaml
 automation:
   - alias: "Home Tasker task is due"
     triggers:
       - trigger: event
-        event_type: state_changed
-    conditions:
-      - condition: template
-        value_template: >
-          {{ trigger.event.data.new_state is not none
-             and trigger.event.data.old_state is not none
-             and trigger.event.data.new_state.attributes.get('home_tasker_entity_type') == 'task'
-             and trigger.event.data.old_state.state != 'on'
-             and trigger.event.data.new_state.state == 'on' }}
+        event_type: home_tasker_event
+        event_data:
+          resource_type: task
+          action: due
     actions:
-      - action: notify.mobile_app_your_phone
+      - action: notify.notify
         data:
           title: "Home Tasker"
           message: >
-            {{ trigger.event.data.new_state.name }} is due.
+            {{ trigger.event.data.resource_name }} is due.
 ```
 
-Requiring an existing previous state avoids sending notifications for every due task when Home Assistant starts. The automation still detects due-state changes caused by task updates and the local midnight refresh.
+The event also contains `resource_id`, `group_id`, `due_date`, and `source`. It is not replayed when Home Assistant starts, so already-due tasks do not produce duplicate startup notifications.
 
 ## Home Assistant events
 
-Home Tasker fires `home_tasker_event` after every stored change. Automations can filter its `resource_type` and `action` data. Resource types are `task`, `group`, `history`, `attachment`, and `archive`; actions are `created`, `updated`, `deleted`, `completed`, and `imported` where applicable.
+Home Tasker fires `home_tasker_event` after every stored change and when a task becomes due. Automations can filter its `resource_type` and `action` data. Resource types are `task`, `group`, `history`, `attachment`, and `archive`; actions are `created`, `updated`, `deleted`, `completed`, `due`, and `imported` where applicable.
 
 Example automation triggered when any task is completed:
 
