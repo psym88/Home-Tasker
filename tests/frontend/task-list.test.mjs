@@ -13,181 +13,83 @@ globalThis.fetch = async url => {
 const {ready,setLanguage}=await import("../../custom_components/home_tasker/frontend/localize.js");
 await ready;
 await setLanguage("en");
-const { LIST_SECONDARY_ACTION_COLOR, TASK_ROW_BACKGROUND, TASK_ROW_HOVER_BACKGROUND, sortTasksByDue, withTaskList } = await import("../../custom_components/home_tasker/frontend/task-list.js");
+const {INITIAL_TASK_SORTING,NO_DUE_TIMESTAMP,TASK_GROUP_COLUMNS,dueTimestamp,filterTaskRows,sortTaskRows,taskTableRows}=await import("../../custom_components/home_tasker/frontend/task-list.js");
 
-test("task rows remain transparent", () => {
-  assert.equal(TASK_ROW_BACKGROUND, "transparent");
-  assert.equal(TASK_ROW_HOVER_BACKGROUND, "rgba(var(--rgb-primary-text-color),0.04)");
+const source=readFileSync(new URL("../../custom_components/home_tasker/frontend/task-list.js",import.meta.url),"utf8");
+
+test("task rows flatten every grouping dimension and resolve ids to names",()=>{
+  const tasks=[{id:"laundry",name:"Laundry",due_date:"2026-07-24",frequency:"weekly",group_id:"house",assignee_user_id:"alex",nfc_tag_id:"washer"}];
+  const original=structuredClone(tasks);
+  const [row]=taskTableRows(tasks,{groups:[{id:"house",name:"House"}],users:[{id:"alex",name:"Alex"}],tags:[{id:"washer",name:"Washer"}],translate:key=>key,locale:"en"});
+  assert.deepEqual({id:row.id,name:row.name,recurrence:row.recurrence,group:row.group,assignee:row.assignee,nfc_tag:row.nfc_tag},{id:"laundry",name:"Laundry",recurrence:"task.weekly",group:"House",assignee:"Alex",nfc_tag:"Washer"});
+  assert.equal(row.task,tasks[0]);
+  assert.deepEqual(tasks,original);
 });
 
-test("list rows use vertical-dots action menus", () => {
-  class TaskListModel extends withTaskList(class {}) {}
-  const model = new TaskListModel();
-  model.groups = [];
-  model.tasks = [];
-  model.attachments = [];
-  model.users = [];
-  model.expanded = new Set();
-  model.sort = "name";
-  model.due = () => false;
-  model.date = value => value;
-  model.relativeDate = value => value;
-  model.locale = () => "en";
-
-  assert.equal(LIST_SECONDARY_ACTION_COLOR, "var(--secondary-text-color)");
-  assert.match(model.groupRow({ id: "group", name: "Group" }), /data-action-kind="group"[\s\S]*?mdi:dots-vertical/);
-  assert.match(model.taskRow({ id: "task", name: "Task", due_date: "2026-07-21" }), /data-action-kind="task"[\s\S]*?mdi:dots-vertical/);
+test("missing assignments receive localized searchable group values",()=>{
+  const [row]=taskTableRows([{id:"task",name:"Task",frequency:"daily"}],{translate:key=>`translated:${key}`});
+  assert.equal(row.group,"translated:task.no_group");
+  assert.equal(row.assignee,"translated:task.unassigned");
+  assert.equal(row.nfc_tag,"translated:task.no_nfc_tag");
 });
 
-test("sortTasksByDue sorts by due date and then by name", () => {
-  const tasks = [
-    { id: "3", name: "Mopping", due_date: "2026-07-23" },
-    { id: "2", name: "Laundry", due_date: "2026-07-22" },
-    { id: "1", name: "Dishes", due_date: "2026-07-22" },
+test("due timestamps validate calendar dates and put missing dates last",()=>{
+  assert.equal(dueTimestamp("2026-07-22"),new Date(2026,6,22).getTime());
+  assert.equal(dueTimestamp("2026-02-30"),NO_DUE_TIMESTAMP);
+  assert.equal(dueTimestamp(""),NO_DUE_TIMESTAMP);
+  const rows=sortTaskRows([{id:"none",name:"None",due_ts:NO_DUE_TIMESTAMP},{id:"z",name:"Zulu",due_ts:1},{id:"a",name:"Alpha",due_ts:1}]);
+  assert.deepEqual(rows.map(row=>row.id),["a","z","none"]);
+});
+
+test("search filters the supplied data across all visible values",()=>{
+  const rows=[
+    {id:"1",name:"Laundry",recurrence:"Weekly",group:"House",assignee:"Alex",nfc_tag:"Washer"},
+    {id:"2",name:"Dishes",recurrence:"Daily",group:"Kitchen",assignee:"Sam",nfc_tag:"Sink"},
   ];
-
-  assert.deepEqual(sortTasksByDue(tasks).map(task => task.id), ["1", "2", "3"]);
+  for(const query of ["laundry","weekly","house","alex","washer"]){
+    assert.deepEqual(filterTaskRows(rows,query).map(row=>row.id),["1"]);
+  }
+  assert.equal(filterTaskRows(rows,"").length,2);
+  assert.equal(filterTaskRows(rows,"missing").length,0);
 });
 
-test("sortTasksByDue handles an empty list", () => {
-  assert.deepEqual(sortTasksByDue([]), []);
+test("panel uses the native Home Assistant data-table wrapper",()=>{
+  assert.match(source,/createElement\("hass-tabs-subpage-data-table"\)/);
+  assert.match(source,/wrapper\.data=this\.filteredTableRows\(\)/);
+  assert.match(source,/wrapper\.initialSorting=INITIAL_TASK_SORTING/);
+  assert.deepEqual(INITIAL_TASK_SORTING,{column:"due_ts",direction:"asc"});
+  assert.doesNotMatch(source,/groupRow\(|wireGroup\(|placeholder-add|class="group"/);
 });
 
-test("sortTasksByDue does not mutate its input", () => {
-  const tasks = [
-    { id: "2", name: "Later", due_date: "2026-07-24" },
-    { id: "1", name: "Earlier", due_date: "2026-07-21" },
-  ];
-  const original = [...tasks];
-
-  sortTasksByDue(tasks);
-
-  assert.deepEqual(tasks, original);
+test("only the requested dimensions can group the native table",()=>{
+  assert.deepEqual(TASK_GROUP_COLUMNS,["recurrence","group","assignee","nfc_tag"]);
+  for(const column of TASK_GROUP_COLUMNS)assert.match(source,new RegExp(`${column}:\\{title:[^}]+\\.\\.\\.groupable`));
+  assert.doesNotMatch(source,/initialGroupColumn/);
+  assert.match(source,/table\.groupColumn=this\.tableGrouping\|\|undefined/);
 });
 
-test("grouped task rows preserve panel sorting and due badges", () => {
-  class TaskListModel extends withTaskList(class {}) {}
-  const model = new TaskListModel();
-  model.tasks = [
-    { id: "later", group_id: "chores", name: "Mopping", due_date: "2026-07-23" },
-    { id: "due", group_id: "chores", name: "Dishes", due_date: "2026-07-21" },
-  ];
-  model.attachments = [];
-  model.users = [];
-  model.signedFiles = new Map();
-  model.expanded = new Set(["chores"]);
-  model.sort = "due";
-  model.today = "2026-07-21";
-  model.date = value => value;
-  model.relativeDate = value => value;
-  model.locale = () => "en";
-
-  const html = model.groupRow({ id: "chores", name: "Household" });
-
-  assert.ok(html.includes('<span class="pill open-count">1</span>'));
-  assert.ok(html.indexOf('data-task="due"') < html.indexOf('data-task="later"'));
+test("search reduces data while the internal table filter stays empty",()=>{
+  assert.match(source,/value-changed[\s\S]*tableSearch[\s\S]*updateTaskTable/);
+  assert.match(source,/wrapper\.filter=""/);
+  assert.match(source,/if\(table&&table\.filter\)table\.filter=""/);
 });
 
-test("task-list titles use the primary theme color", () => {
-  class TaskListModel extends withTaskList(class {}) {}
-  const model = new TaskListModel();
-  model.attachments = [];
-  model.users = [];
-  model.due = () => false;
-  model.date = value => value;
-  model.relativeDate = value => value;
-  model.locale = () => "en";
-  assert.match(model.taskRow({ id: "task", name: "Task", due_date: "2026-07-21" }), /<strong class="task-name ht-content">Task<\/strong>/);
-  const source = readFileSync(new URL("../../custom_components/home_tasker/frontend/task-list.js", import.meta.url), "utf8");
-  assert.match(source, /this\.pillStyles\(\)\+this\.taskSurfaceStyles\(\)/);
-  assert.doesNotMatch(source, /\.task-body>strong\{color:/);
+test("panel keeps native settings and add-task controls",()=>{
+  assert.match(source,/settings\.slot="toolbar-icon"/);
+  assert.match(source,/this\.settings\(\)/);
+  assert.match(source,/fab\.slot="fab"/);
+  assert.match(source,/this\.taskEditor\(null\)/);
 });
 
-test("task-list titles show the assigned Home Assistant tag name as a small pill", () => {
-  class TaskListModel extends withTaskList(class {}) {}
-  const model = new TaskListModel();
-  model.attachments = [];
-  model.users = [{ id: "alex", name: "Alex" }];
-  model.tags = [{ id: "tag-1", name: "Washing machine" }];
-  model.due = () => false;
-  model.date = value => value;
-  model.relativeDate = value => value;
-  const html = model.taskRow({ id: "task", name: "Laundry", assignee_user_id: "alex", nfc_tag_id: "tag-1", due_date: "2026-07-21" });
-  assert.ok(html.indexOf("Laundry") < html.indexOf("Alex"));
-  assert.ok(html.indexOf("Alex") < html.indexOf("Washing machine"));
-  assert.match(html, /mdi:account/);
-  assert.match(html, /class="pill ht-content-small"><ha-icon icon="mdi:nfc"><\/ha-icon>Washing machine<\/span>/);
+test("task action menu stops pointer and click propagation",()=>{
+  assert.match(source,/addEventListener\("pointerdown",stop\)/);
+  assert.match(source,/event\.preventDefault\(\);\s*event\.stopPropagation\(\);/);
+  assert.match(source,/createElement\("ha-menu"\)/);
+  assert.match(source,/createElement\("ha-md-menu-item"\)/);
+  assert.match(source,/menu\.addEventListener\("click",event=>event\.stopPropagation\(\)\)/);
+  assert.match(source,/this\.showTaskActionMenu\(button,task\)/);
 });
 
-test("expanded groups end with a group-bound add-task placeholder", () => {
-  class TaskListModel extends withTaskList(class {}) {}
-  const model = new TaskListModel();
-  model.tasks = [{ id: "task", group_id: "chores", name: "Task", due_date: "2026-07-21" }];
-  model.attachments = [];
-  model.users = [];
-  model.signedFiles = new Map();
-  model.expanded = new Set(["chores"]);
-  model.sort = "name";
-  model.today = "2026-07-21";
-  model.date = value => value;
-  model.relativeDate = value => value;
-  model.locale = () => "en";
-
-  const html = model.groupRow({ id: "chores", name: "Household" });
-  assert.ok(html.indexOf('data-task="task"') < html.indexOf('class="placeholder-add group-add"'));
-  assert.match(html, /mdi:plus[\s\S]*Add task/);
-  model.expanded.clear();
-  assert.doesNotMatch(model.groupRow({ id: "chores", name: "Household" }), /group-add/);
-});
-
-test("task list replaces the floating action with top and group placeholders", () => {
-  const source = readFileSync(new URL("../../custom_components/home_tasker/frontend/task-list.js", import.meta.url), "utf8");
-  assert.doesNotMatch(source, /floating-add|position:fixed/);
-  assert.match(source, /class="placeholder-add list-add"/);
-  assert.match(source, /groupAdd\.onclick=\(\)=>this\.taskEditor\(g\.id\)/);
-  assert.match(source, /border:1px dashed var\(--divider-color\)/);
-  assert.match(source, /\.placeholder-add\{justify-content:center;text-align:center\}/);
-});
-
-test("task list exposes settings above the list", () => {
-  const source = readFileSync(new URL("../../custom_components/home_tasker/frontend/task-list.js", import.meta.url), "utf8");
-  assert.match(source, /class="settings"[\s\S]*mdi:cog-outline[\s\S]*settings\.title/);
-  assert.match(source, /querySelector\("\.settings"\)\.onclick=\(\)=>this\.settings\(\)/);
-});
-
-test("task-list attachment pills open in-app instead of a new browser page", () => {
-  class TaskListModel extends withTaskList(class {}) {}
-  const model = new TaskListModel();
-  model.signedFiles = new Map([["file", "/signed/file"]]);
-  const html = model.filePill({ id: "file", filename: "manual.pdf" });
-  assert.match(html, /class="pill file-pill file-open" data-file-open="file"/);
-  assert.match(html, /<a [^>]*href="\/signed\/file"/);
-  assert.match(html, /mdi:paperclip/);
-  assert.doesNotMatch(html, /target="_blank"|<button/);
-});
-
-test("task-list sorting uses the planning-style themed select", () => {
-  const source = readFileSync(new URL("../../custom_components/home_tasker/frontend/task-list.js", import.meta.url), "utf8");
-  assert.match(source, /<select class="sort" aria-label="\$\{t\("panel\.sort"\)\}">/);
-  assert.match(source, /\.sort\{[^}]*padding:9px[^}]*border:1px solid var\(--divider-color\)[^}]*background:var\(--primary-background-color\)[^}]*color:var\(--primary-text-color\)[^}]*font:inherit/);
-  assert.match(source, /\.sort"\)\.onchange/);
-  assert.doesNotMatch(source, /<ha-select class="sort"/);
-});
-
-test("task-list due pills distinguish today from overdue", async () => {
-  const { DUE_DATE_STYLES } = await import("../../custom_components/home_tasker/frontend/task-list.js");
-  class TaskListModel extends withTaskList(class {}) {}
-  const model = new TaskListModel();
-  model.today = "2026-07-21";
-  model.attachments = [];
-  model.users = [];
-  model.tags = [];
-  model.signedFiles = new Map();
-  model.date = value => value;
-  model.relativeDate = value => value;
-  assert.match(model.taskRow({ id: "today", name: "Today", due_date: "2026-07-21" }), /due-date today/);
-  assert.match(model.taskRow({ id: "old", name: "Old", due_date: "2026-07-20" }), /due-date overdue/);
-  assert.match(DUE_DATE_STYLES, /\.due-date\.today\{color:var\(--warning-color/);
-  assert.match(DUE_DATE_STYLES, /\.due-date\.overdue\{color:var\(--error-color/);
-  assert.doesNotMatch(DUE_DATE_STYLES, /font-weight/);
+test("row clicks continue to open the existing task viewer",()=>{
+  assert.match(source,/row-click[\s\S]*this\.taskViewer\(task\)/);
 });
