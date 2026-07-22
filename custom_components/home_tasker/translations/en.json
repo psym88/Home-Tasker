@@ -89,6 +89,7 @@
     "group.open_picker": "Open group selection",
     "group.create": "Create “{name}” as a new group",
     "group.none": "No groups available",
+    "filter.show_all": "Show all",
     "file.drop": "Drag files here or tap to select",
     "file.remove": "Remove file",
     "file.undo_remove": "Undo file removal",

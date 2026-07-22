@@ -1,4 +1,5 @@
 import { t } from "./localize.js";
+import "./group-filter.js";
 
 export const NO_DUE_TIMESTAMP = Number.MAX_SAFE_INTEGER;
 export const INITIAL_TASK_SORTING = {column:"due_ts",direction:"asc"};
@@ -48,7 +49,7 @@ function textCell(value,title) {
 export const withTaskList = Base => class extends Base {
   tagName(task){const id=task?.nfc_tag_id;return id?(this.tags?.find(tag=>tag.id===id)?.name||id):"";}
   tableRows(){return taskTableRows(this.tasks,{groups:this.groups,users:this.users,tags:this.tags,attachments:this.attachments,translate:t});}
-  filterSchema(rows){return TASK_FILTER_COLUMNS.map(column=>({name:column,selector:{select:{multiple:true,mode:"list",options:[...new Set(rows.map(row=>row[column]))].map(value=>({value,label:value}))}}}));}
+  filterSchema(rows){return TASK_FILTER_COLUMNS.filter(column=>column!=="group").map(column=>({name:column,selector:{select:{multiple:true,mode:"list",options:[...new Set(rows.map(row=>row[column]))].map(value=>({value,label:value}))}}}));}
   filterLabel(schema){return {group:t("task.group"),assignee:t("table.assignee"),recurrence:t("table.recurrence")}[schema.name]||schema.name;}
   activeFilterCount(){return TASK_FILTER_COLUMNS.reduce((count,column)=>count+(this.tableFilters?.[column]?.length||0),0);}
   tableColumns(){
@@ -94,7 +95,7 @@ export const withTaskList = Base => class extends Base {
     this.closeActionMenu();
     if(!this.shadowRoot.querySelector(".app")){
       this.shadowRoot.innerHTML=`<style>:host{display:block;height:100%;background:var(--primary-background-color);color:var(--primary-text-color)}.app,hass-tabs-subpage-data-table{display:block;height:100%}.filters{margin:16px}</style><div class="app"></div>`;
-      const wrapper=document.createElement("hass-tabs-subpage-data-table"),settings=document.createElement("ha-icon-button"),settingsIcon=document.createElement("ha-icon"),filters=document.createElement("ha-form"),fab=document.createElement("ha-button"),fabIcon=document.createElement("ha-icon");
+      const wrapper=document.createElement("hass-tabs-subpage-data-table"),settings=document.createElement("ha-icon-button"),settingsIcon=document.createElement("ha-icon"),filterPane=document.createElement("div"),groupFilter=document.createElement("home-tasker-group-filter"),filters=document.createElement("ha-form"),fab=document.createElement("ha-button"),fabIcon=document.createElement("ha-icon");
       wrapper.className="task-table";
       wrapper.setAttribute("main-page","");
       wrapper.setAttribute("clickable","");
@@ -106,9 +107,9 @@ export const withTaskList = Base => class extends Base {
       settingsIcon.setAttribute("icon","mdi:cog-outline");
       settings.append(settingsIcon);
       settings.addEventListener("click",event=>{event.stopPropagation();this.settings();});
-      filters.className="filters";
-      filters.slot="filter-pane";
-      filters.addEventListener("value-changed",event=>{event.stopPropagation();this.tableFilters=event.detail?.value||{};this.updateTaskTable();});
+      filterPane.className="filters";filterPane.slot="filter-pane";groupFilter.controller=this;filterPane.append(groupFilter,filters);
+      groupFilter.addEventListener("value-changed",event=>{event.stopPropagation();this.tableFilters={...(this.tableFilters||{}),group:event.detail?.value||[]};this.updateTaskTable();});
+      filters.addEventListener("value-changed",event=>{event.stopPropagation();this.tableFilters={group:this.tableFilters?.group||[],...(event.detail?.value||{})};this.updateTaskTable();});
       fab.slot="fab";
       fab.setAttribute("size","l");
       fab.textContent=t("common.add_task");
@@ -116,7 +117,7 @@ export const withTaskList = Base => class extends Base {
       fabIcon.setAttribute("icon","mdi:plus");
       fab.prepend(fabIcon);
       fab.addEventListener("click",()=>this.taskEditor(null));
-      wrapper.append(settings,filters,fab);
+      wrapper.append(settings,filterPane,fab);
       this.shadowRoot.querySelector(".app").append(wrapper);
       wrapper.addEventListener("row-click",event=>{const task=this.tasks.find(item=>item.id===event.detail?.id);if(task)this.taskViewer(task);});
       wrapper.addEventListener("clear-filter",()=>{this.tableFilters={};this.updateTaskTable();});
@@ -126,10 +127,11 @@ export const withTaskList = Base => class extends Base {
   updateTaskTable(){
     const wrapper=this.shadowRoot.querySelector("hass-tabs-subpage-data-table");
     if(!wrapper)return;
-    const settings=wrapper.querySelector('[slot="toolbar-icon"]'),filters=wrapper.querySelector('ha-form[slot="filter-pane"]'),fab=wrapper.querySelector('[slot="fab"]'),rows=this.tableRows();
+    const settings=wrapper.querySelector('[slot="toolbar-icon"]'),groupFilter=wrapper.querySelector("home-tasker-group-filter"),filters=wrapper.querySelector("ha-form"),fab=wrapper.querySelector('[slot="fab"]'),rows=this.tableRows();
     if(settings){settings.label=t("settings.title");settings.title=t("settings.title");settings.setAttribute("aria-label",t("settings.title"));}
     if(fab){for(const node of [...fab.childNodes])if(node.nodeType===3)node.remove();fab.append(document.createTextNode(t("common.add_task")));}
-    if(filters){filters.hass=this._hass;filters.data=this.tableFilters||{};filters.schema=this.filterSchema(rows);filters.computeLabel=schema=>this.filterLabel(schema);}
+    if(groupFilter){groupFilter.controller=this;groupFilter.groups=this.groups;groupFilter.value=this.tableFilters?.group||[];}
+    if(filters){filters.hass=this._hass;filters.data={assignee:this.tableFilters?.assignee||[],recurrence:this.tableFilters?.recurrence||[]};filters.schema=this.filterSchema(rows);filters.computeLabel=schema=>this.filterLabel(schema);}
     wrapper.hass=this._hass;
     wrapper.route=this.route;
     wrapper.tabs=[{name:"Home Tasker",path:""}];

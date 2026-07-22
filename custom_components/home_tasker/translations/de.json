@@ -89,6 +89,7 @@
     "group.open_picker": "Gruppenauswahl öffnen",
     "group.create": "„{name}“ als neue Gruppe erstellen",
     "group.none": "Keine Gruppen vorhanden",
+    "filter.show_all": "Alle anzeigen",
     "file.drop": "Dateien hierher ziehen oder antippen",
     "file.remove": "Datei entfernen",
     "file.undo_remove": "Entfernen rückgängig machen",
