@@ -36,9 +36,11 @@ Removing the integration does not delete exported backups. Home Tasker data in `
 
 ## Usage
 
-Open **Home Tasker** in the sidebar. Use **+ Add task** to create a task and either select an existing group or enter a new group name. Select a task to view and complete it; use its three-dot menu to edit or delete it.
+Administrators can open **Home Tasker** in the sidebar. Use **+ Add task** to create a task and either select an existing group or enter a new group name. Select a task to view and complete it; use its three-dot menu to edit or delete it.
 
-Schedules can repeat by calendar or from the last completion. The optional start date limits when a recurrence begins. Files are managed in the task editor and supported formats open in Home Assistant's preview dialog.
+The task table supports search, sorting, grouping by recurrence, group, or assignee, and independent filters for those same dimensions. Groups can be edited or deleted from their action menu in the group filter.
+
+Schedules can repeat by calendar or from the last completion. The optional start date limits when a recurrence begins. Files are managed in the task editor and supported formats open in an in-panel preview dialog.
 
 To complete a task with NFC, create a tag under **Settings → Tags** and assign it in the task editor. One tag can be assigned to only one task.
 

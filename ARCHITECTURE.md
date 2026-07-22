@@ -19,7 +19,7 @@ Home Tasker is a local-push Home Assistant integration with one config entry. Pe
 ## Backend
 
 - `store.py`: persistence and serialized mutations
-- `models.py`: stored data structures
+- `models.py`: typed runtime data attached to the config entry
 - `scheduler.py`: recurrence calculations
 - `websocket.py`: authenticated task and metadata API
 - `http.py`: authenticated attachments and ZIP import/export
@@ -35,15 +35,21 @@ Import validates a current-format archive before clearing and replacing all stor
 
 The frontend is split into native ES modules under `custom_components/home_tasker/frontend`:
 
-- `main.js`: shared controller and sidebar panel
+- `main.js`: shared data and workflow controller used by the panel and card
 - `dashboard-card.js`: Lovelace card and visual editor
-- `task-list.js`: grouped and flat task rendering
-- `task-editor.js`, `task-viewer.js`, `group-editor.js`: workflows
-- `native-*-dialog.js`: Home Assistant adaptive-dialog hosts
-- `styles.js`, `shared.js`, `dialogs.js`, `action-menu.js`: shared UI primitives
+- `task-list.js`: sidebar table adapter, flat row mapping, filters, and HA table configuration
+- `filter-category.js`: filter categories and group actions for the sidebar table
+- `task-editor.js` and `group-editor.js`: editor workflows
+- `task-detail-boxes.js`: reusable file and history sections for task dialogs
+- `native-*-dialog.js`: Home Assistant adaptive-dialog hosts, including the task viewer
+- `styles.js`, `shared.js`, `dialogs.js`, and `action-menu.js`: shared UI contracts and primitives
 - `localize.js`: frontend localization
 
-The sidebar panel and dashboard card share the same controller, viewer/editor workflows, typography, collapsible sections, icons, and theme rules. Dialogs use Home Assistant's composed `show-dialog` contract. Attachments are real signed anchors whose click handler opens the native preview dialog.
+The sidebar panel maps backend tasks to flat rows and delegates its toolbar, search, sorting, grouping, and table rendering to Home Assistant's internal `hass-tabs-subpage-data-table` and `ha-data-table` components. Filters reduce the row data before it is passed to the table. The dashboard card keeps its separate compact task presentation.
+
+The sidebar panel and dashboard card share the same controller and task viewer/editor workflows. Dialogs use Home Assistant's composed `show-dialog` contract and `ha-adaptive-dialog`; shared file and history sections are produced by `task-detail-boxes.js`. Attachments are signed anchors whose click handler opens the integration's preview dialog through the same native dialog contract.
+
+Frontend development follows a native-first rule: use Home Assistant components and interaction contracts before adding custom UI. Custom CSS is limited to structural layout that HA components do not provide; visual values use Home Assistant CSS variables and design tokens. No external UI or table library is used.
 
 The frontend loads an initial snapshot and reloads it from `home_tasker_event`. The same event updates task entities and the calendar after stored mutations and at local midnight; no dispatcher, entity fingerprint, or periodic polling is used. The separate `home_tasker_task_due` event fires once per task when it crosses from not due to due, without startup or import replay.
 
