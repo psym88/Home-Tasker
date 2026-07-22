@@ -2,6 +2,14 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.3.3
+
+### Changed
+
+- Place the due date above the recurrence description in the task viewer.
+- Render task names in the grouped task list with the Home Assistant primary color.
+- Use the secondary text color for dashboard metadata pills while preserving due-date status colors.
+
 ## 0.3.2
 
 ### Added

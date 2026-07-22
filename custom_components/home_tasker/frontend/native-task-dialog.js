@@ -8,7 +8,7 @@ export function showTaskDialog(controller,task){controller.dispatchEvent(new Cus
 
 export class HomeTaskerTaskDialog extends HTMLElement {
   constructor(){super();this.attachShadow({mode:"open"});this.open=false;}
-  showDialog({controller,task}){this.controller=controller;this.task=task;this.open=true;this.render();this.applyPillIconStyles();this.addTagPill();this.loadHistory();}
+  showDialog({controller,task}){this.controller=controller;this.task=task;this.open=true;this.render();this.shadowRoot.querySelector(".planning").textContent=controller.scheduleText(task).split("\n").reverse().join("\n");this.applyPillIconStyles();this.addTagPill();this.loadHistory();}
   closeDialog(){if(!this.open)return true;this.open=false;const dialog=this.shadowRoot.querySelector("ha-adaptive-dialog");if(dialog)dialog.open=false;return true;}
   dialogClosed(){this.open=false;this.controller=null;this.task=null;this.shadowRoot.innerHTML="";this.dispatchEvent(new CustomEvent("dialog-closed",{bubbles:true,composed:true,detail:{dialog:this.localName}}));}
   confirmCompletion(){return showNativeConfirmation(this,{title:t("task.complete_title"),message:t("task.complete_confirm",{name:this.task.name}),confirmLabel:t("task.complete"),tone:"success"});}

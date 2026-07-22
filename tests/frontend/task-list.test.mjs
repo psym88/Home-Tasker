@@ -88,7 +88,7 @@ test("grouped task rows preserve panel sorting and due badges", () => {
   assert.ok(html.indexOf('data-task="due"') < html.indexOf('data-task="later"'));
 });
 
-test("task-list titles use the secondary text color", () => {
+test("task-list titles use the primary theme color", () => {
   class TaskListModel extends withTaskList(class {}) {}
   const model = new TaskListModel();
   model.attachments = [];
@@ -98,6 +98,8 @@ test("task-list titles use the secondary text color", () => {
   model.relativeDate = value => value;
   model.locale = () => "en";
   assert.match(model.taskRow({ id: "task", name: "Task", due_date: "2026-07-21" }), /<strong class="ht-content">Task<\/strong>/);
+  const source = readFileSync(new URL("../../custom_components/home_tasker/frontend/task-list.js", import.meta.url), "utf8");
+  assert.match(source, /\.task-body>strong\{color:var\(--primary-color\)!important\}/);
 });
 
 test("task-list titles show the assigned Home Assistant tag name as a small pill", () => {

@@ -55,7 +55,7 @@ Only one Home Tasker configuration entry can be created.
 
 Select **+ Add task** at the top of the Home Tasker panel. Choose an existing group or enter a new group name, then configure the task, assignment, and schedule. You can also add a task directly at the end of an expanded group.
 
-Groups can be expanded to show their tasks. The badge beside a group shows how many of its tasks are currently due.
+Groups can be expanded to show their tasks. Task names use the configured Home Assistant primary color, and the badge beside a group shows how many of its tasks are currently due.
 
 ### View, complete, and manage tasks
 
@@ -88,7 +88,7 @@ The task editor previews upcoming due dates before you save the schedule.
 
 ## Dashboard card
 
-After Home Tasker is loaded, the **Home Tasker** card is available in the dashboard card picker. By default, it shows overdue tasks and tasks due today, with the oldest task first. Each task shows the same compact due-date, assignee and NFC-tag pill row as the grouped task list, including consistently centered icons. In both views, overdue dates are red, dates due today are orange, and future dates are green.
+After Home Tasker is loaded, the **Home Tasker** card is available in the dashboard card picker. By default, it shows overdue tasks and tasks due today, with the oldest task first. Each task shows the same compact due-date, assignee and NFC-tag pill row as the grouped task list, including consistently centered icons. Dashboard metadata pills use the secondary text color. In both views, overdue dates are red, dates due today are orange, and future dates are green.
 
 The visual card editor lets you configure:
 
