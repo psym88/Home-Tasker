@@ -2,7 +2,7 @@ import { L, esc } from "./shared.js";
 import { t } from "./localize.js";
 
 export const EDITOR_FILE_GRID="display:grid;grid-template-columns:minmax(0,1fr) max-content 32px;gap:8px;align-items:center;padding:4px 0";
-const VIEWER_FILE_GRID="display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:8px;align-items:center";
+const VIEWER_FILE_GRID="display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:8px;align-items:center;min-height:40px";
 
 export function taskDetailBoxHtml(title,content,{className="",expanded=false}={}){
   return `<ha-expansion-panel outlined${expanded?" expanded":""}${className?` class="${className}"`:""}><span slot="header">${esc(title)}</span><div class="details-content">${content}</div></ha-expansion-panel>`;
