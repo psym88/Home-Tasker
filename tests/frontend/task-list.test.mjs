@@ -70,28 +70,29 @@ test("only the requested dimensions can group the native table",()=>{
 
 test("native filter pane exposes group assignee and recurrence filters",()=>{
   assert.deepEqual(TASK_FILTER_COLUMNS,["group","assignee","recurrence"]);
-  assert.match(source,/createElement\("ha-form"\)/);
   assert.match(source,/filterPane\.className="filters"/);
   assert.match(source,/filterPane\.slot="filter-pane"/);
-  assert.match(source,/createElement\("home-tasker-group-filter"\)/);
-  assert.match(source,/multiple:true,mode:"list"/);
+  assert.match(source,/for\(const column of TASK_FILTER_COLUMNS\)/);
+  assert.match(source,/createElement\("home-tasker-filter-category"\)/);
+  assert.match(source,/querySelectorAll\("home-tasker-filter-category"\)/);
   assert.match(source,/\.filters\{margin:16px\}/);
-  assert.doesNotMatch(source,/ha-filter-states|expandedTableFilter|filterDefinitionPending/);
+  assert.doesNotMatch(source,/createElement\("ha-form"\)|ha-filter-states|expandedTableFilter|filterDefinitionPending/);
   assert.match(source,/wrapper\.setAttribute\("has-filters",""\)/);
   assert.match(source,/wrapper\.filters=this\.activeFilterCount\(\)/);
   assert.match(source,/wrapper\.data=filterTaskTableRows\(rows,this\.tableFilters\)/);
   assert.match(source,/wrapper\.addEventListener\("clear-filter"/);
 });
 
-test("group filter follows Home Assistant category rows with native meta action menus",()=>{
+test("all filters follow Home Assistant category rows while only groups expose actions",()=>{
   const groupFilter=readFileSync(new URL("../../custom_components/home_tasker/frontend/group-filter.js",import.meta.url),"utf8");
   assert.match(groupFilter,/createElement\("ha-list-item"\)/);
-  assert.match(groupFilter,/item\.hasMeta=true/);
+  assert.match(groupFilter,/item\.hasMeta=this\.actions/);
   assert.match(groupFilter,/dropdown\.slot="meta"/);
   assert.match(groupFilter,/createElement\("ha-dropdown"\)/);
   assert.match(groupFilter,/this\.controller\?\.groupEditor\(group\)/);
   assert.match(groupFilter,/this\.controller\?\.deleteGroup\(group\)/);
   assert.match(groupFilter,/dropdown\.addEventListener\("click",stop\)/);
+  assert.match(source,/filter\.actions=column==="group"/);
 });
 
 test("search is delegated completely to the native Home Assistant table",()=>{
