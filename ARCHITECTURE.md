@@ -17,7 +17,7 @@ Home Tasker deliberately has a small surface. The integration is local-only and 
 - `store.py`: versioned persistence and serialized mutations
 - `scheduler.py`: pure date arithmetic
 - `websocket.py`: authenticated metadata API
-- `http.py`: authenticated binary upload/download
+- `http.py`: authenticated binary upload/download and full ZIP archive import/export
 - `binary_sensor.py`: task entities and virtual device metadata
 - `calendar.py`: read-only task due-date calendar and live event updates
 - `nfc.py`: config-entry-scoped `tag_scanned` listener and task completion attribution
@@ -32,6 +32,7 @@ Home Tasker deliberately has a small surface. The integration is local-only and 
 - The task editor replaces the browser-specific interval spinner with a 44-pixel theme-aware stepper while keeping direct numeric and arrow-key input.
 - `frontend/native-task-dialog.js`: Home Assistant `show-dialog` contract and `ha-adaptive-dialog` host for the complete task viewer
 - `frontend/native-attachment-dialog.js`: adaptive attachment preview for images, media, PDFs, and other browser-inline formats with an explicit download fallback
+- `frontend/native-settings-dialog.js`: adaptive Settings popup with the native collapsible Import / Export section and destructive-import confirmation
 - `frontend/native-form-dialog.js`: adaptive-dialog hosts for task/group forms and confirmations, including the shared collapsible-section layout rules
 - `frontend/action-menu.js`: shared anchored task/group overflow menu with accessible focus and Shadow-DOM-aware dismissal through the event's composed path
 - `frontend/dialogs.js`, `shared.js`, and `styles.js`: dialog primitives, escaping, and shared panel styling
@@ -57,3 +58,4 @@ All frontend copy is addressed through stable translation keys. The integration-
 The dashboard card is registered as an extra frontend module while the config entry is loaded. Its configuration remains Lovelace-local. It reuses the panel viewer, task editor workflows, compact pill metadata, and anchored vertical-dots action menu, but renders a flat task list that is always sorted by oldest due date and then task name. The outer `ha-card` background, border variables, border, shadow, and content padding are always removed. Full-width task containers retain neutral Home Assistant card surfaces and their own borders, while due-date text retains its status accent. In edit mode, the add action is the first full-width grid element and visually matches an empty muted task row with a dashed border and centered icon-label pair. The configured card mode alone controls whether task editing actions render. Authenticated users may use all task and group data operations; only discovery and access through the dedicated sidebar panel remain administrator-restricted. Edit menu items use the neutral Home Assistant hover fill, while delete items use the themed alert color and retain confirmation dialogs.
 
 Uploads live under `<config>/home_tasker/uploads`; metadata is stored in the versioned Home Assistant Store.
+The authenticated archive endpoint emits the current schema plus all attachment bytes in one ZIP. Import accepts only that exact archive format, validates entity references, attachment IDs and sizes before mutation, and then replaces the complete Store snapshot and uploads directory under the store mutation lock. Attachment-directory replacement is rolled back if persistence fails; legacy archive formats are deliberately not normalized or accepted.

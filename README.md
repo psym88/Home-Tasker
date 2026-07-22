@@ -16,6 +16,7 @@ Home Tasker brings recurring household tasks into Home Assistant. Organize tasks
 - Home Assistant entities for automations and notifications
 - A read-only Home Assistant calendar containing every current task due date
 - Local storage inside your Home Assistant configuration
+- Full ZIP backup and restore from the task-list Settings dialog
 - English and German interface text that follows each user's Home Assistant language
 
 ## Requirements
@@ -61,6 +62,10 @@ Groups can be expanded to show their tasks. The badge beside a group shows how m
 Select a task to open its details. From there you can review its Home Assistant-rendered Markdown description, schedule, files, and history, and complete it with an optional note. Viewers, editors and empty states follow Home Assistant's native typography and text colors.
 
 Use the three-dot menu beside a task or group to edit or delete it. Files can be attached from the task editor by selecting them or using drag and drop. Supported files open in a Home Assistant preview dialog.
+
+### Back up or restore all data
+
+Select **Settings** above the task list and expand **Import / Export**. Export downloads one ZIP archive containing every group, task, completion-history entry and attachment. Import validates a current-format Home Tasker archive, then clears all existing Home Tasker data and replaces it with the archive after an explicit confirmation. Create a fresh export before importing if you may need the current data again.
 
 ### Complete a task with an NFC tag
 

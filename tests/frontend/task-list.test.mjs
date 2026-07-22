@@ -146,6 +146,12 @@ test("task list replaces the floating action with top and group placeholders", (
   assert.match(source, /\.placeholder-add\{justify-content:center;text-align:center\}/);
 });
 
+test("task list exposes settings above the list", () => {
+  const source = readFileSync(new URL("../../custom_components/home_tasker/frontend/task-list.js", import.meta.url), "utf8");
+  assert.match(source, /class="settings"[\s\S]*mdi:cog-outline[\s\S]*settings\.title/);
+  assert.match(source, /querySelector\("\.settings"\)\.onclick=\(\)=>this\.settings\(\)/);
+});
+
 test("task-list attachment pills open in-app instead of a new browser page", () => {
   class TaskListModel extends withTaskList(class {}) {}
   const model = new TaskListModel();

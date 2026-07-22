@@ -7,6 +7,7 @@ import { withTaskEditor } from "./task-editor.js";
 import { withDialogs } from "./dialogs.js";
 import { closeRowActionMenu, openRowActionMenu } from "./action-menu.js";
 import { showAttachmentDialog } from "./native-attachment-dialog.js";
+import { showSettingsDialog } from "./native-settings-dialog.js";
 import { historyNote, locale as activeLocale, setLanguage, t } from "./localize.js";
 
 export class HomeTaskerBase extends withDialogs(withTaskEditor(withGroupEditor(withTaskViewer(withTaskList(withStyles(HTMLElement)))))) {
@@ -30,6 +31,9 @@ export class HomeTaskerBase extends withDialogs(withTaskEditor(withGroupEditor(w
   openAttachment(file,dispatcher=this){const url=this.signedFiles.get(file.id);if(url)showAttachmentDialog(dispatcher,file,url);}
   wireFileOpeners(root,dispatcher=this){root.querySelectorAll("[data-file-open]").forEach(button=>{button.onclick=event=>{event.preventDefault();event.stopPropagation();const file=this.attachments.find(item=>item.id===button.dataset.fileOpen);if(file)this.openAttachment(file,dispatcher);};});}
   token(){return this._hass?.auth?.data?.access_token||null;} async upload(taskId,files,onUploaded){for(const file of files){const fd=new FormData();fd.append("task_id",taskId);fd.append("file",file,file.name);const r=await fetch("/api/home_tasker/upload",{method:"POST",headers:this.token()?{authorization:`Bearer ${this.token()}`}:{},body:fd});if(!r.ok)throw new Error(t("upload.failed",{status:r.status}));const response=await r.json(),{signed_url:signUrl,...record}=response;this.attachments.push(record);if(signUrl)this.signedFiles.set(record.id,signUrl);if(onUploaded)onUploaded(record);}}
+  settings(){showSettingsDialog(this);}
+  async exportArchive(){const response=await fetch("/api/home_tasker/archive",{headers:this.token()?{authorization:`Bearer ${this.token()}`}:{}});if(!response.ok)throw new Error(await response.text()||String(response.status));const blob=await response.blob(),link=document.createElement("a"),date=new Date().toISOString().slice(0,10);link.href=URL.createObjectURL(blob);link.download=`home-tasker-${date}.zip`;link.click();setTimeout(()=>URL.revokeObjectURL(link.href),0);}
+  async importArchive(file){const response=await fetch("/api/home_tasker/archive",{method:"POST",headers:{...(this.token()?{authorization:`Bearer ${this.token()}`}:{}) ,"Content-Type":"application/zip"},body:file});if(!response.ok)throw new Error(await response.text()||String(response.status));await this.load();}
   locale(){return this._hass?.locale?.language||activeLocale()||navigator.language||"en";}
   date(v){const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||"");return m?new Date(+m[1],+m[2]-1,+m[3]).toLocaleDateString(this.locale()):v;}
   dueDateParts(v){const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||"");if(!m)return {weekday:"",date:String(v||"")};const value=new Date(+m[1],+m[2]-1,+m[3]),locale=this.locale();return {weekday:value.toLocaleDateString(locale,{weekday:"long"}),date:value.toLocaleDateString(locale,{year:"numeric",month:"2-digit",day:"2-digit"})};}

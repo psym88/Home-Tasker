@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+from copy import deepcopy
 from datetime import date
 from pathlib import Path
+import shutil
+import tempfile
 from typing import Any
 from uuid import uuid4
 
@@ -53,6 +56,114 @@ class HomeTaskerStore:
 
     def snapshot(self) -> dict[str, Any]:
         return {key: list(self._data[key]) for key in ("groups", "tasks", "attachments")}
+
+    async def async_export_archive(self) -> tuple[dict[str, Any], dict[str, bytes]]:
+        """Return a consistent copy of all persisted data and attachment content."""
+        async with self._lock:
+            data = deepcopy(self._data)
+            files = await self._hass.async_add_executor_job(
+                self._read_attachment_files, data["attachments"]
+            )
+            return data, files
+
+    def _read_attachment_files(
+        self, attachments: list[dict[str, Any]]
+    ) -> dict[str, bytes]:
+        return {
+            item["id"]: self.file_path(item["id"]).read_bytes()
+            for item in attachments
+        }
+
+    @staticmethod
+    def validate_import(data: Any, files: dict[str, bytes]) -> dict[str, Any]:
+        """Validate the current archive schema without legacy compatibility."""
+        if not isinstance(data, dict) or set(data) != {
+            "groups", "tasks", "history", "attachments"
+        }:
+            raise ValueError("invalid_archive_data")
+        if not all(isinstance(data[key], expected) for key, expected in (
+            ("groups", list), ("tasks", list), ("history", dict),
+            ("attachments", list),
+        )):
+            raise ValueError("invalid_archive_data")
+        groups = {item.get("id") for item in data["groups"] if isinstance(item, dict)}
+        tasks = {item.get("id") for item in data["tasks"] if isinstance(item, dict)}
+        attachments = {
+            item.get("id"): item for item in data["attachments"]
+            if isinstance(item, dict)
+        }
+        if (len(groups) != len(data["groups"]) or None in groups
+                or len(tasks) != len(data["tasks"]) or None in tasks
+                or len(attachments) != len(data["attachments"]) or None in attachments):
+            raise ValueError("invalid_archive_ids")
+        all_ids = groups | tasks | set(attachments)
+        if any(not isinstance(item_id, str) or not item_id or "/" in item_id
+               or "\\" in item_id or item_id in {".", ".."} for item_id in all_ids):
+            raise ValueError("invalid_archive_ids")
+        if any(item.get("group_id") not in groups for item in data["tasks"]):
+            raise ValueError("invalid_archive_group")
+        if any(item.get("task_id") not in tasks for item in data["attachments"]):
+            raise ValueError("invalid_archive_attachment")
+        if set(data["history"]) - tasks or set(files) != set(attachments):
+            raise ValueError("invalid_archive_files")
+        if any(not isinstance(entries, list)
+               or any(not isinstance(entry, dict) for entry in entries)
+               for entries in data["history"].values()):
+            raise ValueError("invalid_archive_history")
+        if any(len(files[file_id]) != int(item.get("size", -1)) for file_id, item in attachments.items()):
+            raise ValueError("invalid_archive_file_size")
+        return deepcopy(data)
+
+    async def async_import_archive(
+        self, data: Any, files: dict[str, bytes]
+    ) -> None:
+        """Clear the current store and replace it with one validated archive."""
+        imported = self.validate_import(data, files)
+        async with self._lock:
+            old_data = self._data
+            backup = await self._hass.async_add_executor_job(
+                self._replace_attachment_files, files
+            )
+            self._data = imported
+            try:
+                await self._save()
+            except Exception:
+                self._data = old_data
+                await self._hass.async_add_executor_job(
+                    self._restore_attachment_files, backup
+                )
+                raise
+            await self._hass.async_add_executor_job(self._discard_backup, backup)
+
+    def _replace_attachment_files(self, files: dict[str, bytes]) -> Path | None:
+        parent = self._upload_dir.parent
+        parent.mkdir(parents=True, exist_ok=True)
+        staging = Path(tempfile.mkdtemp(prefix="home_tasker_import_", dir=parent))
+        backup = None
+        try:
+            for file_id, content in files.items():
+                (staging / file_id).write_bytes(content)
+            if self._upload_dir.exists():
+                backup = Path(tempfile.mkdtemp(prefix="home_tasker_backup_", dir=parent))
+                backup.rmdir()
+                self._upload_dir.replace(backup)
+            staging.replace(self._upload_dir)
+            return backup
+        except Exception:
+            shutil.rmtree(staging, ignore_errors=True)
+            if backup and backup.exists() and not self._upload_dir.exists():
+                backup.replace(self._upload_dir)
+            raise
+
+    def _restore_attachment_files(self, backup: Path | None) -> None:
+        shutil.rmtree(self._upload_dir, ignore_errors=True)
+        if backup and backup.exists():
+            backup.replace(self._upload_dir)
+
+    @staticmethod
+    def _discard_backup(backup: Path | None) -> None:
+        if backup:
+            shutil.rmtree(backup, ignore_errors=True)
 
     @property
     def groups(self) -> list[dict[str, Any]]:
