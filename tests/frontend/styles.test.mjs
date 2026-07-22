@@ -49,13 +49,16 @@ test("each task-list group has a theme-aware outer border", () => {
   assert.match(new StyleModel().groupListStyles(), /\.group\{[^}]*border:1px solid var\(--divider-color\)/);
 });
 
-test("shared dialog layout contains only collapsible content rules", () => {
+test("shared dialog layout aligns native and generated collapsible sections", () => {
   class StyleModel extends withStyles(class {}) {}
   const css = new StyleModel().dialogLayoutStyles();
   assert.doesNotMatch(css, /modal-header|modal-close/);
   assert.match(css, /\.details-content\{display:none/);
-  assert.match(css, /\.details\.open>\.details-content\{display:flex/);
+  assert.match(css, /\.details\.open>\.details-content,details>\.details-content\{display:flex/);
   assert.match(css, /\.details-toggle ha-icon\{color:var\(--secondary-text-color\)/);
+  assert.match(css, /summary,\.details-toggle\{[^}]*align-items:center[^}]*min-height:44px/);
+  assert.match(css, /details,\.details\{border:1px solid var\(--divider-color\);border-radius:8px;padding:0 10px\}/);
+  assert.equal(new StyleModel().typographyStyles(), TYPOGRAPHY_STYLES + css);
 });
 
 test("native collapsible chevrons use the shared secondary text color", () => {

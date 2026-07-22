@@ -2,6 +2,13 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.3.10
+
+### Fixed
+
+- Align the optional start date and remove action by their shared text baseline.
+- Apply one shared vertically centered collapsible-section layout to viewers, editors, creation forms, and Settings.
+
 ## 0.3.9
 
 ### Fixed

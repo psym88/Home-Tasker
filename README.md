@@ -59,7 +59,7 @@ Groups can be expanded to show their tasks. Task names use the configured Home A
 
 ### View, complete, and manage tasks
 
-Select a task to open its details. From there you can review its Home Assistant-rendered Markdown description, schedule, files, and history, and complete it with an optional note. Viewers, editors and empty states follow Home Assistant's native typography and text colors.
+Select a task to open its details. From there you can review its Home Assistant-rendered Markdown description, schedule, files, and history, and complete it with an optional note. Viewers, editors, creation forms, and Settings use the same vertically centered collapsible-section layout and follow Home Assistant's native typography and text colors.
 
 Use the three-dot menu beside a task or group to edit or delete it. Files can be attached from the task editor by selecting them or using drag and drop. Supported files open in a Home Assistant preview dialog.
 
