@@ -94,6 +94,36 @@ badge:
 
 The read-only **Home Tasker** calendar exposes current and projected task due dates.
 
+### Due-task notifications
+
+Each task binary sensor changes from `off` to `on` when the task becomes due. To notify one person about a specific task, create an automation in Home Assistant with a **State** trigger, select the task's binary sensor, set **From** to `off` and **To** to `on`, then add the desired notification action.
+
+The following YAML automation watches all current and future Home Tasker task entities. Replace `notify.mobile_app_your_phone` with your notification action:
+
+```yaml
+automation:
+  - alias: "Home Tasker task is due"
+    triggers:
+      - trigger: event
+        event_type: state_changed
+    conditions:
+      - condition: template
+        value_template: >
+          {{ trigger.event.data.new_state is not none
+             and trigger.event.data.old_state is not none
+             and trigger.event.data.new_state.attributes.get('home_tasker_entity_type') == 'task'
+             and trigger.event.data.old_state.state != 'on'
+             and trigger.event.data.new_state.state == 'on' }}
+    actions:
+      - action: notify.mobile_app_your_phone
+        data:
+          title: "Home Tasker"
+          message: >
+            {{ trigger.event.data.new_state.name }} is due.
+```
+
+Requiring an existing previous state avoids sending notifications for every due task when Home Assistant starts. The automation still detects due-state changes caused by task updates and the local midnight refresh.
+
 ## Home Assistant events
 
 Home Tasker fires `home_tasker_event` after every stored change. Automations can filter its `resource_type` and `action` data. Resource types are `task`, `group`, `history`, `attachment`, and `archive`; actions are `created`, `updated`, `deleted`, `completed`, and `imported` where applicable.
