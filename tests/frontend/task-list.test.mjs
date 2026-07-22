@@ -75,7 +75,8 @@ test("native filter pane exposes group assignee and recurrence filters",()=>{
   assert.match(source,/for\(const column of TASK_FILTER_COLUMNS\)/);
   assert.match(source,/createElement\("home-tasker-filter-category"\)/);
   assert.match(source,/querySelectorAll\("home-tasker-filter-category"\)/);
-  assert.match(source,/\.filters\{margin:16px\}/);
+  assert.match(source,/\.filters\{box-sizing:border-box;width:100%\}/);
+  assert.doesNotMatch(source,/\.filters\{[^}]*margin/);
   assert.doesNotMatch(source,/createElement\("ha-form"\)|ha-filter-states|expandedTableFilter|filterDefinitionPending/);
   assert.match(source,/wrapper\.setAttribute\("has-filters",""\)/);
   assert.match(source,/wrapper\.filters=this\.activeFilterCount\(\)/);
