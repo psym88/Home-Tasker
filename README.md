@@ -91,7 +91,8 @@ The visual card editor lets you configure:
 - **Edit mode**, which adds task creation and edit/delete actions for every signed-in user
 - How many upcoming days to include, or no due-date limit
 - Group and assignee filters, including unassigned tasks
-- Whether the outer card background and frame are shown
+
+The card is always frameless. Task rows and the add-task action use the full available card width.
 
 Select a task in the card to open its details and complete it. Card settings are stored only in that dashboard and do not change your tasks or integration settings.
 

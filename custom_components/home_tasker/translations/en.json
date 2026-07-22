@@ -144,7 +144,6 @@
     "card.mode": "Mode",
     "card.mode_view": "View",
     "card.mode_edit": "Edit",
-    "card.hide_background": "Hide background and outer border",
     "card.due_days": "Days into the future (empty = all)",
     "card.groups": "Groups (no selection = all)",
     "card.users": "Users (no selection = all)",
