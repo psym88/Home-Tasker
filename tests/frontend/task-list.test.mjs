@@ -13,7 +13,7 @@ globalThis.fetch = async url => {
 const {ready,setLanguage}=await import("../../custom_components/home_tasker/frontend/localize.js");
 await ready;
 await setLanguage("en");
-const {INITIAL_TASK_SORTING,NO_DUE_TIMESTAMP,TASK_GROUP_COLUMNS,dueTimestamp,taskTableRows}=await import("../../custom_components/home_tasker/frontend/task-list.js");
+const {INITIAL_TASK_SORTING,NO_DUE_TIMESTAMP,TASK_FILTER_COLUMNS,TASK_GROUP_COLUMNS,dueTimestamp,filterTaskTableRows,taskTableRows}=await import("../../custom_components/home_tasker/frontend/task-list.js");
 
 const source=readFileSync(new URL("../../custom_components/home_tasker/frontend/task-list.js",import.meta.url),"utf8");
 
@@ -39,26 +39,49 @@ test("due timestamps validate calendar dates and represent missing dates as the 
   assert.equal(dueTimestamp(""),NO_DUE_TIMESTAMP);
 });
 
+test("native pane filters combine dimensions and allow multiple values within one dimension",()=>{
+  const rows=[
+    {id:"1",group:"House",assignee:"Alex",recurrence:"Weekly"},
+    {id:"2",group:"Garden",assignee:"Alex",recurrence:"Monthly"},
+    {id:"3",group:"House",assignee:"Sam",recurrence:"Daily"},
+  ];
+  assert.deepEqual(filterTaskTableRows(rows,{group:["House"],assignee:["Alex"]}).map(row=>row.id),["1"]);
+  assert.deepEqual(filterTaskTableRows(rows,{recurrence:["Weekly","Daily"]}).map(row=>row.id),["1","3"]);
+  assert.equal(filterTaskTableRows(rows,{}).length,3);
+});
+
 test("panel uses the native Home Assistant data-table wrapper",()=>{
   assert.match(source,/createElement\("hass-tabs-subpage-data-table"\)/);
-  assert.match(source,/wrapper\.data=this\.tableRows\(\)/);
+  assert.match(source,/wrapper\.data=filterTaskTableRows\(rows,this\.tableFilters\)/);
   assert.match(source,/wrapper\.initialSorting=INITIAL_TASK_SORTING/);
   assert.deepEqual(INITIAL_TASK_SORTING,{column:"due_ts",direction:"asc"});
   assert.doesNotMatch(source,/groupRow\(|wireGroup\(|placeholder-add|class="group"/);
 });
 
 test("only the requested dimensions can group the native table",()=>{
-  assert.deepEqual(TASK_GROUP_COLUMNS,["recurrence","group","assignee","nfc_tag"]);
+  assert.deepEqual(TASK_GROUP_COLUMNS,["recurrence","group","assignee"]);
   for(const column of TASK_GROUP_COLUMNS)assert.match(source,new RegExp(`${column}:\\{title:[^}]+\\.\\.\\.groupable`));
+  assert.match(source,/nfc_tag:\{title:[^}]+sortable:true,filterable:true\}/);
   assert.doesNotMatch(source,/initialGroupColumn/);
   assert.doesNotMatch(source,/tableGrouping|table\.groupColumn=/);
+});
+
+test("native filter pane exposes group assignee and recurrence filters",()=>{
+  assert.deepEqual(TASK_FILTER_COLUMNS,["group","assignee","recurrence"]);
+  assert.match(source,/createElement\("ha-form"\)/);
+  assert.match(source,/filters\.slot="filter-pane"/);
+  assert.match(source,/wrapper\.setAttribute\("has-filters",""\)/);
+  assert.match(source,/wrapper\.filters=this\.activeFilterCount\(\)/);
+  assert.match(source,/wrapper\.data=filterTaskTableRows\(rows,this\.tableFilters\)/);
+  assert.match(source,/wrapper\.addEventListener\("clear-filter"/);
 });
 
 test("search is delegated completely to the native Home Assistant table",()=>{
   assert.match(source,/name:\{title:[^}]+filterable:true/);
   assert.match(source,/const groupable=\{sortable:true,filterable:true,groupable:true\}/);
   for(const column of TASK_GROUP_COLUMNS)assert.match(source,new RegExp(`${column}:\\{title:[^}]+\\.\\.\\.groupable`));
-  assert.doesNotMatch(source,/tableSearch|filterTaskRows|search-changed|value-changed|syncNativeTableFilter/);
+  assert.doesNotMatch(source,/tableSearch|filterTaskRows|search-changed|syncNativeTableFilter/);
+  assert.doesNotMatch(source,/wrapper\.addEventListener\("value-changed"/);
 });
 
 test("panel keeps native settings and add-task controls",()=>{
