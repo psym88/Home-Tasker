@@ -1,62 +1,58 @@
 # Architecture
 
-Home Tasker deliberately has a small surface. The integration is local-only and permits one config entry.
+Home Tasker is a local-push Home Assistant integration with one config entry. Persistent data is stored in Home Assistant; attachments live under `<config>/home_tasker/uploads`.
 
-## Model
+## Data model
 
-- A group stores `id`, `name`, `manufacturer`, `model`, and `description` and is represented by a virtual Home Assistant device. A legacy/API-only `icon` value is retained but is not exposed by the panel. Group names are unique when compared case-insensitively.
-- A task belongs to exactly one group and stores its name, description, calculated due date, optional start boundary, optional unique NFC tag ID, recurrence mode (`fixed` or `sliding`), frequency (`daily`, `weekly`, `monthly`, or `yearly`), interval, and calendar anchor.
-- Fixed weekly schedules support multiple weekdays. Fixed monthly schedules support days 1–31 or the last day. Completing a fixed task before its due date preserves the upcoming occurrence; completing it on time advances once, while late completion skips missed occurrences. Sliding schedules advance from the completion date, including the completion day for monthly schedules.
-- Before version 1.0, stored schema changes do not include compatibility normalization; development data may be reset.
-- Every task exposes one problem `binary_sensor`; `on` means due. Each available task entity carries the static `home_tasker_entity_type: task` attribute so Home Assistant templates can identify and aggregate Home Tasker tasks without relying on mutable entity IDs. The sensors are push-only (polling disabled) and refresh on data mutations and at local midnight so the due state flips at the date rollover. Deleting tasks or groups also removes their entity/device registry entries. Orphan cleanup is explicitly restricted to the `binary_sensor` entity domain so other Home Tasker platforms such as the shared calendar cannot be removed during task synchronization.
-- One read-only `calendar` entity named Home Tasker exposes each task's current due date and expands subsequent occurrences into independent all-day events for the requested calendar range, as required of Home Assistant calendar integrations. Calendar schedules retain their fixed anchors; sliding schedules project future occurrences as if each displayed due date were the completion date. Every flattened event has a stable unique ID composed of task ID and date and deliberately carries no `rrule` or `recurrence_id`; descriptions and group names become event details. Store mutations write entity state through an event-loop-safe dispatcher callback; Home Assistant's calendar base then performs its single debounced subscriber refresh. Invalid legacy recurrence data stops only that task's projection after its current event instead of invalidating the complete feed.
-- Attachments belong to one task. Existing browser links are pre-signed as part of the authenticated list response, while uploads return their own signed URL directly. Attachment rows reserve fixed right-side space for size and actions while their flexible filename column truncates only the base name and preserves the extension. History entries retain `due_before`, `due_after`, the recording timestamp, user, and optional completion notes. Removing an entry replays the remaining completion history chronologically from the original due date and rebuilds every due-date transition.
+- A **group** is represented by a virtual Home Assistant device.
+- A **task** belongs to one group and stores its description, assignment, due date, optional start boundary, optional NFC tag, recurrence rule, attachments, and completion history.
+- Calendar recurrence stays anchored to configured dates. Completion-based recurrence advances from the completion date.
+- Before version 1.0, stored-schema changes need no compatibility migration.
 
-## Modules
+## Home Assistant platforms
 
-- `store.py`: versioned persistence and serialized mutations
-- `scheduler.py`: pure date arithmetic
-- `websocket.py`: authenticated metadata API
-- `http.py`: authenticated binary upload/download and full ZIP archive import/export
-- `binary_sensor.py`: task entities and virtual device metadata
-- `calendar.py`: read-only task due-date calendar and live event updates
-- `nfc.py`: config-entry-scoped `tag_scanned` listener and task completion attribution
-- `frontend/panel.js`: lightweight ES-module entry point and custom-element registration
-- `frontend/main.js`: panel state, Home Assistant communication, shared formatting, and feature coordination
-- `frontend/localize.js` and `translations/*.json`: locale loading, English fallback, interpolation, and the consolidated Home Assistant/frontend language catalogs
-- `frontend/task-list.js`: grouped panel list plus reusable flat due-date sorting for a future dashboard card
-- `frontend/main.js`: shared unregistered frontend base plus the registered sidebar panel class
-- `frontend/dashboard-card.js`: automatically loaded Lovelace card, visual card editor, flat filtering, and due-date sorting; the card and panel are sibling custom elements for scoped-registry compatibility
-- List group blocks use a theme divider border. The dashboard card itself is always frameless, while its full-width task tiles keep their own divider borders.
-- `frontend/task-editor.js`, `task-viewer.js`, and `group-editor.js`: task and group workflows
-- The task editor replaces the browser-specific interval spinner with a 44-pixel theme-aware stepper while keeping direct numeric and arrow-key input.
-- `frontend/native-task-dialog.js`: Home Assistant `show-dialog` contract and `ha-adaptive-dialog` host for the complete task viewer
-- `frontend/native-attachment-dialog.js`: adaptive attachment preview for images, media, PDFs, and other browser-inline formats with an explicit download fallback
-- `frontend/native-settings-dialog.js`: adaptive Settings popup with the native collapsible Import / Export section and destructive-import confirmation
-- `frontend/native-form-dialog.js`: adaptive-dialog hosts for task/group forms and confirmations, including the shared collapsible-section layout rules
-- `frontend/action-menu.js`: shared anchored task/group overflow menu with accessible focus and Shadow-DOM-aware dismissal through the event's composed path
-- `frontend/dialogs.js`, `shared.js`, and `styles.js`: dialog primitives, escaping, and shared panel styling
+- Each task exposes a push-only problem `binary_sensor`; `on` means due. The static attribute `home_tasker_entity_type: task` allows reliable aggregation without depending on entity IDs.
+- One read-only `calendar` entity exposes current and projected task due dates.
+- Group deletion removes its task entities and device-registry entry. Orphan cleanup is limited to the `binary_sensor` domain.
+- Task state refreshes after mutations and at local midnight.
 
-Dialog header, collapsible-section, icon, and theme rules live in the shared style mixin so both the sidebar panel and dashboard card can host the same viewer and editor workflows without layout differences. Native viewer and Settings `details` elements and generated editor sections share the same border, spacing, 44-pixel vertically centered header, content layout, and themed chevrons.
-All Home Tasker viewers, attachment previews, forms, and confirmations are registered standalone dialog elements opened with composed, bubbling `show-dialog` events. They use Home Assistant adaptive-dialog primitives but have no Browser Mod dependency or legacy overlay containers. Attachment controls in lists, viewers, and editors are real anchors backed by pre-fetched signed URLs; their synchronous click handler keeps opening the native preview dialog rather than a new browser page. MIME-specific image, audio, and video elements are used where possible, with an iframe and explicit download action for other formats. Viewer completion and form save actions occupy the adaptive dialog's native footer slot, independent of the scrolling content area. Form-only layout styles are injected solely into the native form host; panel and dashboard roots retain only list/card styles.
+## Backend
 
-The list has no recurrence filters. It swaps Home Assistant's data-table resting colors: the group container uses `--primary-background-color`, group headers use `--data-table-background-color` without hover, and transparent task rows add a four-percent primary-text tint only on hover. Task titles use the primary text color. The former fixed floating add button is replaced by a full-width muted dashed placeholder above the group list. Its icon-label pair is centered, matching the dashboard card. Every expanded group ends with a matching centered placeholder that opens the task editor with that group preselected. Group headers share task-row padding and show the number of due tasks in a circular red badge. Gray vertical-dots actions on task and group rows open the shared edit/delete menu; structural deletion is confirmation-protected and is not duplicated in editor dialogs. Clicking a task opens a read-only viewer whose description is rendered by Home Assistant's native `ha-markdown` component, alongside a human-readable schedule, collapsible attachments and history, optional completion notes, and completion. Viewer, editor and task-list typography share four internal classes for medium or normal primary labels and medium or small secondary content. Collapse conversion preserves those classes. The editor labels recurrence as "By calendar" or "After completion", previews four backend-calculated due dates initially, and reveals additional occurrences one at a time. Its optional start-date control uses the same subtitle hierarchy as the other planning controls, with the selection action below and a red removal action. Viewer and editor history rows show date, local time, user, and notes; only the editor exposes history-entry deletion.
-Pills share the viewer's compact typography, normal font weight, line height, padding, radius and background across shadow roots. The dashboard and grouped list mount the exact same generated style element. Their icons use one compact size with explicit flex, self, and line-height centering so group, assignee, NFC and attachment metadata retain the same pill height and vertical alignment. Grouped task rows and dashboard task tiles share a first pill row containing the due date followed by the optional assignee and NFC tag; attachment pills use a paperclip icon in the grouped list. NFC completions store a language-neutral marker that the frontend renders as a localized history note.
-Task-list and dashboard task names share one `taskSurfaceStyles()` rule using `--primary-text-color`. All list, dashboard and viewer metadata pills inherit `--secondary-text-color` from the shared `pillIconCss()` rule, while due-date pills override it with their semantic status color. In the viewer, the due-date line is moved above the recurrence description without changing the shared schedule formatter.
-Due-date labels use the same semantic colors in both task surfaces: overdue is red, today is orange, and future dates are green.
-The viewer labels the currently calculated date concisely as "Due date".
-Group headers show the number of due tasks as a red numeric pill.
-Actions use native buttons styled with Home Assistant theme variables instead of unstable internal frontend components. Popup titles remain sticky while the dialog body scrolls.
-Typography follows Home Assistant font, size, weight, line-height, and color variables. The due-date preview and other supporting text use the normal body size. Its weekday and date values render in one shared responsive, left-aligned two-column grid below the recurrence description, so column widths are consistent across every row. Main-list group names use the large heading size, while task names use the normal body size and weight. Action buttons share a 44-pixel minimum control height, while icon actions use a matching square footprint.
-Collapsible boxes use the viewer layout globally, with their labels vertically centered in a consistent 44-pixel clickable header. The optional start boundary is normal body text backed by a native date input that covers the complete visible selection target, allowing iOS WebKit to open its picker from a direct user interaction; selecting and clearing the value both use that native picker without a separate clear action. The editor initially requests four unnumbered dates under a preview subtitle and increments the backend sequence count by one for each "Show more" action; this count is retained across schedule-option changes. Once loaded, the current preview remains rendered while a newer request is in flight, and request sequencing prevents stale responses from replacing it. Recurrence mode, rhythm, and preview subtitles share a larger Home Assistant theme-aware text style. Preview dates combine a localized weekday with the locale-specific numeric date. The backend uses the same scheduler for previews, task creation, schedule updates, and persisted completion dates. Task rows use an explicitly transparent resting background and the original neutral row hover. Icon actions retain circular, neutral, theme-aware hover and focus treatments.
+- `store.py`: persistence and serialized mutations
+- `models.py`: stored data structures
+- `scheduler.py`: recurrence calculations
+- `websocket.py`: authenticated task and metadata API
+- `http.py`: authenticated attachments and ZIP import/export
+- `binary_sensor.py`: task entities and group devices
+- `calendar.py`: read-only due-date calendar
+- `nfc.py`: tag-scan handling and completion attribution
+- `config_flow.py` and `__init__.py`: setup and integration lifecycle
 
-The backend supplies Home Assistant's current local date so sensors, relative dates, and the frontend agree around midnight. The shared panel/card controller fingerprints Home Tasker task entity states and reloads its snapshot when Home Assistant delivers a relevant state change; concurrent notifications are coalesced into one pending reload, with no periodic polling. Attachment URLs are returned in bulk instead of requiring one WebSocket request per file.
+Import validates a current-format archive before clearing and replacing all stored Home Tasker data. No legacy archive fallback is maintained.
 
-The config entry depends on Home Assistant's native tag integration and listens to its `tag_scanned` event. The frontend reads `tag/list`, uses the returned IDs and entity-registry names in the task editor, and resolves assigned IDs to names for task-list and viewer pills. A missing legacy assignment falls back to its stored ID. A matching task is completed through the same serialized store method used by the WebSocket action, then the shared update dispatcher refreshes entities, calendar and frontend data. The event context's user is recorded when available; reader-originated scans without a user use the neutral `NFC tag` history attribution. Listener cleanup is tied to config-entry unload.
+## Frontend
 
-All frontend copy is addressed through stable translation keys. The integration-level `translations/en.json` catalog is loaded as the fallback before the selected language is overlaid, and the active language follows `hass.locale.language`. The same files retain Home Assistant's config-flow translations under `config` and frontend copy under `frontend`. A dedicated static URL exposes this consolidated directory without duplicating catalogs below the frontend module tree. Locale-sensitive dates, weekdays, months, times, sorting and relative dates use the same Home Assistant locale. Missing or incomplete catalogs fall back to English without blocking card or panel registration.
+The frontend is split into native ES modules under `custom_components/home_tasker/frontend`:
 
-The dashboard card is registered as an extra frontend module while the config entry is loaded. Its configuration remains Lovelace-local. It reuses the panel viewer, task editor workflows, compact pill metadata, and anchored vertical-dots action menu, but renders a flat task list that is always sorted by oldest due date and then task name. The outer `ha-card` background, border variables, border, shadow, and content padding are always removed. Full-width task containers retain neutral Home Assistant card surfaces and their own borders, while due-date text retains its status accent. In edit mode, the add action is the first full-width grid element and visually matches an empty muted task row with a dashed border and centered icon-label pair. The configured card mode alone controls whether task editing actions render. Authenticated users may use all task and group data operations; only discovery and access through the dedicated sidebar panel remain administrator-restricted. Edit menu items use the neutral Home Assistant hover fill, while delete items use the themed alert color and retain confirmation dialogs.
+- `main.js`: shared controller and sidebar panel
+- `dashboard-card.js`: Lovelace card and visual editor
+- `task-list.js`: grouped and flat task rendering
+- `task-editor.js`, `task-viewer.js`, `group-editor.js`: workflows
+- `native-*-dialog.js`: Home Assistant adaptive-dialog hosts
+- `styles.js`, `shared.js`, `dialogs.js`, `action-menu.js`: shared UI primitives
+- `localize.js`: frontend localization
 
-Uploads live under `<config>/home_tasker/uploads`; metadata is stored in the versioned Home Assistant Store.
-The authenticated archive endpoint emits the current schema plus all attachment bytes in one ZIP. Import accepts only that exact archive format, validates entity references, attachment IDs and sizes before mutation, and then replaces the complete Store snapshot and uploads directory under the store mutation lock. Attachment-directory replacement is rolled back if persistence fails; legacy archive formats are deliberately not normalized or accepted.
+The sidebar panel and dashboard card share the same controller, viewer/editor workflows, typography, collapsible sections, icons, and theme rules. Dialogs use Home Assistant's composed `show-dialog` contract. Attachments are real signed anchors whose click handler opens the native preview dialog.
+
+The frontend reloads its snapshot when the fingerprint of entities marked `home_tasker_entity_type: task` changes. Local mutations also reload immediately; no periodic polling is used.
+
+## Security and permissions
+
+WebSocket and HTTP endpoints require an authenticated Home Assistant user. All signed-in users can manage tasks and groups; only administrators can open the sidebar panel. Dashboard edit controls are governed by the card configuration. Attachment paths are task-scoped and served through signed URLs.
+
+## Tests and releases
+
+- Backend tests: `pytest`
+- Frontend tests: `node --test tests/frontend/*.test.mjs`
+- Release versions must match in `manifest.json`, `const.py`, and `frontend/panel.js`.
+- Development releases are tagged from `dev` and published as GitHub pre-releases.
