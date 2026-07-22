@@ -48,7 +48,7 @@ function textCell(value,title) {
 export const withTaskList = Base => class extends Base {
   tagName(task){const id=task?.nfc_tag_id;return id?(this.tags?.find(tag=>tag.id===id)?.name||id):"";}
   tableRows(){return taskTableRows(this.tasks,{groups:this.groups,users:this.users,tags:this.tags,attachments:this.attachments,translate:t});}
-  filterSchema(rows){return TASK_FILTER_COLUMNS.map(column=>({name:column,selector:{select:{multiple:true,mode:"dropdown",options:[...new Set(rows.map(row=>row[column]))].map(value=>({value,label:value}))}}}));}
+  filterSchema(rows){return TASK_FILTER_COLUMNS.map(column=>({name:column,selector:{select:{multiple:true,mode:"list",options:[...new Set(rows.map(row=>row[column]))].map(value=>({value,label:value}))}}}));}
   filterLabel(schema){return {group:t("task.group"),assignee:t("table.assignee"),recurrence:t("table.recurrence")}[schema.name]||schema.name;}
   activeFilterCount(){return TASK_FILTER_COLUMNS.reduce((count,column)=>count+(this.tableFilters?.[column]?.length||0),0);}
   tableColumns(){

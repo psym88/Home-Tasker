@@ -73,6 +73,7 @@ test("native filter pane exposes group assignee and recurrence filters",()=>{
   assert.match(source,/createElement\("ha-form"\)/);
   assert.match(source,/filters\.className="filters"/);
   assert.match(source,/filters\.slot="filter-pane"/);
+  assert.match(source,/multiple:true,mode:"list"/);
   assert.match(source,/\.filters\{margin:16px\}/);
   assert.doesNotMatch(source,/ha-filter-states|expandedTableFilter|filterDefinitionPending/);
   assert.match(source,/wrapper\.setAttribute\("has-filters",""\)/);
