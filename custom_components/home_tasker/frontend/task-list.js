@@ -67,8 +67,9 @@ export const withTaskList = Base => class extends Base {
     };
   }
   taskActionButton(task){
-    const button=document.createElement("ha-icon-button"),icon=document.createElement("ha-icon"),stop=event=>event.stopPropagation();
+    const dropdown=document.createElement("ha-dropdown"),button=document.createElement("ha-icon-button"),icon=document.createElement("ha-icon"),edit=document.createElement("ha-dropdown-item"),remove=document.createElement("ha-dropdown-item"),stop=event=>event.stopPropagation();
     button.className="row-action-toggle";
+    button.slot="trigger";
     button.label=t("task.actions");
     button.title=t("task.actions");
     button.setAttribute("aria-label",t("task.actions"));
@@ -76,13 +77,20 @@ export const withTaskList = Base => class extends Base {
     button.setAttribute("aria-expanded","false");
     icon.setAttribute("icon","mdi:dots-vertical");
     button.append(icon);
-    button.addEventListener("pointerdown",stop);
-    button.addEventListener("click",event=>{
-      event.preventDefault();
+    edit.value="edit";
+    edit.innerHTML=`<ha-icon slot="icon" icon="mdi:pencil"></ha-icon>${t("menu.edit")}`;
+    remove.value="delete";
+    remove.innerHTML=`<ha-icon slot="icon" icon="mdi:delete"></ha-icon>${t("menu.delete")}`;
+    dropdown.addEventListener("pointerdown",stop);
+    dropdown.addEventListener("click",stop);
+    dropdown.addEventListener("wa-select",event=>{
       event.stopPropagation();
-      this.showTaskActionMenu(button,task);
+      const action=event.detail?.item?.value;
+      if(action==="edit")this.taskEditor(task.group_id,task);
+      if(action==="delete")this.deleteTask(task);
     });
-    return button;
+    dropdown.append(button,edit,remove);
+    return dropdown;
   }
   render(){
     this.closeActionMenu();
@@ -108,40 +116,21 @@ export const withTaskList = Base => class extends Base {
       fab.prepend(fabIcon);
       fab.addEventListener("click",()=>this.taskEditor(null));
       wrapper.append(settings,fab);
-      const menu=document.createElement("ha-menu"),edit=document.createElement("ha-md-menu-item"),remove=document.createElement("ha-md-menu-item");
-      menu.className="task-action-menu";
-      menu.setAttribute("positioning","fixed");
-      edit.className="edit";
-      remove.className="delete";
-      edit.innerHTML=`<ha-icon slot="start" icon="mdi:pencil"></ha-icon><div slot="headline">${t("menu.edit")}</div>`;
-      remove.innerHTML=`<ha-icon slot="start" icon="mdi:delete"></ha-icon><div slot="headline">${t("menu.delete")}</div>`;
-      menu.append(edit,remove);
-      menu.addEventListener("pointerdown",event=>event.stopPropagation());
-      menu.addEventListener("click",event=>event.stopPropagation());
-      edit.addEventListener("click",event=>{event.stopPropagation();const task=this.menuTask;menu.close?.();if(task)this.taskEditor(task.group_id,task);});
-      remove.addEventListener("click",event=>{event.stopPropagation();const task=this.menuTask;menu.close?.();if(task)this.deleteTask(task);});
-      this.shadowRoot.querySelector(".app").append(wrapper,menu);
+      this.shadowRoot.querySelector(".app").append(wrapper);
       wrapper.addEventListener("row-click",event=>{const task=this.tasks.find(item=>item.id===event.detail?.id);if(task)this.taskViewer(task);});
-      wrapper.addEventListener("value-changed",event=>{this.tableSearch=event.detail?.value||"";this.updateTaskTable();});
+      const searchChanged=event=>{this.tableSearch=event.detail?.value||"";this.updateTaskTable();};
+      wrapper.addEventListener("search-changed",searchChanged);
+      wrapper.addEventListener("value-changed",searchChanged);
       wrapper.addEventListener("grouping-changed",event=>{this.tableGrouping=event.detail?.value||"";});
     }
     this.updateTaskTable();
   }
-  showTaskActionMenu(button,task){
-    const menu=this.shadowRoot.querySelector(".task-action-menu");
-    if(!menu)return;
-    if(menu.open&&menu.anchorElement===button){menu.close?.();return;}
-    this.menuTask=task;
-    menu.anchorElement=button;
-    menu.show?.();
-  }
   updateTaskTable(){
     const wrapper=this.shadowRoot.querySelector("hass-tabs-subpage-data-table");
     if(!wrapper)return;
-    const settings=wrapper.querySelector('[slot="toolbar-icon"]'),fab=wrapper.querySelector('[slot="fab"]'),menu=this.shadowRoot.querySelector(".task-action-menu");
+    const settings=wrapper.querySelector('[slot="toolbar-icon"]'),fab=wrapper.querySelector('[slot="fab"]');
     if(settings){settings.label=t("settings.title");settings.title=t("settings.title");settings.setAttribute("aria-label",t("settings.title"));}
     if(fab){for(const node of [...fab.childNodes])if(node.nodeType===3)node.remove();fab.append(document.createTextNode(t("common.add_task")));}
-    if(menu){menu.querySelector(".edit [slot=headline]").textContent=t("menu.edit");menu.querySelector(".delete [slot=headline]").textContent=t("menu.delete");}
     wrapper.hass=this._hass;
     wrapper.route=this.route;
     wrapper.tabs=[{name:"Home Tasker",path:""}];

@@ -69,7 +69,8 @@ test("only the requested dimensions can group the native table",()=>{
 });
 
 test("search reduces data while the internal table filter stays empty",()=>{
-  assert.match(source,/value-changed[\s\S]*tableSearch[\s\S]*updateTaskTable/);
+  assert.match(source,/search-changed[\s\S]*value-changed/);
+  assert.match(source,/const searchChanged=event=>\{this\.tableSearch=event\.detail\?\.value\|\|"";this\.updateTaskTable\(\);\}/);
   assert.match(source,/wrapper\.filter=""/);
   assert.match(source,/if\(table&&table\.filter\)table\.filter=""/);
 });
@@ -82,12 +83,13 @@ test("panel keeps native settings and add-task controls",()=>{
 });
 
 test("task action menu stops pointer and click propagation",()=>{
-  assert.match(source,/addEventListener\("pointerdown",stop\)/);
-  assert.match(source,/event\.preventDefault\(\);\s*event\.stopPropagation\(\);/);
-  assert.match(source,/createElement\("ha-menu"\)/);
-  assert.match(source,/createElement\("ha-md-menu-item"\)/);
-  assert.match(source,/menu\.addEventListener\("click",event=>event\.stopPropagation\(\)\)/);
-  assert.match(source,/this\.showTaskActionMenu\(button,task\)/);
+  assert.match(source,/createElement\("ha-dropdown"\)/);
+  assert.match(source,/createElement\("ha-dropdown-item"\)/);
+  assert.match(source,/dropdown\.addEventListener\("pointerdown",stop\)/);
+  assert.match(source,/dropdown\.addEventListener\("click",stop\)/);
+  assert.match(source,/dropdown\.addEventListener\("wa-select"/);
+  assert.match(source,/if\(action==="edit"\)this\.taskEditor\(task\.group_id,task\)/);
+  assert.match(source,/if\(action==="delete"\)this\.deleteTask\(task\)/);
 });
 
 test("row clicks continue to open the existing task viewer",()=>{
