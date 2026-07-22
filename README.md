@@ -25,6 +25,14 @@ Home Tasker requires Home Assistant 2026.7.0 or newer.
 
 Only one Home Tasker configuration entry can be created.
 
+### Removal
+
+1. Open **Settings → Devices & services**, select **Home Tasker**, and delete the integration entry.
+2. Remove Home Tasker from HACS.
+3. Restart Home Assistant.
+
+Removing the integration does not delete exported backups. Home Tasker data in `<config>/.storage/home_tasker` and attachments in `<config>/home_tasker/uploads` can be removed manually if they are no longer needed.
+
 ## Usage
 
 Open **Home Tasker** in the sidebar. Use **+ Add task** to create a task and either select an existing group or enter a new group name. Select a task to view and complete it; use its three-dot menu to edit or delete it.

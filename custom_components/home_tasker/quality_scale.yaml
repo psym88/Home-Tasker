@@ -1,0 +1,35 @@
+rules:
+  action-setup:
+    status: exempt
+    comment: The integration does not provide service actions.
+  appropriate-polling:
+    status: exempt
+    comment: The integration is local push and does not poll.
+  brands: done
+  common-modules: done
+  config-flow-test-coverage: done
+  config-flow: done
+  dependency-transparency: done
+  docs-actions:
+    status: exempt
+    comment: The integration does not provide service actions.
+  docs-triggers:
+    status: exempt
+    comment: The integration does not provide custom triggers.
+  docs-conditions:
+    status: exempt
+    comment: The integration does not provide custom conditions.
+  docs-high-level-description: done
+  docs-installation-instructions: done
+  docs-removal-instructions: done
+  entity-event-setup: done
+  entity-unique-id: done
+  has-entity-name: done
+  runtime-data: done
+  test-before-configure:
+    status: exempt
+    comment: Home Tasker is fully local and has no device or service connection to test.
+  test-before-setup:
+    status: exempt
+    comment: Home Tasker is fully local and has no device or service connection to test.
+  unique-config-entry: done
