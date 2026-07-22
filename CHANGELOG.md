@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.3.9
+
+### Fixed
+
+- Align the selected optional start date and its remove action on the same control row.
+
 ## 0.3.8
 
 ### Fixed

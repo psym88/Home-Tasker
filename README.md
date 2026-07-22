@@ -101,7 +101,7 @@ The card is always frameless. Task rows and the add-task action use the full ava
 
 Select a task in the card to open its details and complete it. Open Home Tasker panels and cards refresh automatically when a task entity changes, including completions made on another device. Card settings are stored only in that dashboard and do not change your tasks or integration settings.
 
-The optional start-date selector uses the device's native date picker on iOS and desktop browsers. Collapsible-section chevrons follow the Home Assistant secondary text color on every platform.
+The optional start-date selector uses the device's native date picker on iOS and desktop browsers, with the selected date and remove action aligned on one row. Collapsible-section chevrons follow the Home Assistant secondary text color on every platform.
 
 ## Languages
 
