@@ -96,33 +96,23 @@ The read-only **Home Tasker** calendar exposes current and projected task due da
 
 ### Due-task notifications
 
-Each task binary sensor changes from `off` to `on` when the task becomes due. To notify one person about a specific task, create an automation in Home Assistant with a **State** trigger, select the task's binary sensor, set **From** to `off` and **To** to `on`, then add the desired notification action.
-
-The following YAML automation watches all current and future Home Tasker task entities and sends the notification through Home Assistant's default notify action:
+Home Tasker fires one `home_tasker_task_due` event when a task crosses from not due to due. This can happen at local midnight or when creating or changing a task makes it immediately due. The following automation sends a notification for all current and future tasks:
 
 ```yaml
 automation:
   - alias: "Home Tasker task is due"
     triggers:
       - trigger: event
-        event_type: state_changed
-    conditions:
-      - condition: template
-        value_template: >
-          {{ trigger.event.data.new_state is not none
-             and trigger.event.data.old_state is not none
-             and trigger.event.data.new_state.attributes.get('home_tasker_entity_type') == 'task'
-             and trigger.event.data.old_state.state != 'on'
-             and trigger.event.data.new_state.state == 'on' }}
+        event_type: home_tasker_task_due
     actions:
       - action: notify.notify
         data:
           title: "Home Tasker"
           message: >
-            {{ trigger.event.data.new_state.name }} is due.
+            {{ trigger.event.data.task_name }} is due.
 ```
 
-Requiring an existing previous state avoids sending notifications for every due task when Home Assistant starts. The automation still detects due-state changes caused by task updates and the local midnight refresh.
+The event contains `task_id`, `task_name`, `group_id`, `due_date`, and `source`. It is not replayed when Home Assistant starts or when an archive is imported, and changes to an already-due task do not fire it again.
 
 ## Home Assistant events
 

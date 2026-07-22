@@ -26,7 +26,7 @@ Home Tasker is a local-push Home Assistant integration with one config entry. Pe
 - `binary_sensor.py`: task entities and group devices
 - `calendar.py`: read-only due-date calendar
 - `nfc.py`: tag-scan handling and completion attribution
-- `events.py`: the public change-event contract shared by backend and frontend consumers
+- `events.py`: public change events plus the task due-transition event
 - `config_flow.py` and `__init__.py`: setup and integration lifecycle
 
 Import validates a current-format archive before clearing and replacing all stored Home Tasker data. No legacy archive fallback is maintained.
@@ -45,7 +45,7 @@ The frontend is split into native ES modules under `custom_components/home_taske
 
 The sidebar panel and dashboard card share the same controller, viewer/editor workflows, typography, collapsible sections, icons, and theme rules. Dialogs use Home Assistant's composed `show-dialog` contract. Attachments are real signed anchors whose click handler opens the native preview dialog.
 
-The frontend loads an initial snapshot and reloads it from `home_tasker_event`. The same event updates task entities and the calendar after stored mutations and at local midnight; no dispatcher, entity fingerprint, or periodic polling is used.
+The frontend loads an initial snapshot and reloads it from `home_tasker_event`. The same event updates task entities and the calendar after stored mutations and at local midnight; no dispatcher, entity fingerprint, or periodic polling is used. The separate `home_tasker_task_due` event fires once per task when it crosses from not due to due, without startup or import replay.
 
 ## Security and permissions
 

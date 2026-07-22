@@ -10,7 +10,11 @@ from homeassistant.helpers.event import async_track_time_change
 from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN, EVENT_HOME_TASKER
-from .events import async_fire_home_tasker_event
+from .events import (
+    async_fire_home_tasker_event,
+    async_fire_task_due_event,
+    tasks_becoming_due_at_midnight,
+)
 from .models import HomeTaskerData
 
 
@@ -88,9 +92,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry[HomeTaskerDa
     @callback
     def refresh_at_midnight(now) -> None:
         # Due state flips at the local date rollover without any mutation.
+        today = dt_util.now().date()
         async_fire_home_tasker_event(
             hass, "refreshed", "system", reason="local_midnight"
         )
+        for task in tasks_becoming_due_at_midnight(store.tasks, today):
+            async_fire_task_due_event(hass, task, "local_midnight")
 
     entry.async_on_unload(
         async_track_time_change(hass, refresh_at_midnight, hour=0, minute=0, second=0)
