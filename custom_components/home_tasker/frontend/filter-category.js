@@ -1,4 +1,5 @@
 import { t } from "./localize.js";
+import { createActionMenu } from "./action-menu.js";
 
 export const FILTER_CATEGORY_TAG="home-tasker-filter-category";
 
@@ -11,12 +12,9 @@ export class HomeTaskerFilterCategory extends HTMLElement {
   connectedCallback(){this.render();}
   select(id){this._value=id?(this._value.includes(id)?this._value.filter(value=>value!==id):[...this._value,id]):[];this.dispatchEvent(new CustomEvent("value-changed",{bubbles:true,composed:true,detail:{value:this._value}}));this.render();}
   actionMenu(item){
-    const dropdown=document.createElement("ha-dropdown"),button=document.createElement("ha-icon-button"),icon=document.createElement("ha-icon"),edit=document.createElement("ha-dropdown-item"),remove=document.createElement("ha-dropdown-item"),stop=event=>event.stopPropagation();
-    dropdown.slot="meta";button.slot="trigger";button.label=t("group.actions");button.setAttribute("aria-label",t("group.actions"));icon.setAttribute("icon","mdi:dots-vertical");button.append(icon);
-    edit.value="edit";edit.innerHTML=`<ha-icon slot="icon" icon="mdi:pencil"></ha-icon>${t("menu.edit")}`;
-    remove.value="delete";remove.setAttribute("variant","danger");remove.innerHTML=`<ha-icon slot="icon" icon="mdi:delete"></ha-icon>${t("menu.delete")}`;
-    dropdown.addEventListener("pointerdown",stop);dropdown.addEventListener("click",stop);dropdown.addEventListener("wa-select",async event=>{event.stopPropagation();const action=event.detail?.item?.value,group=item.source;if(action==="edit")this.controller?.groupEditor(group);if(action==="delete"&&await this.controller?.deleteGroup(group)&&this._value.includes(item.value))this.select(item.value);});
-    dropdown.append(button,edit,remove);return dropdown;
+    const group=item.source,dropdown=createActionMenu({label:t("group.actions"),edit:()=>this.controller?.groupEditor(group),remove:async()=>{if(await this.controller?.deleteGroup(group)&&this._value.includes(item.value))this.select(item.value);}});
+    dropdown.slot="meta";
+    return dropdown;
   }
   render(){
     if(!this.shadowRoot)return;

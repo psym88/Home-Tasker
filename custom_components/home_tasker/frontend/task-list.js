@@ -1,5 +1,6 @@
 import { t } from "./localize.js";
-import "./group-filter.js";
+import { createActionMenu } from "./action-menu.js";
+import "./filter-category.js";
 
 export const NO_DUE_TIMESTAMP = Number.MAX_SAFE_INTEGER;
 export const INITIAL_TASK_SORTING = {column:"due_ts",direction:"asc"};
@@ -66,33 +67,13 @@ export const withTaskList = Base => class extends Base {
     };
   }
   taskActionButton(task){
-    const dropdown=document.createElement("ha-dropdown"),button=document.createElement("ha-icon-button"),icon=document.createElement("ha-icon"),edit=document.createElement("ha-dropdown-item"),remove=document.createElement("ha-dropdown-item"),stop=event=>event.stopPropagation();
-    button.className="row-action-toggle";
-    button.slot="trigger";
-    button.label=t("task.actions");
-    button.title=t("task.actions");
-    button.setAttribute("aria-label",t("task.actions"));
-    button.setAttribute("aria-haspopup","menu");
-    button.setAttribute("aria-expanded","false");
-    icon.setAttribute("icon","mdi:dots-vertical");
-    button.append(icon);
-    edit.value="edit";
-    edit.innerHTML=`<ha-icon slot="icon" icon="mdi:pencil"></ha-icon>${t("menu.edit")}`;
-    remove.value="delete";
-    remove.innerHTML=`<ha-icon slot="icon" icon="mdi:delete"></ha-icon>${t("menu.delete")}`;
-    dropdown.addEventListener("pointerdown",stop);
-    dropdown.addEventListener("click",stop);
-    dropdown.addEventListener("wa-select",event=>{
-      event.stopPropagation();
-      const action=event.detail?.item?.value;
-      if(action==="edit")this.taskEditor(task.group_id,task);
-      if(action==="delete")this.deleteTask(task);
+    return createActionMenu({
+      label:t("task.actions"),
+      edit:()=>this.taskEditor(task.group_id,task),
+      remove:()=>this.deleteTask(task),
     });
-    dropdown.append(button,edit,remove);
-    return dropdown;
   }
   render(){
-    this.closeActionMenu();
     if(!this.shadowRoot.querySelector(".app")){
       this.shadowRoot.innerHTML=`<style>:host{display:block;height:100%;background:var(--primary-background-color);color:var(--primary-text-color)}.app,hass-tabs-subpage-data-table{display:block;height:100%}.filters{box-sizing:border-box;width:100%}</style><div class="app"></div>`;
       const wrapper=document.createElement("hass-tabs-subpage-data-table"),settings=document.createElement("ha-icon-button"),settingsIcon=document.createElement("ha-icon"),filterPane=document.createElement("div"),fab=document.createElement("ha-button"),fabIcon=document.createElement("ha-icon");

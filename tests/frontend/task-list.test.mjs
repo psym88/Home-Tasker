@@ -85,14 +85,16 @@ test("native filter pane exposes group assignee and recurrence filters",()=>{
 });
 
 test("all filters follow Home Assistant category rows while only groups expose actions",()=>{
-  const groupFilter=readFileSync(new URL("../../custom_components/home_tasker/frontend/group-filter.js",import.meta.url),"utf8");
+  const groupFilter=readFileSync(new URL("../../custom_components/home_tasker/frontend/filter-category.js",import.meta.url),"utf8");
+  const actionMenu=readFileSync(new URL("../../custom_components/home_tasker/frontend/action-menu.js",import.meta.url),"utf8");
   assert.match(groupFilter,/createElement\("ha-list-item"\)/);
   assert.match(groupFilter,/item\.hasMeta=this\.actions/);
   assert.match(groupFilter,/dropdown\.slot="meta"/);
-  assert.match(groupFilter,/createElement\("ha-dropdown"\)/);
+  assert.match(groupFilter,/createActionMenu\(/);
   assert.match(groupFilter,/this\.controller\?\.groupEditor\(group\)/);
   assert.match(groupFilter,/this\.controller\?\.deleteGroup\(group\)/);
-  assert.match(groupFilter,/dropdown\.addEventListener\("click",stop\)/);
+  assert.match(actionMenu,/createElement\("ha-dropdown"\)/);
+  assert.match(actionMenu,/dropdown\.addEventListener\("click",\s*stop\)/);
   assert.match(source,/filter\.actions=column==="group"/);
 });
 
@@ -119,13 +121,16 @@ test("files column shows the sortable attachment count",()=>{
 });
 
 test("task action menu stops pointer and click propagation",()=>{
-  assert.match(source,/createElement\("ha-dropdown"\)/);
-  assert.match(source,/createElement\("ha-dropdown-item"\)/);
-  assert.match(source,/dropdown\.addEventListener\("pointerdown",stop\)/);
-  assert.match(source,/dropdown\.addEventListener\("click",stop\)/);
-  assert.match(source,/dropdown\.addEventListener\("wa-select"/);
-  assert.match(source,/if\(action==="edit"\)this\.taskEditor\(task\.group_id,task\)/);
-  assert.match(source,/if\(action==="delete"\)this\.deleteTask\(task\)/);
+  const actionMenu=readFileSync(new URL("../../custom_components/home_tasker/frontend/action-menu.js",import.meta.url),"utf8");
+  assert.match(source,/return createActionMenu\(/);
+  assert.match(source,/edit:\(\)=>this\.taskEditor\(task\.group_id,task\)/);
+  assert.match(source,/remove:\(\)=>this\.deleteTask\(task\)/);
+  assert.match(actionMenu,/createElement\("ha-dropdown"\)/);
+  assert.match(actionMenu,/createElement\("ha-dropdown-item"\)/);
+  assert.match(actionMenu,/dropdown\.addEventListener\("pointerdown",\s*stop\)/);
+  assert.match(actionMenu,/dropdown\.addEventListener\("click",\s*stop\)/);
+  assert.match(actionMenu,/dropdown\.addEventListener\("wa-select"/);
+  assert.doesNotMatch(actionMenu,/position:fixed|box-shadow|row-action-menu/);
 });
 
 test("row clicks continue to open the existing task viewer",()=>{

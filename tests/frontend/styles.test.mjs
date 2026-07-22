@@ -2,86 +2,40 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-const { GROUP_LIST_BACKGROUND, GROUP_HEADER_BACKGROUND, TYPOGRAPHY_STYLES, withStyles } = await import("../../custom_components/home_tasker/frontend/styles.js");
+const { TYPOGRAPHY_STYLES, withStyles } = await import("../../custom_components/home_tasker/frontend/styles.js");
+const source = readFileSync(new URL("../../custom_components/home_tasker/frontend/styles.js", import.meta.url), "utf8");
 
-test("group list swaps Home Assistant data-table row and header backgrounds", () => {
-  assert.equal(GROUP_LIST_BACKGROUND, "var(--primary-background-color)");
-  assert.equal(GROUP_HEADER_BACKGROUND, "var(--data-table-background-color,var(--card-background-color,#fff))");
+test("shared styles contain only current shell form typography and pill concerns", () => {
+  assert.doesNotMatch(source, /groupListStyles|GROUP_LIST_BACKGROUND|GROUP_HEADER_BACKGROUND|compactDetailsStyles|dialogLayoutStyles|iconHoverStyles|taskSurfaceStyles/);
+  assert.doesNotMatch(source, /\.group-head|\.tasks\{|\.chev|\.filter\{|\.version|details-toggle|summary::after/);
 });
 
-test("icon hover uses the neutral Home Assistant fill", () => {
+test("shell styles no longer contain the removed handcrafted task list", () => {
   class StyleModel extends withStyles(class {}) {}
-  const model = new StyleModel();
-
-  assert.match(
-    model.iconHoverStyles(),
-    /background:var\(--ha-color-fill-neutral-quiet-hover,var\(--secondary-background-color\)\)/,
-  );
-  assert.doesNotMatch(
-    model.iconHoverStyles(),
-    /ha-color-fill-primary-quiet-hover|color-mix/,
-  );
+  const css = new StyleModel().styles();
+  assert.match(css, /:host\{display:block;min-height:100%/);
+  assert.doesNotMatch(css, /\.group\{|\.task\{|\.pill|\.overlay|\.modal/);
 });
 
-test("all pills use Home Assistant's small font size", () => {
+test("form styles are limited to the remaining form and structural layouts", () => {
   class StyleModel extends withStyles(class {}) {}
-  const model = new StyleModel();
-
-  assert.match(model.themeStyles(), /\.pill\{font-size:var\(--ha-font-size-s\)\}/);
-  assert.doesNotMatch(model.styles(), /\.count,\.pill\{[^}]*font-size:/);
+  const css = new StyleModel().formStyles();
+  assert.match(css, /form,label/);
+  assert.match(css, /\.details-content\{display:flex/);
+  assert.match(css, /\.drop-zone\{display:block;width:100%/);
+  assert.doesNotMatch(css, /details-toggle|summary|box-shadow|!important/);
 });
 
-test("pill icons use one compact shared size", () => {
-  class StyleModel extends withStyles(class {}) {}
-  const css = new StyleModel().pillIconCss();
-  assert.match(css, /\.pill\{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:12px;background:var\(--secondary-background-color\);color:var\(--secondary-text-color\);font-size:var\(--ha-font-size-s,12px\);font-weight:var\(--ha-font-weight-normal,400\);line-height:normal\}/);
-  assert.match(css, /\.pill ha-icon\{display:inline-flex;align-items:center;justify-content:center;align-self:center;vertical-align:middle;line-height:0;--mdc-icon-size:14px;width:14px;height:14px;flex:0 0 14px\}/);
-  assert.equal(new StyleModel().pillStyles(),`<style>${css}</style>`);
-});
-
-test("task surface titles share the primary text color", () => {
-  class StyleModel extends withStyles(class {}) {}
-  assert.equal(new StyleModel().taskSurfaceStyles(), '<style>.task-name{color:var(--primary-text-color)}</style>');
-});
-
-test("each task-list group has a theme-aware outer border", () => {
-  class StyleModel extends withStyles(class {}) {}
-  assert.match(new StyleModel().groupListStyles(), /\.group\{[^}]*border:1px solid var\(--divider-color\)/);
-});
-
-test("shared dialog layout aligns native and generated collapsible sections", () => {
-  class StyleModel extends withStyles(class {}) {}
-  const css = new StyleModel().dialogLayoutStyles();
-  assert.doesNotMatch(css, /modal-header|modal-close/);
-  assert.match(css, /\.details-content\{display:none/);
-  assert.match(css, /\.details\.open>\.details-content,details>\.details-content\{display:flex/);
-  assert.match(css, /\.details-toggle ha-icon\{color:var\(--secondary-text-color\)/);
-  assert.match(css, /summary,\.details-toggle\{[^}]*align-items:center[^}]*min-height:44px/);
-  assert.match(css, /details,\.details\{border:1px solid var\(--divider-color\);border-radius:8px;padding:0 10px\}/);
-  assert.equal(new StyleModel().typographyStyles(), TYPOGRAPHY_STYLES + css);
-});
-
-test("native collapsible chevrons use the shared secondary text color", () => {
-  assert.match(TYPOGRAPHY_STYLES, /summary::after\{color:var\(--secondary-text-color\)\}/);
-});
-
-test("panel styles exclude legacy overlays and editor-only layout", () => {
-  class StyleModel extends withStyles(class {}) {}
-  const model = new StyleModel();
-  assert.doesNotMatch(model.styles(), /\.overlay|\.modal\{|form,label|\.actions/);
-  assert.match(model.formStyles(), /form,label/);
-  assert.match(model.formStyles(), /\.details\{/);
-});
-
-test("shared typography classes map to the requested Home Assistant tokens", () => {
+test("shared typography classes use Home Assistant tokens", () => {
   assert.match(TYPOGRAPHY_STYLES, /\.ht-label-medium\{color:var\(--primary-text-color\);font-size:var\(--ha-font-size-m,14px\);font-weight:var\(--ha-font-weight-medium,500\)\}/);
-  assert.match(TYPOGRAPHY_STYLES, /\.ht-label-normal\{color:var\(--primary-text-color\);font-size:var\(--ha-font-size-m,14px\);font-weight:var\(--ha-font-weight-normal,400\)\}/);
-  assert.match(TYPOGRAPHY_STYLES, /\.ht-content\{color:var\(--secondary-text-color\);font-size:var\(--ha-font-size-m,14px\);font-weight:var\(--ha-font-weight-normal,400\)\}/);
-  assert.match(TYPOGRAPHY_STYLES, /\.ht-content-small\{color:var\(--secondary-text-color\);font-size:var\(--ha-font-size-s,12px\);font-weight:var\(--ha-font-weight-normal,400\)\}/);
+  assert.match(TYPOGRAPHY_STYLES, /\.ht-content\{color:var\(--secondary-text-color\);font-size:var\(--ha-font-size-m,14px\)/);
+  assert.doesNotMatch(TYPOGRAPHY_STYLES, /!important|summary|details/);
 });
 
-test("legacy field-specific typography overrides are removed", () => {
-  const source = readFileSync(new URL("../../custom_components/home_tasker/frontend/styles.js", import.meta.url), "utf8");
-  assert.doesNotMatch(source, /editorTypographyStyles|\.task-form \[data-field|\.group-form label/);
-  assert.doesNotMatch(TYPOGRAPHY_STYLES, /!important/);
+test("pills retain one small token-based style for custom card metadata", () => {
+  class StyleModel extends withStyles(class {}) {}
+  const model = new StyleModel();
+  assert.match(model.pillIconCss(), /font-size:var\(--ha-font-size-s,12px\)/);
+  assert.match(model.pillIconCss(), /\.pill ha-icon\{--mdc-icon-size:14px/);
+  assert.equal(model.pillStyles(), `<style>${model.pillIconCss()}</style>`);
 });

@@ -1,11 +1,35 @@
 import { t } from "./localize.js";
 
-export const ROW_ACTION_MENU_STYLES=`<style>.row-action-menu{position:fixed;z-index:1000;box-sizing:border-box;min-width:180px;padding:4px;background:var(--card-background-color,#fff);color:var(--primary-text-color);border:1px solid var(--divider-color);border-radius:10px;box-shadow:var(--ha-card-box-shadow,0 4px 14px #0003)}.row-action-menu button{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:0 12px;border:0;border-radius:7px;background:transparent;color:var(--primary-text-color);font:inherit;text-align:left}.row-action-menu button:hover,.row-action-menu button:focus-visible{background:var(--ha-color-fill-neutral-quiet-hover,var(--secondary-background-color));outline:0}.row-action-menu button.danger{color:var(--error-color,#d32f2f)}.row-action-menu button.danger:hover,.row-action-menu button.danger:focus-visible{background:var(--ha-color-fill-alert-quiet-hover,color-mix(in srgb,var(--error-color,#d32f2f) 15%,transparent))}.row-action-menu ha-icon{flex:none;color:inherit}.row-action-toggle{color:var(--secondary-text-color)}</style>`;
+export function createActionMenu({ label, edit, remove }) {
+  const dropdown = document.createElement("ha-dropdown");
+  const button = document.createElement("ha-icon-button");
+  const icon = document.createElement("ha-icon");
+  const editItem = document.createElement("ha-dropdown-item");
+  const removeItem = document.createElement("ha-dropdown-item");
+  const stop = event => event.stopPropagation();
 
-export function rowActionButtonHtml(kind,id){const label=t(kind==="group"?"group.actions":"task.actions");return `<button type="button" class="row-action-toggle icon" data-action-kind="${kind}" data-action-id="${id}" aria-label="${label}" title="${label}" aria-haspopup="menu" aria-expanded="false" style="color:var(--secondary-text-color)"><ha-icon icon="mdi:dots-vertical"></ha-icon></button>`;}
+  button.className = "row-action-toggle";
+  button.slot = "trigger";
+  button.label = label;
+  button.title = label;
+  button.setAttribute("aria-label", label);
+  icon.setAttribute("icon", "mdi:dots-vertical");
+  button.append(icon);
 
-export function closeRowActionMenu(controller){if(controller._rowActionOutside){window.removeEventListener("pointerdown",controller._rowActionOutside,true);controller._rowActionOutside=null;}if(controller._rowActionEscape){window.removeEventListener("keydown",controller._rowActionEscape,true);controller._rowActionEscape=null;}controller.shadowRoot.querySelector(".row-action-menu")?.remove();controller.shadowRoot.querySelectorAll(".row-action-toggle[aria-expanded=true]").forEach(button=>button.setAttribute("aria-expanded","false"));}
+  editItem.value = "edit";
+  editItem.innerHTML = `<ha-icon slot="icon" icon="mdi:pencil"></ha-icon>${t("menu.edit")}`;
+  removeItem.value = "delete";
+  removeItem.setAttribute("variant", "danger");
+  removeItem.innerHTML = `<ha-icon slot="icon" icon="mdi:delete"></ha-icon>${t("menu.delete")}`;
 
-export function actionMenuEventIsInside(event,menu,anchor){const path=typeof event.composedPath==="function"?event.composedPath():[];return path.includes(menu)||path.includes(anchor)||menu.contains(event.target)||event.target===anchor;}
-
-export function openRowActionMenu(controller,anchor,{edit,remove}){closeRowActionMenu(controller);const menu=document.createElement("div");menu.className="row-action-menu";menu.setAttribute("role","menu");menu.innerHTML=`<button type="button" class="edit" role="menuitem"><ha-icon icon="mdi:pencil"></ha-icon><span>${t("menu.edit")}</span></button><button type="button" class="danger delete" role="menuitem"><ha-icon icon="mdi:delete"></ha-icon><span>${t("menu.delete")}</span></button>`;controller.shadowRoot.append(menu);anchor.setAttribute("aria-expanded","true");const rect=anchor.getBoundingClientRect(),width=180,gap=4,left=Math.max(8,Math.min(window.innerWidth-width-8,rect.right-width));menu.style.left=`${left}px`;menu.style.top=`${Math.min(window.innerHeight-menu.offsetHeight-8,rect.bottom+gap)}px`;const finish=callback=>{closeRowActionMenu(controller);callback();};menu.querySelector(".edit").onclick=event=>{event.stopPropagation();finish(edit);};menu.querySelector(".delete").onclick=event=>{event.stopPropagation();finish(remove);};controller._rowActionOutside=event=>{if(!actionMenuEventIsInside(event,menu,anchor))closeRowActionMenu(controller);};controller._rowActionEscape=event=>{if(event.key==="Escape"){closeRowActionMenu(controller);anchor.focus();}};window.addEventListener("pointerdown",controller._rowActionOutside,true);window.addEventListener("keydown",controller._rowActionEscape,true);menu.querySelector(".edit").focus();}
+  dropdown.addEventListener("pointerdown", stop);
+  dropdown.addEventListener("click", stop);
+  dropdown.addEventListener("wa-select", event => {
+    event.stopPropagation();
+    const action = event.detail?.item?.value;
+    if (action === "edit") edit();
+    if (action === "delete") remove();
+  });
+  dropdown.append(button, editItem, removeItem);
+  return dropdown;
+}
