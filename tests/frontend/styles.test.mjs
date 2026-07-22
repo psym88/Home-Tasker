@@ -33,10 +33,12 @@ test("shared typography classes use Home Assistant tokens", () => {
   assert.doesNotMatch(TYPOGRAPHY_STYLES, /!important|summary|details/);
 });
 
-test("pills retain one small token-based style for custom card metadata", () => {
+test("pills use identical fixed geometry in cards and dialogs", () => {
   class StyleModel extends withStyles(class {}) {}
   const model = new StyleModel();
-  assert.match(model.pillIconCss(), /font-size:var\(--ha-font-size-s,12px\)/);
-  assert.match(model.pillIconCss(), /\.pill ha-icon\{--mdc-icon-size:14px/);
+  assert.match(model.pillIconCss(), /font-size:12px/);
+  assert.match(model.pillIconCss(), /line-height:16px/);
+  assert.match(model.pillIconCss(), /\.pill ha-icon\{display:block;align-self:center;--mdc-icon-size:14px/);
+  assert.match(model.pillIconCss(), /line-height:14px/);
   assert.equal(model.pillStyles(), `<style>${model.pillIconCss()}</style>`);
 });

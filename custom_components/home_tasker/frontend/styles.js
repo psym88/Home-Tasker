@@ -2,7 +2,7 @@ export const TYPOGRAPHY_STYLES = `<style>.ht-label-medium{color:var(--primary-te
 
 export const withStyles = Base => class extends Base {
   typographyStyles(){return TYPOGRAPHY_STYLES;}
-  pillIconCss(){return ".pill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:12px;background:var(--secondary-background-color);color:var(--secondary-text-color);font-size:var(--ha-font-size-s,12px)}.pill ha-icon{--mdc-icon-size:14px;width:14px;height:14px;flex:0 0 14px}";}
+  pillIconCss(){return ".pill{display:inline-flex;align-items:center;box-sizing:border-box;gap:5px;padding:3px 8px;border-radius:12px;background:var(--secondary-background-color);color:var(--secondary-text-color);font-family:var(--ha-font-family-body,Roboto,sans-serif);font-size:12px;font-weight:var(--ha-font-weight-normal,400);line-height:16px}.pill ha-icon{display:block;align-self:center;--mdc-icon-size:14px;width:14px;height:14px;flex:0 0 14px;line-height:14px}";}
   pillStyles(){return `<style>${this.pillIconCss()}</style>`;}
   themeStyles(){return `<style>:host{font-family:var(--ha-font-family-body,Roboto,sans-serif);font-size:var(--ha-font-size-m,14px);line-height:var(--ha-line-height-normal,1.4);color:var(--primary-text-color)}</style>`;}
   buttonThemeStyles(){return `<style>.link{color:var(--primary-color);background:transparent}.editor-action.danger{color:var(--error-color);background:transparent}</style>`;}

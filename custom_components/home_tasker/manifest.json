@@ -7,5 +7,5 @@
   "dependencies": ["tag"],
   "issue_tracker": "https://github.com/psym88/Home-Tasker/issues",
   "iot_class": "local_push",
-  "version": "0.3.41"
+  "version": "0.3.42"
 }
