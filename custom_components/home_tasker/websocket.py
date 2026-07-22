@@ -11,11 +11,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.util import dt as dt_util
 
 from .const import DOWNLOAD_URL
-from .events import (
-    async_fire_home_tasker_event,
-    async_fire_task_due_event,
-    task_became_due,
-)
+from .events import async_fire_home_tasker_event
 from .helpers import get_store
 from .scheduler import due_sequence, next_due_sequence, validate_schedule
 
@@ -173,18 +169,13 @@ async def ws_task_create(hass, connection, msg, store):
         group_id=result["group_id"],
         resource_name=result["name"],
     )
-    if task_became_due(None, result, today):
-        async_fire_task_due_event(
-            hass, result, "created", context=connection.context(msg)
-        )
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/update", vol.Required("task_id"): str, **TASK_GROUP_FIELDS, **{vol.Optional(k.schema): v for k, v in TASK_FIELDS.items()}})
 @websocket_api.async_response
 @require_store
 async def ws_task_update(hass, connection, msg, store):
-    previous = store.task(msg["task_id"])
-    validate_task_schedule(msg, previous)
+    validate_task_schedule(msg, store.task(msg["task_id"]))
     today = dt_util.now().date()
     result = await store.async_update_task(msg["task_id"], msg, today)
     connection.send_result(msg["id"], result)
@@ -193,10 +184,6 @@ async def ws_task_update(hass, connection, msg, store):
         group_id=result["group_id"],
         resource_name=result["name"],
     )
-    if task_became_due(previous, result, today):
-        async_fire_task_due_event(
-            hass, result, "updated", context=connection.context(msg)
-        )
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/delete", vol.Required("task_id"): str})
@@ -270,18 +257,12 @@ async def ws_history_list(hass, connection, msg, store):
 @websocket_api.async_response
 @require_store
 async def ws_history_delete(hass, connection, msg, store):
-    previous = store.task(msg["task_id"])
     result = await store.async_delete_history(msg["task_id"], msg["entry_id"])
     connection.send_result(msg["id"], result)
     updated(
         hass, connection, msg, "deleted", "history", msg["entry_id"],
         task_id=msg["task_id"],
     )
-    today = dt_util.now().date()
-    if task_became_due(previous, result, today):
-        async_fire_task_due_event(
-            hass, result, "history_deleted", context=connection.context(msg)
-        )
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/attachment/delete", vol.Required("attachment_id"): str})
