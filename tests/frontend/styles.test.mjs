@@ -22,7 +22,7 @@ test("form styles are limited to the remaining form and structural layouts", () 
   const css = new StyleModel().formStyles();
   assert.match(css, /form,label/);
   assert.match(css, /\.details-content\{display:flex/);
-  assert.match(css, /\.drop-zone\{display:block;width:100%/);
+  assert.doesNotMatch(css, /\.drop-zone/);
   assert.doesNotMatch(css, /details-toggle|summary|box-shadow|!important/);
 });
 
