@@ -2,6 +2,16 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.3.7
+
+### Changed
+
+- Refresh open panels and dashboard cards from Home Assistant task entity changes instead of periodic polling.
+
+### Fixed
+
+- Make the optional start-date control open the native picker from a direct input interaction for iOS compatibility.
+
 ## 0.3.6
 
 ### Fixed
