@@ -55,6 +55,8 @@ Only one Home Tasker configuration entry can be created.
 
 Select **+ Add task** at the top of the Home Tasker panel. Choose an existing group or enter a new group name, then configure the task, assignment, and schedule. You can also add a task directly at the end of an expanded group.
 
+The optional start date opens the platform's native date picker. Use that same picker to change or clear the value.
+
 Groups can be expanded to show their tasks. Task names use the configured Home Assistant primary text color, and the badge beside a group shows how many of its tasks are currently due.
 
 ### View, complete, and manage tasks

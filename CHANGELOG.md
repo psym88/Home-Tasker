@@ -2,6 +2,12 @@
 
 All release notes and changelog entries are written in English.
 
+## 0.3.11
+
+### Removed
+
+- Remove the separate optional start-date clear action; clear the value directly in the native date picker.
+
 ## 0.3.10
 
 ### Fixed
