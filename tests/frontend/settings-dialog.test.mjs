@@ -11,9 +11,11 @@ test("settings uses a native dialog with a collapsible import/export section", (
   assert.match(source, /confirmAction/);
 });
 
-test("panel archive calls use authenticated download and destructive import endpoints", () => {
+test("panel archive import relies on its Home Tasker event after the request", () => {
   const source = readFileSync(new URL("../../custom_components/home_tasker/frontend/main.js", import.meta.url), "utf8");
   assert.match(source, /fetch\("\/api\/home_tasker\/archive"/);
   assert.match(source, /method:"POST"/);
-  assert.match(source, /await this\.load\(\)/);
+  const importMethod = source.match(/async importArchive\(file\)\{[^\n]+/)?.[0] || "";
+  assert.doesNotMatch(importMethod, /this\.load\(\)/);
+  assert.match(source, /connection\.subscribeEvents\(\(\)=>this\.load\(\),"home_tasker_event"/);
 });

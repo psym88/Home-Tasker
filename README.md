@@ -12,6 +12,7 @@ Home Tasker adds recurring household tasks to Home Assistant. Tasks can be group
 - Optional NFC tag completion
 - Sidebar panel and configurable dashboard card
 - Due-task binary sensors and a read-only task calendar
+- Home Assistant events for task, group, history, and attachment changes
 - ZIP backup and restore
 - English and German interface
 
@@ -43,7 +44,7 @@ To complete a task with NFC, create a tag under **Settings → Tags** and assign
 
 ### Dashboard card
 
-Add the **Home Tasker** card from the dashboard card picker. Its visual editor controls view/edit mode, the due-date range, and group or assignee filters. Open panels and cards update when Home Assistant reports a task-entity change.
+Add the **Home Tasker** card from the dashboard card picker. Its visual editor controls view/edit mode, the due-date range, and group or assignee filters. Open panels and cards update immediately from Home Tasker events.
 
 ### Backup and restore
 
@@ -92,6 +93,29 @@ badge:
 ```
 
 The read-only **Home Tasker** calendar exposes current and projected task due dates.
+
+## Home Assistant events
+
+Home Tasker fires `home_tasker_event` after every stored change. Automations can filter its `resource_type` and `action` data. Resource types are `task`, `group`, `history`, `attachment`, and `archive`; actions are `created`, `updated`, `deleted`, `completed`, and `imported` where applicable.
+
+Example automation triggered when any task is completed:
+
+```yaml
+automation:
+  - alias: "Home Tasker task completed"
+    triggers:
+      - trigger: event
+        event_type: home_tasker_event
+        event_data:
+          resource_type: task
+          action: completed
+    actions:
+      - action: notify.notify
+        data:
+          message: "Task {{ trigger.event.data.resource_name }} was completed."
+```
+
+Every event includes `resource_id` when the changed resource has one. Task and group events also include `resource_name`; related identifiers such as `group_id` or `task_id` are included when available. A system refresh is also emitted at local midnight with `resource_type: system`, `action: refreshed`, and `reason: local_midnight`.
 
 ## Data and support
 

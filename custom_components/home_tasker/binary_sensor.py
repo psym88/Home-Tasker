@@ -2,15 +2,15 @@
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass, BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.dispatcher import async_dispatcher_connect, async_dispatcher_send
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_time_change
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, SIGNAL_UPDATED
+from .const import DOMAIN, EVENT_HOME_TASKER
+from .events import async_fire_home_tasker_event
 from .models import HomeTaskerData
 
 
@@ -20,7 +20,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry[HomeTaskerDa
     entity_registry = er.async_get(hass)
     device_registry = dr.async_get(hass)
 
-    async def sync() -> None:
+    async def sync(event: Event | None = None) -> None:
         task_ids = {task["id"] for task in store.tasks}
         group_ids = {group["id"] for group in store.groups}
 
@@ -78,13 +78,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry[HomeTaskerDa
         if new:
             async_add_entities(new)
 
+        for entity in entities.values():
+            if entity.hass is not None:
+                entity.async_write_ha_state()
+
     await sync()
-    entry.async_on_unload(async_dispatcher_connect(hass, SIGNAL_UPDATED, sync))
+    entry.async_on_unload(hass.bus.async_listen(EVENT_HOME_TASKER, sync))
 
     @callback
     def refresh_at_midnight(now) -> None:
         # Due state flips at the local date rollover without any mutation.
-        async_dispatcher_send(hass, SIGNAL_UPDATED)
+        async_fire_home_tasker_event(
+            hass, "refreshed", "system", reason="local_midnight"
+        )
 
     entry.async_on_unload(
         async_track_time_change(hass, refresh_at_midnight, hour=0, minute=0, second=0)
@@ -133,6 +139,3 @@ class TaskSensor(BinarySensorEntity):
     def extra_state_attributes(self):
         task = self._task
         return {"home_tasker_entity_type": "task", "task_id": task["id"], **{k: task.get(k) for k in ("group_id", "assignee_user_id", "due_date", "start_date", "recurrence_mode", "frequency", "interval", "weekdays", "day_of_month", "month_of_year")}} if task else {}
-
-    async def async_added_to_hass(self) -> None:
-        self.async_on_remove(async_dispatcher_connect(self.hass, SIGNAL_UPDATED, self.async_write_ha_state))

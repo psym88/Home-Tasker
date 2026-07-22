@@ -103,7 +103,7 @@ def test_task_sensor_cleanup_cannot_remove_calendar_registry_entry():
     assert 'registry_entry.domain == "binary_sensor"' in source
 
 
-def test_calendar_dispatcher_update_is_an_event_loop_callback():
+def test_calendar_bus_update_is_an_event_loop_callback():
     source = Path("custom_components/home_tasker/calendar.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
     calendar_class = next(

@@ -6,12 +6,12 @@ import json
 import zipfile
 
 from aiohttp import web
-from homeassistant.components.http import HomeAssistantView
+from homeassistant.components.http import KEY_HASS_USER, HomeAssistantView
 from homeassistant.components.http.auth import async_sign_path
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.core import Context, HomeAssistant
 
-from .const import ARCHIVE_URL, DOWNLOAD_URL, SIGNAL_UPDATED, UPLOAD_URL
+from .const import ARCHIVE_URL, DOWNLOAD_URL, UPLOAD_URL
+from .events import async_fire_home_tasker_event
 from .helpers import get_store
 
 MAX_ARCHIVE_SIZE = 100 * 1024 * 1024
@@ -45,6 +45,14 @@ class UploadView(HomeAssistantView):
             record = await store.async_add_attachment(task_id, *uploaded)
         except ValueError as err:
             raise web.HTTPBadRequest(text=str(err)) from err
+        async_fire_home_tasker_event(
+            request.app["hass"],
+            "created",
+            "attachment",
+            record["id"],
+            context=Context(user_id=request[KEY_HASS_USER].id),
+            task_id=task_id,
+        )
         return web.json_response({
             **record,
             "signed_url": async_sign_path(
@@ -126,5 +134,10 @@ class ArchiveView(HomeAssistantView):
             await store.async_import_archive(manifest["data"], files)
         except ValueError as err:
             raise web.HTTPBadRequest(text=str(err)) from err
-        async_dispatcher_send(request.app["hass"], SIGNAL_UPDATED)
+        async_fire_home_tasker_event(
+            request.app["hass"],
+            "imported",
+            "archive",
+            context=Context(user_id=request[KEY_HASS_USER].id),
+        )
         return web.json_response({"imported": True})

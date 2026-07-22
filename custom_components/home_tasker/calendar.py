@@ -7,12 +7,11 @@ from typing import Any
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, SIGNAL_UPDATED
+from .const import DOMAIN, EVENT_HOME_TASKER
 from .models import HomeTaskerData
 from .scheduler import next_due
 
@@ -107,9 +106,9 @@ class HomeTaskerCalendar(CalendarEntity):
     async def async_added_to_hass(self) -> None:
         """Refresh calendar state and active event subscriptions after mutations."""
         self.async_on_remove(
-            async_dispatcher_connect(self.hass, SIGNAL_UPDATED, self._handle_update)
+            self.hass.bus.async_listen(EVENT_HOME_TASKER, self._handle_update)
         )
 
     @callback
-    def _handle_update(self) -> None:
+    def _handle_update(self, event: Event) -> None:
         self.async_write_ha_state()

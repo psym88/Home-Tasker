@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from homeassistant.core import Event, HomeAssistant, callback
-from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.util import dt as dt_util
 
-from .const import SIGNAL_UPDATED
+from .events import async_fire_home_tasker_event
 from .store import HomeTaskerStore
 
 EVENT_TAG_SCANNED = "tag_scanned"
@@ -31,7 +30,16 @@ async def async_handle_tag_scanned(
         user.name if user and user.name else "NFC tag",
         NFC_COMPLETION_NOTE,
     )
-    async_dispatcher_send(hass, SIGNAL_UPDATED)
+    async_fire_home_tasker_event(
+        hass,
+        "completed",
+        "task",
+        task["id"],
+        context=event.context,
+        group_id=task.get("group_id"),
+        resource_name=task.get("name"),
+        source="nfc",
+    )
 
 
 @callback
