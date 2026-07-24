@@ -63,3 +63,37 @@ def test_due_scheduler_fires_one_event_per_task(monkeypatch):
 
     assert [data["resource_id"] for _, data in events] == ["one", "two"]
     assert all(data["action"] == "task_due" for _, data in events)
+
+
+def test_due_scheduler_timer_callback_stays_on_event_loop(monkeypatch):
+    now = datetime(2026, 7, 25, 8, tzinfo=timezone.utc)
+    target = now + timedelta(seconds=10)
+    captured = {}
+    hass = SimpleNamespace()
+    store = SimpleNamespace(
+        tasks=[
+            {
+                "task_id": "one",
+                "task_name": "One",
+                "task_due": target.isoformat(),
+            }
+        ]
+    )
+
+    def track_point_in_time(received_hass, action, point):
+        captured.update(hass=received_hass, action=action, point=point)
+        return lambda: None
+
+    monkeypatch.setattr(
+        "custom_components.home_tasker.due.dt_util.utcnow", lambda: now
+    )
+    monkeypatch.setattr(
+        "custom_components.home_tasker.due.async_track_point_in_time",
+        track_point_in_time,
+    )
+
+    TaskDueEventScheduler(hass, store).reschedule()
+
+    assert captured["hass"] is hass
+    assert captured["point"] == target
+    assert getattr(captured["action"], "_hass_callback", False)

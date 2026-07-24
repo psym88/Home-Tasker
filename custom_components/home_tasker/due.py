@@ -99,9 +99,14 @@ class TaskDueEventScheduler:
         ]
         if future:
             target = min(future)
+
+            @callback
+            def fire_due(fired_at: datetime) -> None:
+                self._fire_due(target, fired_at)
+
             self._cancel_timer = async_track_point_in_time(
                 self._hass,
-                lambda fired_at: self._fire_due(target, fired_at),
+                fire_due,
                 target,
             )
 
