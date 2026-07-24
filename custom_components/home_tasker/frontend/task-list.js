@@ -4,8 +4,8 @@ import "./filter-category.js";
 
 export const NO_DUE_TIMESTAMP = Number.MAX_SAFE_INTEGER;
 export const INITIAL_TASK_SORTING = {column:"due_ts",direction:"asc"};
-export const DEFAULT_TASK_COLUMN_ORDER = ["name","due_ts","assignee","nfc_tag","files","actions","labels","recurrence","rhythm"];
-export const DEFAULT_HIDDEN_TASK_COLUMNS = ["labels","recurrence","rhythm"];
+export const DEFAULT_TASK_COLUMN_ORDER = ["name","labels","due_ts","assignee","nfc_tag","files","actions","recurrence","rhythm"];
+export const DEFAULT_HIDDEN_TASK_COLUMNS = ["recurrence","rhythm"];
 export const TASK_GROUP_COLUMNS = ["labels","recurrence","rhythm","assignee"];
 export const TASK_FILTER_COLUMNS = ["labels","assignee","recurrence","rhythm"];
 
@@ -64,7 +64,7 @@ export const withTaskList = Base => class extends Base {
       name:{title:t("table.task"),main:true,sortable:true,filterable:true,flex:3},
       due_ts:{title:t("task.due"),sortable:true,filterable:false,template:row=>textCell(row.task.task_due?this.relativeDate(row.task.task_due):"–",row.task.task_due?this.date(row.task.task_due):"")},
       assignee:{title:t("table.assignee"),...groupable},
-      labels:{title:t("task.labels"),defaultHidden:true,...groupable},
+      labels:{title:t("table.label"),...groupable},
       nfc_tag:{title:t("task.nfc_tag_id"),sortable:true,filterable:true},
       files:{title:t("task.files"),sortable:true,filterable:false},
       recurrence:{title:t("table.recurrence"),defaultHidden:true,...groupable},

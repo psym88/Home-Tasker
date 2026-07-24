@@ -69,13 +69,13 @@ test("panel title uses Home Assistant's compact native title margin",()=>{
 });
 
 test("table starts with the requested visible columns in order",()=>{
-  assert.deepEqual(DEFAULT_TASK_COLUMN_ORDER,["name","due_ts","assignee","nfc_tag","files","actions","labels","recurrence","rhythm"]);
-  assert.deepEqual(DEFAULT_HIDDEN_TASK_COLUMNS,["labels","recurrence","rhythm"]);
+  assert.deepEqual(DEFAULT_TASK_COLUMN_ORDER,["name","labels","due_ts","assignee","nfc_tag","files","actions","recurrence","rhythm"]);
+  assert.deepEqual(DEFAULT_HIDDEN_TASK_COLUMNS,["recurrence","rhythm"]);
   assert.match(source,/wrapper\.columnOrder=\[\.\.\.DEFAULT_TASK_COLUMN_ORDER\]/);
   assert.match(source,/wrapper\.hiddenColumns=\[\.\.\.DEFAULT_HIDDEN_TASK_COLUMNS\]/);
   assert.match(source,/recurrence:\{title:t\("table\.recurrence"\),defaultHidden:true,\.\.\.groupable\}/);
   assert.match(source,/rhythm:\{title:t\("table\.rhythm"\),defaultHidden:true,\.\.\.groupable\}/);
-  assert.match(source,/labels:\{title:t\("task\.labels"\),defaultHidden:true,\.\.\.groupable\}/);
+  assert.match(source,/labels:\{title:t\("table\.label"\),\.\.\.groupable\}/);
   assert.ok(source.indexOf('files:{title:t("task.files")')<source.indexOf('recurrence:{title:t("table.recurrence")'));
   assert.ok(source.indexOf('rhythm:{title:t("table.rhythm")')<source.indexOf('actions:{title:""'));
 });

@@ -38,7 +38,7 @@ Removing the integration does not delete exported backups. Home Tasker data in `
 
 Administrators can open **Home Tasker** in the sidebar. Use **+ Add task** to create a task. Select a task to view and complete it; use its three-dot menu to edit or delete it.
 
-The task table supports search, sorting, grouping by labels, recurrence, or assignee, and independent filters for those same dimensions. Its optional Labels column is hidden by default.
+The task table shows Label directly after Task and supports search, sorting, grouping by labels, recurrence, or assignee, and independent filters for those same dimensions.
 
 Schedules can repeat by calendar or from the last completion. The optional start date limits when a recurrence begins. Files are managed in the task editor and supported formats open in an in-panel preview dialog.
 

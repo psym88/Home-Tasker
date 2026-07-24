@@ -120,6 +120,7 @@
     "schedule.period_years": "years",
     "panel.load_failed": "The data could not be loaded. Another attempt will follow automatically.",
     "table.task": "Task",
+    "table.label": "Label",
     "table.recurrence": "Recurrence",
     "table.rhythm": "Frequency",
     "table.assignee": "Person",
