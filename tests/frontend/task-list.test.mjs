@@ -156,7 +156,8 @@ test("closing the native filter pane restores full table row width",()=>{
 });
 
 test("all filters follow Home Assistant category rows",()=>{
-  const filterCategory=readFileSync(new URL("../../custom_components/home_tasker/frontend/filter-category.js",import.meta.url),"utf8");
+  const taskList=readFileSync(new URL("../../custom_components/home_tasker/frontend/task-list.js",import.meta.url),"utf8");
+  const filterCategory=taskList.slice(taskList.indexOf("export class HomeTaskerFilterCategory"),taskList.indexOf("export function dueTimestamp"));
   const actionMenu=readFileSync(new URL("../../custom_components/home_tasker/frontend/action-menu.js",import.meta.url),"utf8");
   assert.match(filterCategory,/createElement\("ha-list-item"\)/);
   assert.doesNotMatch(filterCategory,/createActionMenu|groupEditor|deleteGroup/);

@@ -3,12 +3,12 @@ import { withStyles } from "./styles.js";
 import { withTaskList } from "./task-list.js";
 import { showTaskDialog } from "./native-task-dialog.js";
 import { withTaskEditor } from "./task-editor.js";
-import { withDialogs } from "./dialogs.js";
+import { withConfirmation } from "./native-confirm-dialog.js";
 import { showAttachmentDialog } from "./native-attachment-dialog.js";
 import { showSettingsDialog } from "./native-settings-dialog.js";
 import { historyNote, locale as activeLocale, setLanguage, t } from "./localize.js";
 
-export class HomeTaskerBase extends withDialogs(withTaskEditor(withTaskList(withStyles(HTMLElement)))) {
+export class HomeTaskerBase extends withConfirmation(withTaskEditor(withTaskList(withStyles(HTMLElement)))) {
   constructor(){ super(); this.attachShadow({mode:"open"}); this.tasks=[]; this.attachments=[]; this.users=[]; this.tags=[]; this.labels=[]; this.today=""; this.signedFiles=new Map(); this.loading=false; this.reloadPending=false; this.eventUnsubscribe=null; this.eventSubscriptionToken=0; }
   connectedCallback(){this.subscribeEvents();}
   disconnectedCallback(){this.unsubscribeEvents();}

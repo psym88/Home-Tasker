@@ -45,6 +45,16 @@ _IMPORTED_TASK_FIELDS = {
     "schedule_month",
 }
 
+_SCHEDULE_FIELDS = (
+    "schedule_start_date",
+    "schedule_type",
+    "schedule_unit",
+    "schedule_interval",
+    "schedule_weekdays",
+    "schedule_day",
+    "schedule_month",
+)
+
 
 def _now() -> str:
     return dt_util.utcnow().isoformat()
@@ -62,6 +72,30 @@ def _schedule_signature(task: dict[str, Any]) -> tuple[Any, ...]:
     elif mode == "fixed" and schedule_unit == "yearly":
         values.extend((task.get("schedule_month"), task.get("schedule_day")))
     return tuple(values)
+
+
+def _normalize_schedule(task: dict[str, Any]) -> dict[str, Any]:
+    """Clear recurrence values that do not belong to the active rule."""
+    normalized = dict(task)
+    normalized["schedule_weekdays"] = (
+        list(task.get("schedule_weekdays") or [])
+        if task.get("schedule_type") == "fixed"
+        and task.get("schedule_unit") == "weekly"
+        else []
+    )
+    normalized["schedule_day"] = (
+        task.get("schedule_day")
+        if task.get("schedule_type") == "fixed"
+        and task.get("schedule_unit") in {"monthly", "yearly"}
+        else None
+    )
+    normalized["schedule_month"] = (
+        task.get("schedule_month")
+        if task.get("schedule_type") == "fixed"
+        and task.get("schedule_unit") == "yearly"
+        else None
+    )
+    return normalized
 
 
 def _validate_imported_task(task: Any) -> None:
@@ -330,15 +364,15 @@ class HomeTaskerStore:
         async with self._lock:
             name = self._required_name(payload.get("task_name"))
             nfc_tag_id = self._normalize_nfc_tag_id(payload.get("nfc_tag_id"))
-            task = {
+            task = _normalize_schedule({
                 "task_id": uuid4().hex,
-                **{k: payload.get(k) for k in ("task_name", "task_description", "assignee_id", "schedule_start_date", "schedule_type", "schedule_unit", "schedule_interval", "schedule_weekdays", "schedule_day", "schedule_month")},
+                **{k: payload.get(k) for k in ("task_name", "task_description", "assignee_id", *_SCHEDULE_FIELDS)},
                 "task_name": name,
                 "label_ids": list(dict.fromkeys(payload.get("label_ids") or [])),
                 "nfc_tag_id": nfc_tag_id,
                 "task_due": task_due,
                 "schedule_anchor_date": due_date.isoformat(),
-            }
+            })
             self._data["tasks"].append(task)
             await self._save()
             return task
@@ -355,13 +389,24 @@ class HomeTaskerStore:
                         payload["nfc_tag_id"], task_id
                     ),
                 }
-            schedule_keys = ("schedule_start_date", "schedule_type", "schedule_unit", "schedule_interval", "schedule_weekdays", "schedule_day", "schedule_month")
             old_schedule = _schedule_signature(task)
+            schedule_update = any(key in payload for key in _SCHEDULE_FIELDS)
+            normalized_schedule = None
+            if schedule_update:
+                merged_schedule = {
+                    **task,
+                    **{key: payload[key] for key in _SCHEDULE_FIELDS if key in payload},
+                }
+                validate_schedule(merged_schedule)
+                normalized_schedule = _normalize_schedule(merged_schedule)
             if "label_ids" in payload:
                 task["label_ids"] = list(dict.fromkeys(payload["label_ids"]))
-            for key in ("task_name", "task_description", "assignee_id", "nfc_tag_id", "task_due", *schedule_keys):
+            for key in ("task_name", "task_description", "assignee_id", "nfc_tag_id", "task_due"):
                 if key in payload:
                     task[key] = payload[key]
+            if normalized_schedule is not None:
+                for key in _SCHEDULE_FIELDS:
+                    task[key] = normalized_schedule[key]
             schedule_changed = _schedule_signature(task) != old_schedule
             if schedule_changed:
                 due = initial_due(task, today or dt_util.now().date())
