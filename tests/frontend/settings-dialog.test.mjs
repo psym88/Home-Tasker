@@ -6,6 +6,7 @@ test("settings uses a native dialog with a collapsible import/export section", (
   const source = readFileSync(new URL("../../custom_components/home_tasker/frontend/native-settings-dialog.js", import.meta.url), "utf8");
   assert.match(source, /show-dialog/);
   assert.match(source, /<ha-adaptive-dialog/);
+  assert.match(source, /Home Tasker - \$\{esc\(version\)\}.*<ha-expansion-panel outlined>/);
   assert.match(source, /<ha-expansion-panel outlined>/);
   assert.match(source, /slot="header"/);
   assert.doesNotMatch(source, /<details>|<summary>|summary::after/);

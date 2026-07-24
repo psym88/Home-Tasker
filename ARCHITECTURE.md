@@ -4,7 +4,7 @@ Home Tasker is a local-push Home Assistant integration with one config entry. Pe
 
 ## Data model
 
-- A **task** stores its description, assignment, native date-or-datetime `task_due` value, optional start boundary, optional NFC tag, recurrence rule, attachments, and completion history.
+- A **task** stores its description, user and Home Assistant label assignments, native date-or-datetime `task_due` value, optional start boundary, optional NFC tag, recurrence rule, attachments, and completion history. Label assignments persist stable Home Assistant label IDs; the frontend resolves their current names from the label registry.
 - Calendar recurrence stays anchored to configured dates. Completion-based recurrence advances from the completion date.
 - Before version 1.0, stored-schema changes need no compatibility migration.
 

@@ -4,10 +4,10 @@ import "./filter-category.js";
 
 export const NO_DUE_TIMESTAMP = Number.MAX_SAFE_INTEGER;
 export const INITIAL_TASK_SORTING = {column:"due_ts",direction:"asc"};
-export const DEFAULT_TASK_COLUMN_ORDER = ["name","due_ts","assignee","nfc_tag","files","actions","recurrence","rhythm"];
-export const DEFAULT_HIDDEN_TASK_COLUMNS = ["recurrence","rhythm"];
-export const TASK_GROUP_COLUMNS = ["recurrence","rhythm","assignee"];
-export const TASK_FILTER_COLUMNS = ["assignee","recurrence","rhythm"];
+export const DEFAULT_TASK_COLUMN_ORDER = ["name","due_ts","assignee","nfc_tag","files","actions","labels","recurrence","rhythm"];
+export const DEFAULT_HIDDEN_TASK_COLUMNS = ["labels","recurrence","rhythm"];
+export const TASK_GROUP_COLUMNS = ["labels","recurrence","rhythm","assignee"];
+export const TASK_FILTER_COLUMNS = ["labels","assignee","recurrence","rhythm"];
 
 export function dueTimestamp(value) {
   const text=String(value||""),match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
@@ -17,9 +17,10 @@ export function dueTimestamp(value) {
   return date.getFullYear()===year&&date.getMonth()===month-1&&date.getDate()===day?date.getTime():NO_DUE_TIMESTAMP;
 }
 
-export function taskTableRows(tasks,{users=[],tags=[],attachments=[],translate=t}={}) {
+export function taskTableRows(tasks,{users=[],tags=[],labels=[],attachments=[],translate=t}={}) {
   const userNames=new Map(users.map(user=>[user.id,user.name]));
   const tagNames=new Map(tags.map(tag=>[tag.id,tag.name]));
+  const labelNames=new Map(labels.map(label=>[label.label_id,label.name]));
   const fileCounts=new Map();
   for(const file of attachments)fileCounts.set(file.task_id,(fileCounts.get(file.task_id)||0)+1);
   return tasks.map(task=>{
@@ -32,6 +33,8 @@ export function taskTableRows(tasks,{users=[],tags=[],attachments=[],translate=t
       recurrence:translate(`task.${task.schedule_type==="fixed"?"fixed":"sliding"}`),
       rhythm:translate(`task.${schedule_unit}`),
       assignee:userNames.get(task.assignee_id)||task.assignee_id||translate("task.unassigned"),
+      labels:(task.label_ids||[]).map(id=>labelNames.get(id)||id).sort((a,b)=>a.localeCompare(b)).join(", ")||translate("task.no_labels"),
+      label_names:(task.label_ids||[]).map(id=>labelNames.get(id)||id),
       nfc_tag:tagNames.get(task.nfc_tag_id)||task.nfc_tag_id||translate("task.no_nfc_tag"),
       files:fileCounts.get(task.task_id)||0,
     };
@@ -39,7 +42,7 @@ export function taskTableRows(tasks,{users=[],tags=[],attachments=[],translate=t
 }
 
 export function filterTaskTableRows(rows,filters={}) {
-  return rows.filter(row=>TASK_FILTER_COLUMNS.every(column=>!filters[column]?.length||filters[column].includes(row[column])));
+  return rows.filter(row=>TASK_FILTER_COLUMNS.every(column=>!filters[column]?.length||(column==="labels"?filters.labels.some(label=>row.label_names.includes(label)):filters[column].includes(row[column]))));
 }
 
 function textCell(value,title) {
@@ -51,9 +54,9 @@ function textCell(value,title) {
 
 export const withTaskList = Base => class extends Base {
   tagName(task){const id=task?.nfc_tag_id;return id?(this.tags?.find(tag=>tag.id===id)?.name||id):"";}
-  tableRows(){return taskTableRows(this.tasks,{users:this.users,tags:this.tags,attachments:this.attachments,translate:t});}
-  filterLabel(schema){return {assignee:t("table.assignee"),recurrence:t("table.recurrence"),rhythm:t("table.rhythm")}[schema.name]||schema.name;}
-  filterItems(rows,column){return [...new Set(rows.map(row=>row[column]))].map(value=>({value,label:value}));}
+  tableRows(){return taskTableRows(this.tasks,{users:this.users,tags:this.tags,labels:this.labels,attachments:this.attachments,translate:t});}
+  filterLabel(schema){return {labels:t("task.labels"),assignee:t("table.assignee"),recurrence:t("table.recurrence"),rhythm:t("table.rhythm")}[schema.name]||schema.name;}
+  filterItems(rows,column){return [...new Set(rows.flatMap(row=>column==="labels"?row.label_names:row[column]))].map(value=>({value,label:value}));}
   activeFilterCount(){return TASK_FILTER_COLUMNS.reduce((count,column)=>count+(this.tableFilters?.[column]?.length||0),0);}
   tableColumns(){
     const groupable={sortable:true,filterable:true,groupable:true};
@@ -61,6 +64,7 @@ export const withTaskList = Base => class extends Base {
       name:{title:t("table.task"),main:true,sortable:true,filterable:true,flex:3},
       due_ts:{title:t("task.due"),sortable:true,filterable:false,template:row=>textCell(row.task.task_due?this.relativeDate(row.task.task_due):"–",row.task.task_due?this.date(row.task.task_due):"")},
       assignee:{title:t("table.assignee"),...groupable},
+      labels:{title:t("task.labels"),defaultHidden:true,...groupable},
       nfc_tag:{title:t("task.nfc_tag_id"),sortable:true,filterable:true},
       files:{title:t("task.files"),sortable:true,filterable:false},
       recurrence:{title:t("table.recurrence"),defaultHidden:true,...groupable},
@@ -114,7 +118,7 @@ export const withTaskList = Base => class extends Base {
     const settings=wrapper.querySelector('[slot="toolbar-icon"]'),fab=wrapper.querySelector('[slot="fab"]'),rows=this.tableRows();
     if(settings){settings.label=t("settings.title");settings.title=t("settings.title");settings.setAttribute("aria-label",t("settings.title"));}
     if(fab){for(const node of [...fab.childNodes])if(node.nodeType===3)node.remove();fab.append(document.createTextNode(t("common.add_task")));}
-    wrapper.querySelectorAll("home-tasker-filter-category").forEach(filter=>{const column=filter.dataset.column;filter.controller=this;filter.label=this.filterLabel({name:column});filter.icon={assignee:"mdi:account",recurrence:"mdi:calendar-sync",rhythm:"mdi:repeat"}[column];filter.items=this.filterItems(rows,column);filter.value=this.tableFilters?.[column]||[];});
+    wrapper.querySelectorAll("home-tasker-filter-category").forEach(filter=>{const column=filter.dataset.column;filter.controller=this;filter.label=this.filterLabel({name:column});filter.icon={labels:"mdi:label-outline",assignee:"mdi:account",recurrence:"mdi:calendar-sync",rhythm:"mdi:repeat"}[column];filter.items=this.filterItems(rows,column);filter.value=this.tableFilters?.[column]||[];});
     wrapper.hass=this._hass;
     wrapper.route=this.route;
     wrapper.tabs=[{name:"Home Tasker",path:""}];

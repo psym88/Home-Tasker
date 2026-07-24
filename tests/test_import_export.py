@@ -34,20 +34,49 @@ def archive_store(tmp_path: Path) -> HomeTaskerStore:
     return store
 
 
-def test_export_and_import_replace_all_data_and_files(tmp_path):
+def test_export_and_import_preserve_existing_data_and_add_new_tasks(tmp_path):
     async def run():
         source = archive_store(tmp_path / "source")
+        source._data["tasks"][0]["task_name"] = "Imported conflict"
+        source._data["tasks"].append({"task_id": "task-2", "task_name": "New task"})
+        source._data["history"]["task-2"] = [{"history_entry_id": "history-2"}]
+        source._data["attachments"].append(
+            {"attachment_id": "file-2", "task_id": "task-2", "size": 3}
+        )
+        source._data["attachments"].append(
+            {"attachment_id": "file-3", "task_id": "task-2", "size": 5}
+        )
+        (source._upload_dir / "file-2").write_bytes(b"new")
+        (source._upload_dir / "file-3").write_bytes(b"added")
         data, files = await source.async_export_archive()
 
         target = archive_store(tmp_path / "target")
-        target._data["tasks"][0]["task_name"] = "Old data"
+        target._data["tasks"][0]["task_name"] = "Existing data"
+        (target._upload_dir / "file-2").write_bytes(b"keep")
         (target._upload_dir / "obsolete").write_bytes(b"old")
         await target.async_import_archive(data, files)
 
-        assert target._data == source._data
-        assert target._store.data == source._data
-        assert sorted(path.name for path in target._upload_dir.iterdir()) == ["file-1"]
+        assert target._data["tasks"] == [
+            {"task_id": "task-1", "task_name": "Existing data"},
+            {"task_id": "task-2", "task_name": "New task"},
+        ]
+        assert target._data["history"]["task-1"] == [
+            {"history_entry_id": "history-1"}
+        ]
+        assert target._data["history"]["task-2"] == [
+            {"history_entry_id": "history-2"}
+        ]
+        assert target._data["attachments"] == [
+            {"attachment_id": "file-1", "task_id": "task-1", "size": 7},
+            {"attachment_id": "file-3", "task_id": "task-2", "size": 5},
+        ]
+        assert target._store.data == target._data
+        assert sorted(path.name for path in target._upload_dir.iterdir()) == [
+            "file-1", "file-2", "file-3", "obsolete"
+        ]
         assert (target._upload_dir / "file-1").read_bytes() == b"content"
+        assert (target._upload_dir / "file-2").read_bytes() == b"keep"
+        assert (target._upload_dir / "file-3").read_bytes() == b"added"
 
     asyncio.run(run())
 

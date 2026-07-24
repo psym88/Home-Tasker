@@ -56,6 +56,22 @@ def test_tag_id_is_trimmed_and_unique():
     asyncio.run(run())
 
 
+def test_task_labels_are_stored_and_updated_without_duplicates():
+    async def run():
+        store = _store([])
+        created = await store.async_add_task(
+            {**_task("new"), "label_ids": ["chores", "upstairs", "chores"]},
+            date(2026, 7, 22),
+        )
+        assert created["label_ids"] == ["chores", "upstairs"]
+        updated = await store.async_update_task(
+            created["task_id"], {"label_ids": ["garden", "garden"]}
+        )
+        assert updated["label_ids"] == ["garden"]
+
+    asyncio.run(run())
+
+
 def test_matching_scan_completes_task_with_event_user(monkeypatch):
     async def run():
         store = _store([_task(tag_id="tag-1")])

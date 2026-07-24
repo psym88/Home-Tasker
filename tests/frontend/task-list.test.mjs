@@ -18,11 +18,11 @@ const {DEFAULT_HIDDEN_TASK_COLUMNS,DEFAULT_TASK_COLUMN_ORDER,INITIAL_TASK_SORTIN
 const source=readFileSync(new URL("../../custom_components/home_tasker/frontend/task-list.js",import.meta.url),"utf8");
 
 test("task rows flatten every grouping dimension and resolve ids to names",()=>{
-  const tasks=[{task_id:"laundry",task_name:"Laundry",task_due:"2026-07-24",schedule_type:"fixed",schedule_unit:"weekly",assignee_id:"alex",nfc_tag_id:"washer"}];
+  const tasks=[{task_id:"laundry",task_name:"Laundry",task_due:"2026-07-24",schedule_type:"fixed",schedule_unit:"weekly",assignee_id:"alex",label_ids:["upstairs","chores"],nfc_tag_id:"washer"}];
   const original=structuredClone(tasks);
   const attachments=[{attachment_id:"a",task_id:"laundry"},{attachment_id:"b",task_id:"laundry"},{attachment_id:"c",task_id:"other"}];
-  const [row]=taskTableRows(tasks,{users:[{id:"alex",name:"Alex"}],tags:[{id:"washer",name:"Washer"}],attachments,translate:key=>key});
-  assert.deepEqual({id:row.id,name:row.name,recurrence:row.recurrence,rhythm:row.rhythm,assignee:row.assignee,nfc_tag:row.nfc_tag,files:row.files},{id:"laundry",name:"Laundry",recurrence:"task.fixed",rhythm:"task.weekly",assignee:"Alex",nfc_tag:"Washer",files:2});
+  const [row]=taskTableRows(tasks,{users:[{id:"alex",name:"Alex"}],tags:[{id:"washer",name:"Washer"}],labels:[{label_id:"upstairs",name:"Upstairs"},{label_id:"chores",name:"Chores"}],attachments,translate:key=>key});
+  assert.deepEqual({id:row.id,name:row.name,recurrence:row.recurrence,rhythm:row.rhythm,assignee:row.assignee,labels:row.labels,label_names:row.label_names,nfc_tag:row.nfc_tag,files:row.files},{id:"laundry",name:"Laundry",recurrence:"task.fixed",rhythm:"task.weekly",assignee:"Alex",labels:"Chores, Upstairs",label_names:["Upstairs","Chores"],nfc_tag:"Washer",files:2});
   assert.equal(row.task,tasks[0]);
   assert.deepEqual(tasks,original);
 });
@@ -30,6 +30,8 @@ test("task rows flatten every grouping dimension and resolve ids to names",()=>{
 test("missing assignments receive localized searchable values",()=>{
   const [row]=taskTableRows([{task_id:"task",task_name:"Task",schedule_unit:"daily"}],{translate:key=>`translated:${key}`});
   assert.equal(row.assignee,"translated:task.unassigned");
+  assert.equal(row.labels,"translated:task.no_labels");
+  assert.deepEqual(row.label_names,[]);
   assert.equal(row.nfc_tag,"translated:task.no_nfc_tag");
   assert.equal(row.files,0);
 });
@@ -42,13 +44,14 @@ test("due timestamps validate calendar dates and represent missing dates as the 
 
 test("native pane filters combine dimensions and allow multiple values within one dimension",()=>{
   const rows=[
-    {id:"1",assignee:"Alex",recurrence:"Fixed",rhythm:"Weekly"},
-    {id:"2",assignee:"Alex",recurrence:"Sliding",rhythm:"Monthly"},
-    {id:"3",assignee:"Sam",recurrence:"Fixed",rhythm:"Daily"},
+    {id:"1",assignee:"Alex",labels:"Chores, Upstairs",label_names:["Chores","Upstairs"],recurrence:"Fixed",rhythm:"Weekly"},
+    {id:"2",assignee:"Alex",labels:"Garden",label_names:["Garden"],recurrence:"Sliding",rhythm:"Monthly"},
+    {id:"3",assignee:"Sam",labels:"Chores",label_names:["Chores"],recurrence:"Fixed",rhythm:"Daily"},
   ];
   assert.deepEqual(filterTaskTableRows(rows,{assignee:["Alex"]}).map(row=>row.id),["1","2"]);
   assert.deepEqual(filterTaskTableRows(rows,{rhythm:["Weekly","Daily"]}).map(row=>row.id),["1","3"]);
   assert.deepEqual(filterTaskTableRows(rows,{recurrence:["Fixed"]}).map(row=>row.id),["1","3"]);
+  assert.deepEqual(filterTaskTableRows(rows,{labels:["Chores"]}).map(row=>row.id),["1","3"]);
   assert.equal(filterTaskTableRows(rows,{}).length,3);
 });
 
@@ -66,26 +69,27 @@ test("panel title uses Home Assistant's compact native title margin",()=>{
 });
 
 test("table starts with the requested visible columns in order",()=>{
-  assert.deepEqual(DEFAULT_TASK_COLUMN_ORDER,["name","due_ts","assignee","nfc_tag","files","actions","recurrence","rhythm"]);
-  assert.deepEqual(DEFAULT_HIDDEN_TASK_COLUMNS,["recurrence","rhythm"]);
+  assert.deepEqual(DEFAULT_TASK_COLUMN_ORDER,["name","due_ts","assignee","nfc_tag","files","actions","labels","recurrence","rhythm"]);
+  assert.deepEqual(DEFAULT_HIDDEN_TASK_COLUMNS,["labels","recurrence","rhythm"]);
   assert.match(source,/wrapper\.columnOrder=\[\.\.\.DEFAULT_TASK_COLUMN_ORDER\]/);
   assert.match(source,/wrapper\.hiddenColumns=\[\.\.\.DEFAULT_HIDDEN_TASK_COLUMNS\]/);
   assert.match(source,/recurrence:\{title:t\("table\.recurrence"\),defaultHidden:true,\.\.\.groupable\}/);
   assert.match(source,/rhythm:\{title:t\("table\.rhythm"\),defaultHidden:true,\.\.\.groupable\}/);
+  assert.match(source,/labels:\{title:t\("task\.labels"\),defaultHidden:true,\.\.\.groupable\}/);
   assert.ok(source.indexOf('files:{title:t("task.files")')<source.indexOf('recurrence:{title:t("table.recurrence")'));
   assert.ok(source.indexOf('rhythm:{title:t("table.rhythm")')<source.indexOf('actions:{title:""'));
 });
 
 test("only the requested dimensions can group the native table",()=>{
-  assert.deepEqual(TASK_GROUP_COLUMNS,["recurrence","rhythm","assignee"]);
+  assert.deepEqual(TASK_GROUP_COLUMNS,["labels","recurrence","rhythm","assignee"]);
   for(const column of TASK_GROUP_COLUMNS)assert.match(source,new RegExp(`${column}:\\{title:[^}]+\\.\\.\\.groupable`));
   assert.match(source,/nfc_tag:\{title:[^}]+sortable:true,filterable:true\}/);
   assert.doesNotMatch(source,/initialGroupColumn/);
   assert.doesNotMatch(source,/tableGrouping|table\.groupColumn=/);
 });
 
-test("native filter pane exposes assignee recurrence and rhythm filters",()=>{
-  assert.deepEqual(TASK_FILTER_COLUMNS,["assignee","recurrence","rhythm"]);
+test("native filter pane exposes label assignee recurrence and rhythm filters",()=>{
+  assert.deepEqual(TASK_FILTER_COLUMNS,["labels","assignee","recurrence","rhythm"]);
   assert.match(source,/filterPane\.className="filters"/);
   assert.match(source,/filterPane\.slot="filter-pane"/);
   assert.match(source,/for\(const column of TASK_FILTER_COLUMNS\)/);

@@ -120,14 +120,44 @@ class HomeTaskerStore:
     async def async_import_archive(
         self, data: Any, files: dict[str, bytes]
     ) -> None:
-        """Clear the current store and replace it with one validated archive."""
+        """Add new archive records without overwriting existing data."""
         imported = self.validate_import(data, files)
         async with self._lock:
             old_data = self._data
+            existing_task_ids = {task["task_id"] for task in old_data["tasks"]}
+            existing_attachment_ids = {
+                attachment["attachment_id"] for attachment in old_data["attachments"]
+            }
+            new_tasks = [
+                task for task in imported["tasks"]
+                if task["task_id"] not in existing_task_ids
+            ]
+            new_task_ids = {task["task_id"] for task in new_tasks}
+            new_attachments = [
+                attachment for attachment in imported["attachments"]
+                if attachment["task_id"] in new_task_ids
+                and attachment["attachment_id"] not in existing_attachment_ids
+                and not self.file_path(attachment["attachment_id"]).exists()
+            ]
+            new_attachment_ids = {
+                attachment["attachment_id"] for attachment in new_attachments
+            }
+            merged = deepcopy(old_data)
+            merged["tasks"].extend(new_tasks)
+            merged["attachments"].extend(new_attachments)
+            merged["history"].update({
+                task_id: entries
+                for task_id, entries in imported["history"].items()
+                if task_id in new_task_ids
+            })
             backup = await self._hass.async_add_executor_job(
-                self._replace_attachment_files, files
+                self._merge_attachment_files,
+                {
+                    file_id: content for file_id, content in files.items()
+                    if file_id in new_attachment_ids
+                },
             )
-            self._data = imported
+            self._data = merged
             try:
                 await self._save()
             except Exception:
@@ -138,12 +168,14 @@ class HomeTaskerStore:
                 raise
             await self._hass.async_add_executor_job(self._discard_backup, backup)
 
-    def _replace_attachment_files(self, files: dict[str, bytes]) -> Path | None:
+    def _merge_attachment_files(self, files: dict[str, bytes]) -> Path | None:
         parent = self._upload_dir.parent
         parent.mkdir(parents=True, exist_ok=True)
         staging = Path(tempfile.mkdtemp(prefix="home_tasker_import_", dir=parent))
         backup = None
         try:
+            if self._upload_dir.exists():
+                shutil.copytree(self._upload_dir, staging, dirs_exist_ok=True)
             for file_id, content in files.items():
                 (staging / file_id).write_bytes(content)
             if self._upload_dir.exists():
@@ -220,6 +252,7 @@ class HomeTaskerStore:
                 "task_id": uuid4().hex,
                 **{k: payload.get(k) for k in ("task_name", "task_description", "assignee_id", "schedule_start_date", "schedule_type", "schedule_unit", "schedule_interval", "schedule_weekdays", "schedule_day", "schedule_month")},
                 "task_name": name,
+                "label_ids": list(dict.fromkeys(payload.get("label_ids") or [])),
                 "nfc_tag_id": nfc_tag_id,
                 "task_due": task_due,
                 "schedule_anchor_date": due_date.isoformat(),
@@ -242,6 +275,8 @@ class HomeTaskerStore:
                 }
             schedule_keys = ("schedule_start_date", "schedule_type", "schedule_unit", "schedule_interval", "schedule_weekdays", "schedule_day", "schedule_month")
             old_schedule = _schedule_signature(task)
+            if "label_ids" in payload:
+                task["label_ids"] = list(dict.fromkeys(payload["label_ids"]))
             for key in ("task_name", "task_description", "assignee_id", "nfc_tag_id", "task_due", *schedule_keys):
                 if key in payload:
                     task[key] = payload[key]

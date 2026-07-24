@@ -8,7 +8,7 @@ Home Tasker adds recurring household tasks to Home Assistant. Tasks can be assig
 
 - Daily, weekly, monthly, and yearly recurring tasks
 - Calendar-based schedules or intervals after completion
-- Home Assistant user assignments, notes, history, and attachments
+- Home Assistant user and label assignments, notes, history, and attachments
 - Optional NFC tag completion
 - Sidebar panel and configurable dashboard card
 - A native Home Tasker to-do list, due-task summary sensor, and read-only task calendar
@@ -38,7 +38,7 @@ Removing the integration does not delete exported backups. Home Tasker data in `
 
 Administrators can open **Home Tasker** in the sidebar. Use **+ Add task** to create a task. Select a task to view and complete it; use its three-dot menu to edit or delete it.
 
-The task table supports search, sorting, grouping by recurrence or assignee, and independent filters for those same dimensions.
+The task table supports search, sorting, grouping by labels, recurrence, or assignee, and independent filters for those same dimensions. Its optional Labels column is hidden by default.
 
 Schedules can repeat by calendar or from the last completion. The optional start date limits when a recurrence begins. Files are managed in the task editor and supported formats open in an in-panel preview dialog.
 
@@ -50,11 +50,11 @@ Add the **Home Tasker** card from the dashboard card picker. Its visual editor c
 
 ### Backup and restore
 
-Open **Settings** above the task list and expand **Import / Export**. Export creates a ZIP archive containing all Home Tasker data and attachments. Import validates the archive, clears the current data, and replaces it after confirmation.
+Open **Settings** above the task list and expand **Backup**. Export creates a ZIP archive containing all Home Tasker data and attachments. Import validates the archive and adds only tasks with new IDs together with their history and conflict-free attachments. Existing tasks and files are never overwritten.
 
 ## Home Assistant entities
 
-All tasks are exposed as items of the native `todo.home_tasker` entity. Home Assistant can create, edit, complete, and delete these items using its standard to-do dashboard, actions, and triggers. Item `uid`, `summary`, `description`, and `due` map to Home Tasker's `task_id`, `task_name`, `task_description`, and `task_due`. `task_due` accepts a native ISO date for an all-day task or an ISO datetime for an exact due time. Recurrence, assignment, NFC tags, attachments, and completion history remain in Home Tasker's store.
+All tasks are exposed as items of the native `todo.home_tasker` entity. Home Assistant can create, edit, complete, and delete these items using its standard to-do dashboard, actions, and triggers. Item `uid`, `summary`, `description`, and `due` map to Home Tasker's `task_id`, `task_name`, `task_description`, and `task_due`. `task_due` accepts a native ISO date for an all-day task or an ISO datetime for an exact due time. Recurrence, user and label assignments, NFC tags, attachments, and completion history remain in Home Tasker's store.
 
 The `sensor.home_tasker_tasks_due` entity counts tasks whose due date or due time has been reached. The state of `todo.home_tasker` itself is Home Assistant's standard count of all incomplete items. Calendar, todo, and due sensor entities belong to the shared **Home Tasker** device.
 
@@ -74,9 +74,11 @@ badge:
 
 The read-only **Home Tasker** calendar exposes current and projected task due dates.
 
-### Due-task notifications
+## Home Assistant events
 
-Home Tasker fires a time-based event when a task becomes due:
+Home Tasker fires `home_tasker_event` after every stored change and when a task reaches its due time. Automations can filter its `resource_type` and `action` data. Resource types are `task`, `history`, `attachment`, and `archive`; actions are `created`, `updated`, `deleted`, `completed`, `imported`, and `task_due` where applicable.
+
+To receive a notification when a task becomes due, create an automation, open **Edit in YAML**, and paste:
 
 ```yaml
 alias: Home Tasker task is due
@@ -91,26 +93,6 @@ actions:
     data:
       title: Home Tasker
       message: "{{ trigger.event.data.resource_name }} is due."
-```
-
-## Home Assistant events
-
-Home Tasker fires `home_tasker_event` after every stored change and when a task reaches its due time. Automations can filter its `resource_type` and `action` data. Resource types are `task`, `history`, `attachment`, and `archive`; actions are `created`, `updated`, `deleted`, `completed`, `imported`, and `task_due` where applicable.
-
-To receive a notification when any task is completed, create another automation, open **Edit in YAML**, and paste:
-
-```yaml
-alias: Home Tasker task completed
-triggers:
-  - trigger: event
-    event_type: home_tasker_event
-    event_data:
-      resource_type: task
-      action: completed
-actions:
-  - action: notify.notify
-    data:
-      message: "Task {{ trigger.event.data.resource_name }} was completed."
 ```
 
 Every event includes `resource_id` when the changed resource has one. Task events also include `resource_name`; related identifiers such as `task_id` are included when available.

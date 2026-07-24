@@ -31,7 +31,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     store = HomeTaskerStore(hass, upload_dir)
     await store.async_load()
     due_scheduler = TaskDueEventScheduler(hass, store)
-    entry.runtime_data = HomeTaskerData(store, due_scheduler)
+    entry.runtime_data = HomeTaskerData(store)
     due_scheduler.start()
     entry.async_on_unload(due_scheduler.stop)
     entry.async_on_unload(nfc.async_setup_listener(hass, store))
