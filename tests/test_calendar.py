@@ -82,6 +82,17 @@ def test_calendar_returns_sorted_all_day_events_with_task_details():
     assert events[2].description == "Use a damp cloth"
 
 
+def test_calendar_event_keeps_today_all_day_task_current(monkeypatch):
+    monkeypatch.setattr(
+        "custom_components.home_tasker.calendar.dt_util.utcnow",
+        lambda: datetime(2026, 7, 24, 12, tzinfo=timezone.utc),
+    )
+    calendar = HomeTaskerCalendar(FakeStore())
+
+    assert calendar.event is not None
+    assert calendar.event.summary == "Wipe shelves"
+
+
 def test_calendar_range_uses_exclusive_event_boundaries():
     calendar = HomeTaskerCalendar(FakeStore())
     events = asyncio.run(

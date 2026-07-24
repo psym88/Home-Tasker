@@ -24,7 +24,26 @@ from .due import (
     task_due_datetime,
     task_due_with_date,
 )
-from .scheduler import initial_due, next_due
+from .scheduler import initial_due, next_due, validate_schedule
+
+
+_IMPORTED_TASK_FIELDS = {
+    "task_id",
+    "task_name",
+    "task_description",
+    "assignee_id",
+    "label_ids",
+    "nfc_tag_id",
+    "task_due",
+    "schedule_start_date",
+    "schedule_anchor_date",
+    "schedule_type",
+    "schedule_unit",
+    "schedule_interval",
+    "schedule_weekdays",
+    "schedule_day",
+    "schedule_month",
+}
 
 
 def _now() -> str:
@@ -43,6 +62,62 @@ def _schedule_signature(task: dict[str, Any]) -> tuple[Any, ...]:
     elif mode == "fixed" and schedule_unit == "yearly":
         values.extend((task.get("schedule_month"), task.get("schedule_day")))
     return tuple(values)
+
+
+def _validate_imported_task(task: Any) -> None:
+    """Reject task records that cannot be consumed by runtime components."""
+    if not isinstance(task, dict) or not _IMPORTED_TASK_FIELDS <= task.keys():
+        raise ValueError("invalid_archive_task")
+    if not isinstance(task["task_name"], str) or not task["task_name"].strip():
+        raise ValueError("invalid_archive_task")
+    if task["schedule_type"] not in {"fixed", "sliding"}:
+        raise ValueError("invalid_archive_task")
+    if task["schedule_unit"] not in {"daily", "weekly", "monthly", "yearly"}:
+        raise ValueError("invalid_archive_task")
+    if (
+        isinstance(task["schedule_interval"], bool)
+        or not isinstance(task["schedule_interval"], int)
+        or task["schedule_interval"] < 1
+    ):
+        raise ValueError("invalid_archive_task")
+    if not isinstance(task["schedule_weekdays"], list) or any(
+        isinstance(day, bool) or not isinstance(day, int) or not 0 <= day <= 6
+        for day in task["schedule_weekdays"]
+    ):
+        raise ValueError("invalid_archive_task")
+    if not isinstance(task["label_ids"], list) or any(
+        not isinstance(label_id, str) for label_id in task["label_ids"]
+    ):
+        raise ValueError("invalid_archive_task")
+    if any(
+        value is not None and not isinstance(value, str)
+        for value in (
+            task["task_description"],
+            task["assignee_id"],
+            task["nfc_tag_id"],
+        )
+    ):
+        raise ValueError("invalid_archive_task")
+    if task["schedule_day"] != "last" and task["schedule_day"] is not None and (
+        isinstance(task["schedule_day"], bool)
+        or not isinstance(task["schedule_day"], int)
+        or not 1 <= task["schedule_day"] <= 31
+    ):
+        raise ValueError("invalid_archive_task")
+    if task["schedule_month"] is not None and (
+        isinstance(task["schedule_month"], bool)
+        or not isinstance(task["schedule_month"], int)
+        or not 1 <= task["schedule_month"] <= 12
+    ):
+        raise ValueError("invalid_archive_task")
+    try:
+        normalize_task_due(task["task_due"])
+        date.fromisoformat(task["schedule_anchor_date"])
+        if task["schedule_start_date"] is not None:
+            date.fromisoformat(task["schedule_start_date"])
+        validate_schedule(task)
+    except (KeyError, TypeError, ValueError, OverflowError) as err:
+        raise ValueError("invalid_archive_task") from err
 
 
 class HomeTaskerStore:
@@ -93,6 +168,8 @@ class HomeTaskerStore:
             ("attachments", list),
         )):
             raise ValueError("invalid_archive_data")
+        for task in data["tasks"]:
+            _validate_imported_task(task)
         tasks = {item.get("task_id") for item in data["tasks"] if isinstance(item, dict)}
         attachments = {
             item.get("attachment_id"): item for item in data["attachments"]
@@ -105,6 +182,11 @@ class HomeTaskerStore:
         if any(not isinstance(item_id, str) or not item_id or "/" in item_id
                or "\\" in item_id or item_id in {".", ".."} for item_id in all_ids):
             raise ValueError("invalid_archive_ids")
+        nfc_tag_ids = [
+            task["nfc_tag_id"] for task in data["tasks"] if task["nfc_tag_id"]
+        ]
+        if len(nfc_tag_ids) != len(set(nfc_tag_ids)):
+            raise ValueError("invalid_archive_task")
         if any(item.get("task_id") not in tasks for item in data["attachments"]):
             raise ValueError("invalid_archive_attachment")
         if set(data["history"]) - tasks or set(files) != set(attachments):

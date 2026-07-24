@@ -63,6 +63,47 @@ test("panel uses the native Home Assistant data-table wrapper",()=>{
   assert.doesNotMatch(source,/groupRow\(|wireGroup\(|placeholder-add|class="group"/);
 });
 
+test("native table multi-select tracks selected task ids and count",()=>{
+  assert.match(source,/wrapper\.setAttribute\("selectable",""\)/);
+  assert.match(source,/wrapper\.addEventListener\("selection-changed"/);
+  assert.match(source,/this\.selectedTaskIds=event\.detail\?\.value\|\|\[\]/);
+  assert.match(source,/wrapper\.selected=this\.selectedTaskIds\.length/);
+  assert.match(source,/wrapper\.selected=\(this\.selectedTaskIds\|\|\[\]\)\.length/);
+});
+
+test("native selection bar offers assignment completion and deletion bulk actions",()=>{
+  assert.match(source,/dropdown\.slot="selection-bar"/);
+  assert.match(source,/bulkDropdown\(t\("bulk\.assign_person"\)/);
+  assert.match(source,/bulkDropdown\(t\("bulk\.assign_label"\)/);
+  assert.match(source,/overflowDropdown\(t\("bulk\.actions"\)/);
+  assert.match(source,/selectionSubmenu\(t\("bulk\.assign_person"\)/);
+  assert.match(source,/selectionSubmenu\(t\("bulk\.assign_label"\)/);
+  assert.match(source,/dropdownItem\("complete",t\("bulk\.complete"\)/);
+  assert.match(source,/dropdownItem\("delete",t\("bulk\.delete"\)/);
+  assert.match(source,/type:"home_tasker\/task\/update"[\s\S]*assignee_id/);
+  assert.match(source,/type:"home_tasker\/task\/update"[\s\S]*label_ids/);
+  assert.match(source,/type:"home_tasker\/task\/complete"/);
+  assert.match(source,/type:"home_tasker\/task\/delete"/);
+  assert.match(source,/runBulkAction\(action,clear=false\)/);
+  assert.match(source,/for\(const task of this\.selectedTasks\(\)\)await action\(task\);if\(clear\)this\.clearTaskSelection\(\)/);
+  assert.match(source,/task\/delete"[^}]+task_id:task\.task_id\}\),true\)/);
+  assert.match(source,/bulkAssignPerson\(assigneeId\)\{await this\.runBulkAction\(task=>this\.ws\(/);
+  assert.match(source,/bulkAssignLabel\(labelId,action="add"\)\{await this\.runBulkAction\(task=>this\.ws\(/);
+});
+
+test("labels stay in their visible native table column",()=>{
+  assert.doesNotMatch(source,/extraTemplate:row=>this\.taskLabels|taskLabels\(task\)|className="task-labels"/);
+  assert.match(source,/labels:\{title:t\("table\.label"\),\.\.\.groupable\}/);
+  assert.deepEqual(DEFAULT_HIDDEN_TASK_COLUMNS,["recurrence","rhythm"]);
+});
+
+test("bulk action chips use the same compact shape as native config dashboards",()=>{
+  assert.match(source,/ha-assist-chip\{--ha-assist-chip-container-shape:10px\}/);
+  assert.match(source,/chevron\.slot="trailing-icon"/);
+  assert.match(source,/createElement\("ha-icon-button"\)/);
+  assert.match(source,/mdi:dots-vertical/);
+});
+
 test("panel title uses Home Assistant's compact native title margin",()=>{
   assert.match(source,/wrapper\.mainPage=true/);
   assert.match(source,/wrapper\.style\.setProperty\("--main-title-margin","0"\)/);
@@ -102,6 +143,16 @@ test("native filter pane exposes label assignee recurrence and rhythm filters",(
   assert.match(source,/wrapper\.filters=this\.activeFilterCount\(\)/);
   assert.match(source,/wrapper\.data=filterTaskTableRows\(rows,this\.tableFilters\)/);
   assert.match(source,/wrapper\.addEventListener\("clear-filter"/);
+});
+
+test("closing the native filter pane restores full table row width",()=>{
+  assert.match(source,/wrapper\.style\.width="100%"/);
+  assert.match(source,/wrapper\.addEventListener\("click",event=>this\.filterToggleClicked\(event,wrapper\)\)/);
+  assert.match(source,/event\.composedPath\(\)\.some\(element=>element\?\.localName==="ha-assist-chip"&&element\.label===label\)/);
+  assert.match(source,/requestAnimationFrame\(\(\)=>requestAnimationFrame\(\(\)=>/);
+  assert.match(source,/querySelector\("ha-data-table"\)/);
+  assert.match(source,/removeProperty\("--table-row-width"\)/);
+  assert.match(source,/table\?\.requestUpdate\?\.\(\)/);
 });
 
 test("all filters follow Home Assistant category rows",()=>{

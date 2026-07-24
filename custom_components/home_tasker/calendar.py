@@ -95,8 +95,17 @@ class HomeTaskerCalendar(CalendarEntity):
     def event(self) -> CalendarEvent | None:
         """Return the current or next task event."""
         now = dt_util.utcnow()
-        upcoming = sorted(
-            (task for task in self._store.tasks if task_due_datetime(task) >= now),
+        today = dt_util.as_local(now).date()
+        upcoming = []
+        for task in self._store.tasks:
+            due = parse_task_due(task["task_due"])
+            if (
+                due + timedelta(minutes=1) > now
+                if isinstance(due, datetime)
+                else due >= today
+            ):
+                upcoming.append(task)
+        upcoming.sort(
             key=lambda task: (task_due_datetime(task), task["task_name"].casefold()),
         )
         return self._calendar_event(upcoming[0]) if upcoming else None
