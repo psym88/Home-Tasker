@@ -28,15 +28,6 @@ def test_dashboard_task_commands_allow_authenticated_users():
         assert "websocket_api.require_admin" not in _decorators(function_name)
 
 
-def test_group_mutations_allow_authenticated_users():
-    for function_name in (
-        "ws_group_create",
-        "ws_group_update",
-        "ws_group_delete",
-    ):
-        assert "websocket_api.require_admin" not in _decorators(function_name)
-
-
 def test_upload_allows_authenticated_users():
     source=(ROOT / "custom_components/home_tasker/http.py").read_text(encoding="utf-8")
     assert 'request["hass_user"].is_admin' not in source

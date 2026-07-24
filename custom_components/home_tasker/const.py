@@ -1,15 +1,13 @@
 """Constants for Home Tasker."""
 
 DOMAIN = "home_tasker"
-PLATFORMS = ["binary_sensor", "calendar"]
+PLATFORMS = ["calendar", "sensor", "todo"]
 STORAGE_KEY = DOMAIN
 STORAGE_VERSION = 1
 EVENT_HOME_TASKER = f"{DOMAIN}_event"
-EVENT_TASK_DUE = f"{DOMAIN}_task_due"
 PANEL_URL = "/home-tasker"
 PANEL_TITLE = "Home Tasker"
-PANEL_VERSION = "0.4.0"
-FALLBACK_GROUP_NAME = "Tasks"
+PANEL_VERSION = "0.5.0"
 FRONTEND_URL = f"/{DOMAIN}_frontend"
 TRANSLATIONS_URL = f"/{DOMAIN}_translations"
 PANEL_JS_URL = f"{FRONTEND_URL}/panel.js?v={PANEL_VERSION}"

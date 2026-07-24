@@ -18,18 +18,17 @@ const {DEFAULT_HIDDEN_TASK_COLUMNS,DEFAULT_TASK_COLUMN_ORDER,INITIAL_TASK_SORTIN
 const source=readFileSync(new URL("../../custom_components/home_tasker/frontend/task-list.js",import.meta.url),"utf8");
 
 test("task rows flatten every grouping dimension and resolve ids to names",()=>{
-  const tasks=[{id:"laundry",name:"Laundry",due_date:"2026-07-24",recurrence_mode:"fixed",frequency:"weekly",group_id:"house",assignee_user_id:"alex",nfc_tag_id:"washer"}];
+  const tasks=[{task_id:"laundry",task_name:"Laundry",task_due:"2026-07-24",schedule_type:"fixed",schedule_unit:"weekly",assignee_id:"alex",nfc_tag_id:"washer"}];
   const original=structuredClone(tasks);
-  const attachments=[{id:"a",task_id:"laundry"},{id:"b",task_id:"laundry"},{id:"c",task_id:"other"}];
-  const [row]=taskTableRows(tasks,{groups:[{id:"house",name:"House"}],users:[{id:"alex",name:"Alex"}],tags:[{id:"washer",name:"Washer"}],attachments,translate:key=>key});
-  assert.deepEqual({id:row.id,name:row.name,recurrence:row.recurrence,rhythm:row.rhythm,group:row.group,assignee:row.assignee,nfc_tag:row.nfc_tag,files:row.files},{id:"laundry",name:"Laundry",recurrence:"task.fixed",rhythm:"task.weekly",group:"House",assignee:"Alex",nfc_tag:"Washer",files:2});
+  const attachments=[{attachment_id:"a",task_id:"laundry"},{attachment_id:"b",task_id:"laundry"},{attachment_id:"c",task_id:"other"}];
+  const [row]=taskTableRows(tasks,{users:[{id:"alex",name:"Alex"}],tags:[{id:"washer",name:"Washer"}],attachments,translate:key=>key});
+  assert.deepEqual({id:row.id,name:row.name,recurrence:row.recurrence,rhythm:row.rhythm,assignee:row.assignee,nfc_tag:row.nfc_tag,files:row.files},{id:"laundry",name:"Laundry",recurrence:"task.fixed",rhythm:"task.weekly",assignee:"Alex",nfc_tag:"Washer",files:2});
   assert.equal(row.task,tasks[0]);
   assert.deepEqual(tasks,original);
 });
 
-test("missing assignments receive localized searchable group values",()=>{
-  const [row]=taskTableRows([{id:"task",name:"Task",frequency:"daily"}],{translate:key=>`translated:${key}`});
-  assert.equal(row.group,"translated:task.no_group");
+test("missing assignments receive localized searchable values",()=>{
+  const [row]=taskTableRows([{task_id:"task",task_name:"Task",schedule_unit:"daily"}],{translate:key=>`translated:${key}`});
   assert.equal(row.assignee,"translated:task.unassigned");
   assert.equal(row.nfc_tag,"translated:task.no_nfc_tag");
   assert.equal(row.files,0);
@@ -43,11 +42,11 @@ test("due timestamps validate calendar dates and represent missing dates as the 
 
 test("native pane filters combine dimensions and allow multiple values within one dimension",()=>{
   const rows=[
-    {id:"1",group:"House",assignee:"Alex",recurrence:"Fixed",rhythm:"Weekly"},
-    {id:"2",group:"Garden",assignee:"Alex",recurrence:"Sliding",rhythm:"Monthly"},
-    {id:"3",group:"House",assignee:"Sam",recurrence:"Fixed",rhythm:"Daily"},
+    {id:"1",assignee:"Alex",recurrence:"Fixed",rhythm:"Weekly"},
+    {id:"2",assignee:"Alex",recurrence:"Sliding",rhythm:"Monthly"},
+    {id:"3",assignee:"Sam",recurrence:"Fixed",rhythm:"Daily"},
   ];
-  assert.deepEqual(filterTaskTableRows(rows,{group:["House"],assignee:["Alex"]}).map(row=>row.id),["1"]);
+  assert.deepEqual(filterTaskTableRows(rows,{assignee:["Alex"]}).map(row=>row.id),["1","2"]);
   assert.deepEqual(filterTaskTableRows(rows,{rhythm:["Weekly","Daily"]}).map(row=>row.id),["1","3"]);
   assert.deepEqual(filterTaskTableRows(rows,{recurrence:["Fixed"]}).map(row=>row.id),["1","3"]);
   assert.equal(filterTaskTableRows(rows,{}).length,3);
@@ -61,28 +60,32 @@ test("panel uses the native Home Assistant data-table wrapper",()=>{
   assert.doesNotMatch(source,/groupRow\(|wireGroup\(|placeholder-add|class="group"/);
 });
 
+test("panel title uses Home Assistant's compact native title margin",()=>{
+  assert.match(source,/wrapper\.mainPage=true/);
+  assert.match(source,/wrapper\.style\.setProperty\("--main-title-margin","0"\)/);
+});
+
 test("table starts with the requested visible columns in order",()=>{
-  assert.deepEqual(DEFAULT_TASK_COLUMN_ORDER,["name","due_ts","assignee","group","nfc_tag","files","actions","recurrence","rhythm"]);
+  assert.deepEqual(DEFAULT_TASK_COLUMN_ORDER,["name","due_ts","assignee","nfc_tag","files","actions","recurrence","rhythm"]);
   assert.deepEqual(DEFAULT_HIDDEN_TASK_COLUMNS,["recurrence","rhythm"]);
   assert.match(source,/wrapper\.columnOrder=\[\.\.\.DEFAULT_TASK_COLUMN_ORDER\]/);
   assert.match(source,/wrapper\.hiddenColumns=\[\.\.\.DEFAULT_HIDDEN_TASK_COLUMNS\]/);
   assert.match(source,/recurrence:\{title:t\("table\.recurrence"\),defaultHidden:true,\.\.\.groupable\}/);
   assert.match(source,/rhythm:\{title:t\("table\.rhythm"\),defaultHidden:true,\.\.\.groupable\}/);
-  assert.ok(source.indexOf('assignee:{title:t("table.assignee")')<source.indexOf('group:{title:t("task.group")'));
   assert.ok(source.indexOf('files:{title:t("task.files")')<source.indexOf('recurrence:{title:t("table.recurrence")'));
   assert.ok(source.indexOf('rhythm:{title:t("table.rhythm")')<source.indexOf('actions:{title:""'));
 });
 
 test("only the requested dimensions can group the native table",()=>{
-  assert.deepEqual(TASK_GROUP_COLUMNS,["recurrence","rhythm","group","assignee"]);
+  assert.deepEqual(TASK_GROUP_COLUMNS,["recurrence","rhythm","assignee"]);
   for(const column of TASK_GROUP_COLUMNS)assert.match(source,new RegExp(`${column}:\\{title:[^}]+\\.\\.\\.groupable`));
   assert.match(source,/nfc_tag:\{title:[^}]+sortable:true,filterable:true\}/);
   assert.doesNotMatch(source,/initialGroupColumn/);
   assert.doesNotMatch(source,/tableGrouping|table\.groupColumn=/);
 });
 
-test("native filter pane exposes group assignee recurrence and rhythm filters",()=>{
-  assert.deepEqual(TASK_FILTER_COLUMNS,["group","assignee","recurrence","rhythm"]);
+test("native filter pane exposes assignee recurrence and rhythm filters",()=>{
+  assert.deepEqual(TASK_FILTER_COLUMNS,["assignee","recurrence","rhythm"]);
   assert.match(source,/filterPane\.className="filters"/);
   assert.match(source,/filterPane\.slot="filter-pane"/);
   assert.match(source,/for\(const column of TASK_FILTER_COLUMNS\)/);
@@ -97,18 +100,13 @@ test("native filter pane exposes group assignee recurrence and rhythm filters",(
   assert.match(source,/wrapper\.addEventListener\("clear-filter"/);
 });
 
-test("all filters follow Home Assistant category rows while only groups expose actions",()=>{
-  const groupFilter=readFileSync(new URL("../../custom_components/home_tasker/frontend/filter-category.js",import.meta.url),"utf8");
+test("all filters follow Home Assistant category rows",()=>{
+  const filterCategory=readFileSync(new URL("../../custom_components/home_tasker/frontend/filter-category.js",import.meta.url),"utf8");
   const actionMenu=readFileSync(new URL("../../custom_components/home_tasker/frontend/action-menu.js",import.meta.url),"utf8");
-  assert.match(groupFilter,/createElement\("ha-list-item"\)/);
-  assert.match(groupFilter,/item\.hasMeta=this\.actions/);
-  assert.match(groupFilter,/dropdown\.slot="meta"/);
-  assert.match(groupFilter,/createActionMenu\(/);
-  assert.match(groupFilter,/this\.controller\?\.groupEditor\(group\)/);
-  assert.match(groupFilter,/this\.controller\?\.deleteGroup\(group\)/);
+  assert.match(filterCategory,/createElement\("ha-list-item"\)/);
+  assert.doesNotMatch(filterCategory,/createActionMenu|groupEditor|deleteGroup/);
   assert.match(actionMenu,/createElement\("ha-dropdown"\)/);
   assert.match(actionMenu,/dropdown\.addEventListener\("click",\s*stop\)/);
-  assert.match(source,/filter\.actions=column==="group"/);
 });
 
 test("search is delegated completely to the native Home Assistant table",()=>{
@@ -136,7 +134,7 @@ test("files column shows the sortable attachment count",()=>{
 test("task action menu stops pointer and click propagation",()=>{
   const actionMenu=readFileSync(new URL("../../custom_components/home_tasker/frontend/action-menu.js",import.meta.url),"utf8");
   assert.match(source,/return createActionMenu\(/);
-  assert.match(source,/edit:\(\)=>this\.taskEditor\(task\.group_id,task\)/);
+  assert.match(source,/edit:\(\)=>this\.taskEditor\(task\)/);
   assert.match(source,/remove:\(\)=>this\.deleteTask\(task\)/);
   assert.match(actionMenu,/createElement\("ha-dropdown"\)/);
   assert.match(actionMenu,/createElement\("ha-dropdown-item"\)/);

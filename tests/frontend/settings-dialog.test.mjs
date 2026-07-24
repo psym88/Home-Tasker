@@ -11,6 +11,10 @@ test("settings uses a native dialog with a collapsible import/export section", (
   assert.doesNotMatch(source, /<details>|<summary>|summary::after/);
   assert.match(source, /application\/zip/);
   assert.match(source, /confirmAction/);
+  assert.match(source, /t\("settings\.import_export"\)/);
+  assert.match(source, /<div class="status ht-content" role="status"><\/div><ha-dialog-footer>/);
+  assert.match(source, /slot="secondaryAction"/);
+  assert.match(source, /slot="primaryAction"/);
 });
 
 test("panel archive import relies on its Home Tasker event after the request", () => {

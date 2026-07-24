@@ -5,7 +5,7 @@ import test from "node:test";
 const { TYPOGRAPHY_STYLES, withStyles } = await import("../../custom_components/home_tasker/frontend/styles.js");
 const source = readFileSync(new URL("../../custom_components/home_tasker/frontend/styles.js", import.meta.url), "utf8");
 
-test("shared styles contain only current shell form typography and pill concerns", () => {
+test("shared styles contain only current shell form and typography concerns", () => {
   assert.doesNotMatch(source, /groupListStyles|GROUP_LIST_BACKGROUND|GROUP_HEADER_BACKGROUND|compactDetailsStyles|dialogLayoutStyles|iconHoverStyles|taskSurfaceStyles/);
   assert.doesNotMatch(source, /\.group-head|\.tasks\{|\.chev|\.filter\{|\.version|details-toggle|summary::after/);
 });
@@ -22,7 +22,7 @@ test("form styles are limited to the remaining form and structural layouts", () 
   const css = new StyleModel().formStyles();
   assert.match(css, /form,label/);
   assert.match(css, /\.details-content\{display:flex/);
-  assert.match(css, /\[data-field="description"\] textarea\{min-height:120px\}/);
+  assert.match(css, /\[data-field="task_description"\] textarea\{min-height:120px\}/);
   assert.doesNotMatch(css, /\.drop-zone/);
   assert.doesNotMatch(css, /details-toggle|summary|box-shadow|!important/);
 });
@@ -33,12 +33,10 @@ test("shared typography classes use Home Assistant tokens", () => {
   assert.doesNotMatch(TYPOGRAPHY_STYLES, /!important|summary|details/);
 });
 
-test("pills use identical fixed geometry in cards and dialogs", () => {
+test("shared styles leave chip geometry to Home Assistant", () => {
   class StyleModel extends withStyles(class {}) {}
   const model = new StyleModel();
-  assert.match(model.pillIconCss(), /font-size:12px/);
-  assert.match(model.pillIconCss(), /line-height:16px/);
-  assert.match(model.pillIconCss(), /\.pill ha-icon\{display:block;align-self:center;--mdc-icon-size:14px/);
-  assert.match(model.pillIconCss(), /line-height:14px/);
-  assert.equal(model.pillStyles(), `<style>${model.pillIconCss()}</style>`);
+  assert.equal(typeof model.pillIconCss, "undefined");
+  assert.equal(typeof model.pillStyles, "undefined");
+  assert.doesNotMatch(source, /\.pill|ha-assist-chip|ha-chip-set/);
 });

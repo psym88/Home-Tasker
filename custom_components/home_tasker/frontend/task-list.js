@@ -4,37 +4,36 @@ import "./filter-category.js";
 
 export const NO_DUE_TIMESTAMP = Number.MAX_SAFE_INTEGER;
 export const INITIAL_TASK_SORTING = {column:"due_ts",direction:"asc"};
-export const DEFAULT_TASK_COLUMN_ORDER = ["name","due_ts","assignee","group","nfc_tag","files","actions","recurrence","rhythm"];
+export const DEFAULT_TASK_COLUMN_ORDER = ["name","due_ts","assignee","nfc_tag","files","actions","recurrence","rhythm"];
 export const DEFAULT_HIDDEN_TASK_COLUMNS = ["recurrence","rhythm"];
-export const TASK_GROUP_COLUMNS = ["recurrence","rhythm","group","assignee"];
-export const TASK_FILTER_COLUMNS = ["group","assignee","recurrence","rhythm"];
+export const TASK_GROUP_COLUMNS = ["recurrence","rhythm","assignee"];
+export const TASK_FILTER_COLUMNS = ["assignee","recurrence","rhythm"];
 
 export function dueTimestamp(value) {
-  const match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value||""));
+  const text=String(value||""),match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
+  if(text.includes("T")){const timestamp=Date.parse(text);return Number.isNaN(timestamp)?NO_DUE_TIMESTAMP:timestamp;}
   if(!match)return NO_DUE_TIMESTAMP;
   const year=Number(match[1]),month=Number(match[2]),day=Number(match[3]),date=new Date(year,month-1,day);
   return date.getFullYear()===year&&date.getMonth()===month-1&&date.getDate()===day?date.getTime():NO_DUE_TIMESTAMP;
 }
 
-export function taskTableRows(tasks,{groups=[],users=[],tags=[],attachments=[],translate=t}={}) {
-  const groupNames=new Map(groups.map(group=>[group.id,group.name]));
+export function taskTableRows(tasks,{users=[],tags=[],attachments=[],translate=t}={}) {
   const userNames=new Map(users.map(user=>[user.id,user.name]));
   const tagNames=new Map(tags.map(tag=>[tag.id,tag.name]));
   const fileCounts=new Map();
   for(const file of attachments)fileCounts.set(file.task_id,(fileCounts.get(file.task_id)||0)+1);
   return tasks.map(task=>{
-    const frequency=["daily","weekly","monthly","yearly"].includes(task.frequency)?task.frequency:"monthly";
+    const schedule_unit=["daily","weekly","monthly","yearly"].includes(task.schedule_unit)?task.schedule_unit:"monthly";
     return {
-      id:task.id,
+      id:task.task_id,
       task,
-      name:task.name||"",
-      due_ts:dueTimestamp(task.due_date),
-      recurrence:translate(`task.${task.recurrence_mode==="fixed"?"fixed":"sliding"}`),
-      rhythm:translate(`task.${frequency}`),
-      group:groupNames.get(task.group_id)||task.group_id||translate("task.no_group"),
-      assignee:userNames.get(task.assignee_user_id)||task.assignee_user_id||translate("task.unassigned"),
+      name:task.task_name||"",
+      due_ts:dueTimestamp(task.task_due),
+      recurrence:translate(`task.${task.schedule_type==="fixed"?"fixed":"sliding"}`),
+      rhythm:translate(`task.${schedule_unit}`),
+      assignee:userNames.get(task.assignee_id)||task.assignee_id||translate("task.unassigned"),
       nfc_tag:tagNames.get(task.nfc_tag_id)||task.nfc_tag_id||translate("task.no_nfc_tag"),
-      files:fileCounts.get(task.id)||0,
+      files:fileCounts.get(task.task_id)||0,
     };
   });
 }
@@ -52,17 +51,16 @@ function textCell(value,title) {
 
 export const withTaskList = Base => class extends Base {
   tagName(task){const id=task?.nfc_tag_id;return id?(this.tags?.find(tag=>tag.id===id)?.name||id):"";}
-  tableRows(){return taskTableRows(this.tasks,{groups:this.groups,users:this.users,tags:this.tags,attachments:this.attachments,translate:t});}
-  filterLabel(schema){return {group:t("task.group"),assignee:t("table.assignee"),recurrence:t("table.recurrence"),rhythm:t("table.rhythm")}[schema.name]||schema.name;}
-  filterItems(rows,column){return column==="group"?this.groups.map(group=>({value:group.name,label:group.name,source:group})):[...new Set(rows.map(row=>row[column]))].map(value=>({value,label:value}));}
+  tableRows(){return taskTableRows(this.tasks,{users:this.users,tags:this.tags,attachments:this.attachments,translate:t});}
+  filterLabel(schema){return {assignee:t("table.assignee"),recurrence:t("table.recurrence"),rhythm:t("table.rhythm")}[schema.name]||schema.name;}
+  filterItems(rows,column){return [...new Set(rows.map(row=>row[column]))].map(value=>({value,label:value}));}
   activeFilterCount(){return TASK_FILTER_COLUMNS.reduce((count,column)=>count+(this.tableFilters?.[column]?.length||0),0);}
   tableColumns(){
     const groupable={sortable:true,filterable:true,groupable:true};
     return {
       name:{title:t("table.task"),main:true,sortable:true,filterable:true,flex:3},
-      due_ts:{title:t("task.due"),sortable:true,filterable:false,template:row=>textCell(row.task.due_date?this.relativeDate(row.task.due_date):"–",row.task.due_date?this.date(row.task.due_date):"")},
+      due_ts:{title:t("task.due"),sortable:true,filterable:false,template:row=>textCell(row.task.task_due?this.relativeDate(row.task.task_due):"–",row.task.task_due?this.date(row.task.task_due):"")},
       assignee:{title:t("table.assignee"),...groupable},
-      group:{title:t("task.group"),...groupable},
       nfc_tag:{title:t("task.nfc_tag_id"),sortable:true,filterable:true},
       files:{title:t("task.files"),sortable:true,filterable:false},
       recurrence:{title:t("table.recurrence"),defaultHidden:true,...groupable},
@@ -73,7 +71,7 @@ export const withTaskList = Base => class extends Base {
   taskActionButton(task){
     return createActionMenu({
       label:t("task.actions"),
-      edit:()=>this.taskEditor(task.group_id,task),
+      edit:()=>this.taskEditor(task),
       remove:()=>this.deleteTask(task),
     });
   }
@@ -82,7 +80,8 @@ export const withTaskList = Base => class extends Base {
       this.shadowRoot.innerHTML=`<style>:host{display:block;height:100%;background:var(--primary-background-color);color:var(--primary-text-color)}.app,hass-tabs-subpage-data-table{display:block;height:100%}.filters{box-sizing:border-box;width:100%}</style><div class="app"></div>`;
       const wrapper=document.createElement("hass-tabs-subpage-data-table"),settings=document.createElement("ha-icon-button"),settingsIcon=document.createElement("ha-icon"),filterPane=document.createElement("div"),fab=document.createElement("ha-button"),fabIcon=document.createElement("ha-icon");
       wrapper.className="task-table";
-      wrapper.setAttribute("main-page","");
+      wrapper.mainPage=true;
+      wrapper.style.setProperty("--main-title-margin","0");
       wrapper.setAttribute("clickable","");
       wrapper.setAttribute("has-fab","");
       wrapper.setAttribute("has-filters","");
@@ -104,7 +103,7 @@ export const withTaskList = Base => class extends Base {
       fab.addEventListener("click",()=>this.taskEditor(null));
       wrapper.append(settings,filterPane,fab);
       this.shadowRoot.querySelector(".app").append(wrapper);
-      wrapper.addEventListener("row-click",event=>{const task=this.tasks.find(item=>item.id===event.detail?.id);if(task)this.taskViewer(task);});
+      wrapper.addEventListener("row-click",event=>{const task=this.tasks.find(item=>item.task_id===event.detail?.id);if(task)this.taskViewer(task);});
       wrapper.addEventListener("clear-filter",()=>{this.tableFilters={};this.updateTaskTable();});
     }
     this.updateTaskTable();
@@ -115,7 +114,7 @@ export const withTaskList = Base => class extends Base {
     const settings=wrapper.querySelector('[slot="toolbar-icon"]'),fab=wrapper.querySelector('[slot="fab"]'),rows=this.tableRows();
     if(settings){settings.label=t("settings.title");settings.title=t("settings.title");settings.setAttribute("aria-label",t("settings.title"));}
     if(fab){for(const node of [...fab.childNodes])if(node.nodeType===3)node.remove();fab.append(document.createTextNode(t("common.add_task")));}
-    wrapper.querySelectorAll("home-tasker-filter-category").forEach(filter=>{const column=filter.dataset.column;filter.controller=this;filter.label=this.filterLabel({name:column});filter.icon={group:"mdi:devices",assignee:"mdi:account",recurrence:"mdi:calendar-sync",rhythm:"mdi:repeat"}[column];filter.actions=column==="group";filter.items=this.filterItems(rows,column);filter.value=this.tableFilters?.[column]||[];});
+    wrapper.querySelectorAll("home-tasker-filter-category").forEach(filter=>{const column=filter.dataset.column;filter.controller=this;filter.label=this.filterLabel({name:column});filter.icon={assignee:"mdi:account",recurrence:"mdi:calendar-sync",rhythm:"mdi:repeat"}[column];filter.items=this.filterItems(rows,column);filter.value=this.tableFilters?.[column]||[];});
     wrapper.hass=this._hass;
     wrapper.route=this.route;
     wrapper.tabs=[{name:"Home Tasker",path:""}];

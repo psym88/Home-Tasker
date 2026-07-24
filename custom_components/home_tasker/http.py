@@ -49,7 +49,7 @@ class UploadView(HomeAssistantView):
             request.app["hass"],
             "created",
             "attachment",
-            record["id"],
+            record["attachment_id"],
             context=Context(user_id=request[KEY_HASS_USER].id),
             task_id=task_id,
         )
@@ -57,7 +57,7 @@ class UploadView(HomeAssistantView):
             **record,
             "signed_url": async_sign_path(
                 request.app["hass"],
-                f"{DOWNLOAD_URL}/{record['id']}",
+                f"{DOWNLOAD_URL}/{record['attachment_id']}",
                 timedelta(hours=1),
             ),
         })

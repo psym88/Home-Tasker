@@ -20,7 +20,6 @@ def _store(tasks):
     store._lock = asyncio.Lock()
     store._store = MemoryStore()
     store._data = {
-        "groups": [{"id": "group-1", "name": "Tasks"}],
         "tasks": tasks,
         "history": {},
         "attachments": [],
@@ -30,14 +29,13 @@ def _store(tasks):
 
 def _task(task_id="task-1", tag_id=None):
     return {
-        "id": task_id,
-        "name": task_id,
-        "group_id": "group-1",
+        "task_id": task_id,
+        "task_name": task_id,
         "nfc_tag_id": tag_id,
-        "due_date": "2026-07-22",
-        "recurrence_mode": "sliding",
-        "frequency": "daily",
-        "interval": 1,
+        "task_due": "2026-07-22",
+        "schedule_type": "sliding",
+        "schedule_unit": "daily",
+        "schedule_interval": 1,
     }
 
 
@@ -46,14 +44,14 @@ def test_tag_id_is_trimmed_and_unique():
         store = _store([_task(tag_id="existing")])
         payload = {
             **_task("new", "  tag-2  "),
-            "recurrence_mode": "sliding",
-            "frequency": "daily",
-            "interval": 1,
+            "schedule_type": "sliding",
+            "schedule_unit": "daily",
+            "schedule_interval": 1,
         }
         created = await store.async_add_task(payload, date(2026, 7, 22))
         assert created["nfc_tag_id"] == "tag-2"
         with pytest.raises(ValueError, match="nfc_tag_already_assigned"):
-            await store.async_update_task(created["id"], {"nfc_tag_id": "existing"})
+            await store.async_update_task(created["task_id"], {"nfc_tag_id": "existing"})
 
     asyncio.run(run())
 
@@ -84,7 +82,6 @@ def test_matching_scan_completes_task_with_event_user(monkeypatch):
                 (hass, "completed", "task", "task-1"),
                 {
                     "context": event.context,
-                    "group_id": "group-1",
                     "resource_name": "task-1",
                     "source": "nfc",
                 },

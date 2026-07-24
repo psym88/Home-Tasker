@@ -24,7 +24,7 @@ async def async_handle_tag_scanned(
     user_id = event.context.user_id
     user = await hass.auth.async_get_user(user_id) if user_id else None
     await store.async_complete_task(
-        task["id"],
+        task["task_id"],
         dt_util.now().date().isoformat(),
         user.id if user else None,
         user.name if user and user.name else "NFC tag",
@@ -34,10 +34,9 @@ async def async_handle_tag_scanned(
         hass,
         "completed",
         "task",
-        task["id"],
+        task["task_id"],
         context=event.context,
-        group_id=task.get("group_id"),
-        resource_name=task.get("name"),
+        resource_name=task.get("task_name"),
         source="nfc",
     )
 

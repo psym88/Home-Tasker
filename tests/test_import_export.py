@@ -25,10 +25,9 @@ def archive_store(tmp_path: Path) -> HomeTaskerStore:
     store._upload_dir = tmp_path / "uploads"
     store._lock = asyncio.Lock()
     store._data = {
-        "groups": [{"id": "group-1", "name": "Home"}],
-        "tasks": [{"id": "task-1", "group_id": "group-1", "name": "Bins"}],
-        "history": {"task-1": [{"id": "history-1"}]},
-        "attachments": [{"id": "file-1", "task_id": "task-1", "size": 7}],
+        "tasks": [{"task_id": "task-1", "task_name": "Bins"}],
+        "history": {"task-1": [{"history_entry_id": "history-1"}]},
+        "attachments": [{"attachment_id": "file-1", "task_id": "task-1", "size": 7}],
     }
     store._upload_dir.mkdir(parents=True)
     (store._upload_dir / "file-1").write_bytes(b"content")
@@ -41,7 +40,7 @@ def test_export_and_import_replace_all_data_and_files(tmp_path):
         data, files = await source.async_export_archive()
 
         target = archive_store(tmp_path / "target")
-        target._data["groups"][0]["name"] = "Old data"
+        target._data["tasks"][0]["task_name"] = "Old data"
         (target._upload_dir / "obsolete").write_bytes(b"old")
         await target.async_import_archive(data, files)
 
@@ -59,13 +58,8 @@ def test_import_rejects_incomplete_or_inconsistent_archives(tmp_path):
 
     with pytest.raises(ValueError, match="invalid_archive_files"):
         store.validate_import(data, {})
-    with pytest.raises(ValueError, match="invalid_archive_group"):
-        store.validate_import(
-            {**data, "tasks": [{**data["tasks"][0], "group_id": "missing"}]},
-            {"file-1": b"content"},
-        )
     with pytest.raises(ValueError, match="invalid_archive_ids"):
         store.validate_import(
-            {**data, "attachments": [{**data["attachments"][0], "id": "../file"}]},
+            {**data, "attachments": [{**data["attachments"][0], "attachment_id": "../file"}]},
             {"../file": b"content"},
         )

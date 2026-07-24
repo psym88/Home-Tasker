@@ -9,6 +9,7 @@ from homeassistant.core import HomeAssistant
 
 from . import http, nfc, websocket
 from .const import CARD_JS_URL, DOMAIN, FRONTEND_URL, PANEL_JS_URL, PANEL_TITLE, PANEL_URL, PLATFORMS, TRANSLATIONS_URL
+from .due import TaskDueEventScheduler
 from .models import HomeTaskerData
 from .store import HomeTaskerStore
 
@@ -29,7 +30,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     upload_dir = Path(hass.config.path(DOMAIN, "uploads"))
     store = HomeTaskerStore(hass, upload_dir)
     await store.async_load()
-    entry.runtime_data = HomeTaskerData(store)
+    due_scheduler = TaskDueEventScheduler(hass, store)
+    entry.runtime_data = HomeTaskerData(store, due_scheduler)
+    due_scheduler.start()
+    entry.async_on_unload(due_scheduler.stop)
     entry.async_on_unload(nfc.async_setup_listener(hass, store))
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     frontend.add_extra_js_url(hass, CARD_JS_URL)

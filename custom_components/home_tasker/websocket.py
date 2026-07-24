@@ -11,40 +11,33 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.util import dt as dt_util
 
 from .const import DOWNLOAD_URL
-from .events import (
-    async_fire_home_tasker_event,
-    async_fire_task_due_event,
-    task_became_due,
-)
+from .due import task_due_date, task_due_with_date
+from .events import async_fire_home_tasker_event
 from .helpers import get_store
 from .scheduler import due_sequence, next_due_sequence, validate_schedule
 
 TEXT = vol.Any(str, None)
-GROUP_FIELDS = {vol.Required("name"): str, vol.Optional("manufacturer"): TEXT, vol.Optional("model"): TEXT, vol.Optional("icon"): TEXT, vol.Optional("description"): TEXT}
 SCHEDULE_FIELDS = {
-    vol.Required("recurrence_mode"): vol.In(("fixed", "sliding")),
-    vol.Required("frequency"): vol.In(("daily", "weekly", "monthly", "yearly")),
-    vol.Required("interval"): vol.All(vol.Coerce(int), vol.Range(min=1)),
-    vol.Optional("weekdays", default=[]): [vol.All(vol.Coerce(int), vol.Range(min=0, max=6))],
-    vol.Optional("day_of_month"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=1, max=31)), "last", None),
-    vol.Optional("month_of_year"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=1, max=12)), None),
+    vol.Required("schedule_type"): vol.In(("fixed", "sliding")),
+    vol.Required("schedule_unit"): vol.In(("daily", "weekly", "monthly", "yearly")),
+    vol.Required("schedule_interval"): vol.All(vol.Coerce(int), vol.Range(min=1)),
+    vol.Optional("schedule_weekdays", default=[]): [vol.All(vol.Coerce(int), vol.Range(min=0, max=6))],
+    vol.Optional("schedule_day"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=1, max=31)), "last", None),
+    vol.Optional("schedule_month"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=1, max=12)), None),
 }
 TASK_FIELDS = {
-    vol.Required("name"): str,
-    vol.Optional("description"): TEXT,
-    vol.Optional("assignee_user_id"): TEXT,
+    vol.Required("task_name"): str,
+    vol.Optional("task_description"): TEXT,
+    vol.Optional("assignee_id"): TEXT,
     vol.Optional("nfc_tag_id"): TEXT,
-    vol.Optional("start_date"): TEXT,
+    vol.Optional("schedule_start_date"): TEXT,
+    vol.Optional("task_due"): str,
     **SCHEDULE_FIELDS,
 }
-TASK_GROUP_FIELDS = {
-    vol.Optional("group_id"): vol.Any(str, None),
-    vol.Optional("group_name"): TEXT,
-}
 PREVIEW_FIELDS = {
-    vol.Optional("due_date"): str,
-    vol.Optional("schedule_anchor"): str,
-    vol.Optional("start_date"): TEXT,
+    vol.Optional("task_due"): str,
+    vol.Optional("schedule_anchor_date"): str,
+    vol.Optional("schedule_start_date"): TEXT,
     **SCHEDULE_FIELDS,
     vol.Optional("count", default=2): vol.All(vol.Coerce(int), vol.Range(min=1, max=24)),
 }
@@ -104,9 +97,9 @@ async def ws_list(hass, connection, msg, store):
     result = store.snapshot()
     result["today"] = dt_util.now().date().isoformat()
     result["signed_files"] = {
-        item["id"]: async_sign_path(
+        item["attachment_id"]: async_sign_path(
             hass,
-            f"{DOWNLOAD_URL}/{item['id']}",
+            f"{DOWNLOAD_URL}/{item['attachment_id']}",
             timedelta(hours=1),
             refresh_token_id=connection.refresh_token_id,
         )
@@ -121,46 +114,7 @@ async def ws_list(hass, connection, msg, store):
     connection.send_result(msg["id"], result)
 
 
-@websocket_api.websocket_command({vol.Required("type"): "home_tasker/group/create", **GROUP_FIELDS})
-@websocket_api.async_response
-@require_store
-async def ws_group_create(hass, connection, msg, store):
-    result = await store.async_add_group(msg)
-    connection.send_result(msg["id"], result)
-    updated(
-        hass, connection, msg, "created", "group", result["id"],
-        resource_name=result["name"],
-    )
-
-
-@websocket_api.websocket_command({vol.Required("type"): "home_tasker/group/update", vol.Required("group_id"): str, **{vol.Optional(k.schema): v for k, v in GROUP_FIELDS.items()}})
-@websocket_api.async_response
-@require_store
-async def ws_group_update(hass, connection, msg, store):
-    result = await store.async_update_group(msg["group_id"], msg)
-    connection.send_result(msg["id"], result)
-    updated(
-        hass, connection, msg, "updated", "group", msg["group_id"],
-        resource_name=result["name"],
-    )
-
-
-@websocket_api.websocket_command({vol.Required("type"): "home_tasker/group/delete", vol.Required("group_id"): str})
-@websocket_api.async_response
-@require_store
-async def ws_group_delete(hass, connection, msg, store):
-    group = next(
-        (item for item in store.groups if item["id"] == msg["group_id"]), None
-    )
-    await store.async_delete_group(msg["group_id"])
-    connection.send_result(msg["id"])
-    updated(
-        hass, connection, msg, "deleted", "group", msg["group_id"],
-        resource_name=group.get("name") if group else None,
-    )
-
-
-@websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/create", **TASK_GROUP_FIELDS, **TASK_FIELDS})
+@websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/create", **TASK_FIELDS})
 @websocket_api.async_response
 @require_store
 async def ws_task_create(hass, connection, msg, store):
@@ -169,17 +123,12 @@ async def ws_task_create(hass, connection, msg, store):
     result = await store.async_add_task(msg, today)
     connection.send_result(msg["id"], result)
     updated(
-        hass, connection, msg, "created", "task", result["id"],
-        group_id=result["group_id"],
-        resource_name=result["name"],
+        hass, connection, msg, "created", "task", result["task_id"],
+        resource_name=result["task_name"],
     )
-    if task_became_due(None, result, today):
-        async_fire_task_due_event(
-            hass, result, "created", context=connection.context(msg)
-        )
 
 
-@websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/update", vol.Required("task_id"): str, **TASK_GROUP_FIELDS, **{vol.Optional(k.schema): v for k, v in TASK_FIELDS.items()}})
+@websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/update", vol.Required("task_id"): str, **{vol.Optional(k.schema): v for k, v in TASK_FIELDS.items()}})
 @websocket_api.async_response
 @require_store
 async def ws_task_update(hass, connection, msg, store):
@@ -190,13 +139,8 @@ async def ws_task_update(hass, connection, msg, store):
     connection.send_result(msg["id"], result)
     updated(
         hass, connection, msg, "updated", "task", msg["task_id"],
-        group_id=result["group_id"],
-        resource_name=result["name"],
+        resource_name=result["task_name"],
     )
-    if task_became_due(previous, result, today):
-        async_fire_task_due_event(
-            hass, result, "updated", context=connection.context(msg)
-        )
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/task/delete", vol.Required("task_id"): str})
@@ -208,8 +152,7 @@ async def ws_task_delete(hass, connection, msg, store):
     connection.send_result(msg["id"])
     updated(
         hass, connection, msg, "deleted", "task", msg["task_id"],
-        group_id=task.get("group_id") if task else None,
-        resource_name=task.get("name") if task else None,
+        resource_name=task.get("task_name") if task else None,
     )
 
 
@@ -221,14 +164,16 @@ async def ws_task_delete(hass, connection, msg, store):
 async def ws_task_preview_next_due(hass, connection, msg, store):
     """Preview recurrence using the authoritative backend scheduler."""
     validate_schedule(msg)
-    if msg.get("due_date"):
-        current = date.fromisoformat(msg["due_date"])
-        due_dates = [current, *next_due_sequence(msg, current, msg["count"] - 1)]
+    if msg.get("task_due"):
+        current = task_due_date(msg)
+        task_dues = [current, *next_due_sequence(msg, current, msg["count"] - 1)]
+        serialized = [task_due_with_date(msg, due) for due in task_dues]
     else:
-        due_dates = due_sequence(msg, dt_util.now().date(), msg["count"])
+        task_dues = due_sequence(msg, dt_util.now().date(), msg["count"])
+        serialized = [due.isoformat() for due in task_dues]
     connection.send_result(
         msg["id"],
-        {"due_dates": [due.isoformat() for due in due_dates]},
+        {"task_dues": serialized},
     )
 
 
@@ -254,8 +199,7 @@ async def ws_task_complete(hass, connection, msg, store):
     connection.send_result(msg["id"], result)
     updated(
         hass, connection, msg, "completed", "task", msg["task_id"],
-        group_id=result.get("group_id"),
-        resource_name=result.get("name"),
+        resource_name=result.get("task_name"),
     )
 
 
@@ -266,22 +210,16 @@ async def ws_history_list(hass, connection, msg, store):
     connection.send_result(msg["id"], {"history": store.history(msg["task_id"])})
 
 
-@websocket_api.websocket_command({vol.Required("type"): "home_tasker/history/delete", vol.Required("task_id"): str, vol.Required("entry_id"): str})
+@websocket_api.websocket_command({vol.Required("type"): "home_tasker/history/delete", vol.Required("task_id"): str, vol.Required("history_entry_id"): str})
 @websocket_api.async_response
 @require_store
 async def ws_history_delete(hass, connection, msg, store):
-    previous = store.task(msg["task_id"])
-    result = await store.async_delete_history(msg["task_id"], msg["entry_id"])
+    result = await store.async_delete_history(msg["task_id"], msg["history_entry_id"])
     connection.send_result(msg["id"], result)
     updated(
-        hass, connection, msg, "deleted", "history", msg["entry_id"],
+        hass, connection, msg, "deleted", "history", msg["history_entry_id"],
         task_id=msg["task_id"],
     )
-    today = dt_util.now().date()
-    if task_became_due(previous, result, today):
-        async_fire_task_due_event(
-            hass, result, "history_deleted", context=connection.context(msg)
-        )
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/attachment/delete", vol.Required("attachment_id"): str})
@@ -297,4 +235,4 @@ async def ws_attachment_delete(hass, connection, msg, store):
     )
 
 
-COMMANDS = (ws_list, ws_group_create, ws_group_update, ws_group_delete, ws_task_create, ws_task_update, ws_task_delete, ws_task_preview_next_due, ws_task_complete, ws_history_list, ws_history_delete, ws_attachment_delete)
+COMMANDS = (ws_list, ws_task_create, ws_task_update, ws_task_delete, ws_task_preview_next_due, ws_task_complete, ws_history_list, ws_history_delete, ws_attachment_delete)

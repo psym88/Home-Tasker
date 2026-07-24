@@ -9,48 +9,54 @@ from custom_components.home_tasker.calendar import HomeTaskerCalendar
 
 
 class FakeStore:
-    groups = [{"id": "group-1", "name": "Kitchen"}]
     tasks = [
         {
-            "id": "task-later",
-            "name": "Wipe shelves",
-            "description": "Use a damp cloth",
-            "group_id": "group-1",
-            "due_date": "2026-07-24",
-            "schedule_anchor": "2026-07-24",
-            "recurrence_mode": "fixed",
-            "frequency": "yearly",
-            "interval": 1,
-            "month_of_year": 7,
-            "day_of_month": 24,
+            "task_id": "task-later",
+            "task_name": "Wipe shelves",
+            "task_description": "Use a damp cloth",
+            "task_due": "2026-07-24",
+            "schedule_anchor_date": "2026-07-24",
+            "schedule_type": "fixed",
+            "schedule_unit": "yearly",
+            "schedule_interval": 1,
+            "schedule_month": 7,
+            "schedule_day": 24,
         },
         {
-            "id": "task-first-b",
-            "name": "Clean sink",
-            "description": None,
-            "group_id": "group-1",
-            "due_date": "2026-07-22",
-            "schedule_anchor": "2026-07-22",
-            "recurrence_mode": "fixed",
-            "frequency": "yearly",
-            "interval": 1,
-            "month_of_year": 7,
-            "day_of_month": 22,
+            "task_id": "task-first-b",
+            "task_name": "Clean sink",
+            "task_description": None,
+            "task_due": "2026-07-22",
+            "schedule_anchor_date": "2026-07-22",
+            "schedule_type": "fixed",
+            "schedule_unit": "yearly",
+            "schedule_interval": 1,
+            "schedule_month": 7,
+            "schedule_day": 22,
         },
         {
-            "id": "task-first-a",
-            "name": "Clean counter",
-            "description": None,
-            "group_id": "group-1",
-            "due_date": "2026-07-22",
-            "schedule_anchor": "2026-07-22",
-            "recurrence_mode": "fixed",
-            "frequency": "yearly",
-            "interval": 1,
-            "month_of_year": 7,
-            "day_of_month": 22,
+            "task_id": "task-first-a",
+            "task_name": "Clean counter",
+            "task_description": None,
+            "task_due": "2026-07-22",
+            "schedule_anchor_date": "2026-07-22",
+            "schedule_type": "fixed",
+            "schedule_unit": "yearly",
+            "schedule_interval": 1,
+            "schedule_month": 7,
+            "schedule_day": 22,
         },
     ]
+
+
+def test_calendar_uses_shared_device():
+    calendar = HomeTaskerCalendar(FakeStore())
+
+    assert calendar.device_info["name"] == "Home Tasker"
+    assert calendar.unique_id == "calendar"
+    assert calendar.name is None
+    assert calendar.has_entity_name
+    assert calendar.device_info["identifiers"] == {("home_tasker", "home_tasker")}
 
 
 def test_calendar_returns_sorted_all_day_events_with_task_details():
@@ -70,7 +76,7 @@ def test_calendar_returns_sorted_all_day_events_with_task_details():
     ]
     assert events[0].start == date(2026, 7, 22)
     assert events[0].end == date(2026, 7, 23)
-    assert events[0].location == "Kitchen"
+    assert events[0].location is None
     assert events[0].uid == "task-first-a:2026-07-22"
     assert events[0].recurrence_id is None
     assert events[2].description == "Use a damp cloth"
@@ -89,18 +95,10 @@ def test_calendar_range_uses_exclusive_event_boundaries():
     assert events == []
 
 
-def test_calendar_platform_is_forwarded_with_binary_sensors():
+def test_native_platforms_are_forwarded():
     from custom_components.home_tasker.const import PLATFORMS
 
-    assert PLATFORMS == ["binary_sensor", "calendar"]
-
-
-def test_task_sensor_cleanup_cannot_remove_calendar_registry_entry():
-    source = Path("custom_components/home_tasker/binary_sensor.py").read_text(
-        encoding="utf-8"
-    )
-
-    assert 'registry_entry.domain == "binary_sensor"' in source
+    assert PLATFORMS == ["calendar", "sensor", "todo"]
 
 
 def test_calendar_bus_update_is_an_event_loop_callback():
@@ -125,14 +123,13 @@ def test_calendar_expands_fixed_recurrences_inside_requested_range():
     store = FakeStore()
     store.tasks = [
         {
-            "id": "daily-task",
-            "name": "Water herbs",
-            "group_id": "group-1",
-            "due_date": "2026-07-22",
-            "schedule_anchor": "2026-07-22",
-            "recurrence_mode": "fixed",
-            "frequency": "daily",
-            "interval": 2,
+            "task_id": "daily-task",
+            "task_name": "Water herbs",
+            "task_due": "2026-07-22",
+            "schedule_anchor_date": "2026-07-22",
+            "schedule_type": "fixed",
+            "schedule_unit": "daily",
+            "schedule_interval": 2,
         }
     ]
     calendar = HomeTaskerCalendar(store)
@@ -160,17 +157,16 @@ def test_calendar_expands_fixed_recurrences_inside_requested_range():
     assert all(event.recurrence_id is None and event.rrule is None for event in events)
 
 
-def test_calendar_projects_after_completion_recurrences_from_due_dates():
+def test_calendar_projects_after_completion_recurrences_from_task_dues():
     store = FakeStore()
     store.tasks = [
         {
-            "id": "sliding-task",
-            "name": "Change filter",
-            "group_id": "group-1",
-            "due_date": "2026-07-22",
-            "recurrence_mode": "sliding",
-            "frequency": "weekly",
-            "interval": 2,
+            "task_id": "sliding-task",
+            "task_name": "Change filter",
+            "task_due": "2026-07-22",
+            "schedule_type": "sliding",
+            "schedule_unit": "weekly",
+            "schedule_interval": 2,
         }
     ]
     calendar = HomeTaskerCalendar(store)
@@ -194,20 +190,18 @@ def test_invalid_legacy_recurrence_keeps_current_event_and_other_tasks():
     store = FakeStore()
     store.tasks = [
         {
-            "id": "legacy-task",
-            "name": "Legacy task",
-            "group_id": "group-1",
-            "due_date": "2026-07-22",
+            "task_id": "legacy-task",
+            "task_name": "Legacy task",
+            "task_due": "2026-07-22",
         },
         {
-            "id": "valid-task",
-            "name": "Valid task",
-            "group_id": "group-1",
-            "due_date": "2026-07-23",
-            "schedule_anchor": "2026-07-23",
-            "recurrence_mode": "fixed",
-            "frequency": "daily",
-            "interval": 1,
+            "task_id": "valid-task",
+            "task_name": "Valid task",
+            "task_due": "2026-07-23",
+            "schedule_anchor_date": "2026-07-23",
+            "schedule_type": "fixed",
+            "schedule_unit": "daily",
+            "schedule_interval": 1,
         },
     ]
     calendar = HomeTaskerCalendar(store)
@@ -224,4 +218,33 @@ def test_invalid_legacy_recurrence_keeps_current_event_and_other_tasks():
         ("Legacy task", date(2026, 7, 22)),
         ("Valid task", date(2026, 7, 23)),
         ("Valid task", date(2026, 7, 24)),
+    ]
+
+
+def test_calendar_preserves_due_time_across_projected_occurrences():
+    store = FakeStore()
+    store.tasks = [
+        {
+            "task_id": "timed-task",
+            "task_name": "Timed task",
+            "task_due": "2026-07-24T08:00:00+00:00",
+            "schedule_anchor_date": "2026-07-24",
+            "schedule_type": "fixed",
+            "schedule_unit": "daily",
+            "schedule_interval": 1,
+        }
+    ]
+    calendar = HomeTaskerCalendar(store)
+
+    events = asyncio.run(
+        calendar.async_get_events(
+            None,
+            datetime(2026, 7, 24, tzinfo=timezone.utc),
+            datetime(2026, 7, 26, tzinfo=timezone.utc),
+        )
+    )
+
+    assert [event.start for event in events] == [
+        datetime(2026, 7, 24, 8, tzinfo=timezone.utc),
+        datetime(2026, 7, 25, 8, tzinfo=timezone.utc),
     ]

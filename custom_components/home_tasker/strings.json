@@ -9,6 +9,13 @@
     "abort": {
       "already_configured": "Home Tasker is already configured."
     }
+  },
+  "entity": {
+    "sensor": {
+      "tasks_due": {
+        "name": "Tasks due"
+      }
+    }
   }
 }
 
