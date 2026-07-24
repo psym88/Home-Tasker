@@ -4,7 +4,7 @@ import "./filter-category.js";
 
 export const NO_DUE_TIMESTAMP = Number.MAX_SAFE_INTEGER;
 export const INITIAL_TASK_SORTING = {column:"due_ts",direction:"asc"};
-export const DEFAULT_TASK_COLUMN_ORDER = ["name","labels","due_ts","assignee","nfc_tag","files","actions","recurrence","rhythm"];
+export const DEFAULT_TASK_COLUMN_ORDER = ["name","due_ts","assignee","nfc_tag","files","labels","actions","recurrence","rhythm"];
 export const DEFAULT_HIDDEN_TASK_COLUMNS = ["recurrence","rhythm"];
 export const TASK_GROUP_COLUMNS = ["labels","recurrence","rhythm","assignee"];
 export const TASK_FILTER_COLUMNS = ["labels","assignee","recurrence","rhythm"];

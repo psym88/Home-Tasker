@@ -69,7 +69,7 @@ test("panel title uses Home Assistant's compact native title margin",()=>{
 });
 
 test("table starts with the requested visible columns in order",()=>{
-  assert.deepEqual(DEFAULT_TASK_COLUMN_ORDER,["name","labels","due_ts","assignee","nfc_tag","files","actions","recurrence","rhythm"]);
+  assert.deepEqual(DEFAULT_TASK_COLUMN_ORDER,["name","due_ts","assignee","nfc_tag","files","labels","actions","recurrence","rhythm"]);
   assert.deepEqual(DEFAULT_HIDDEN_TASK_COLUMNS,["recurrence","rhythm"]);
   assert.match(source,/wrapper\.columnOrder=\[\.\.\.DEFAULT_TASK_COLUMN_ORDER\]/);
   assert.match(source,/wrapper\.hiddenColumns=\[\.\.\.DEFAULT_HIDDEN_TASK_COLUMNS\]/);
