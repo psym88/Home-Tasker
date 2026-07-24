@@ -171,4 +171,4 @@ def test_archive_helpers_round_trip_and_views_offload_zip_work():
         if isinstance(node, ast.AsyncFunctionDef)
     }
     assert "async_add_executor_job(_build_archive" in methods["get"]
-    assert "async_add_executor_job(_parse_archive" in methods["post"]
+    assert "post" not in methods

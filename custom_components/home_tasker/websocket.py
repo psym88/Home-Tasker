@@ -2,18 +2,24 @@
 
 from datetime import date, timedelta
 from functools import wraps
+import json
+import mimetypes
 from typing import Any
+import zipfile
 
 import voluptuous as vol
 from homeassistant.components import websocket_api
+from homeassistant.components.file_upload import process_uploaded_file
 from homeassistant.components.http.auth import async_sign_path
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.selector import FileSelector, FileSelectorConfig
 from homeassistant.util import dt as dt_util
 
 from .const import DOWNLOAD_URL
 from .due import task_due_date, task_due_with_date
 from .events import async_fire_home_tasker_event
 from .helpers import get_store
+from .http import _parse_archive
 from .scheduler import due_sequence, next_due_sequence, validate_schedule
 
 TEXT = vol.Any(str, None)
@@ -42,6 +48,30 @@ PREVIEW_FIELDS = {
     **SCHEDULE_FIELDS,
     vol.Optional("count", default=2): vol.All(vol.Coerce(int), vol.Range(min=1, max=24)),
 }
+ATTACHMENT_FILE_SELECTOR = FileSelector(FileSelectorConfig(accept="*/*"))
+ARCHIVE_FILE_SELECTOR = FileSelector(
+    FileSelectorConfig(accept=".zip,application/zip")
+)
+
+
+def _read_uploaded_file(
+    hass: HomeAssistant, file_id: str
+) -> tuple[str, str, bytes]:
+    """Consume a native Home Assistant file upload outside the event loop."""
+    with process_uploaded_file(hass, file_id) as file_path:
+        filename = file_path.name
+        content_type = (
+            mimetypes.guess_type(filename)[0] or "application/octet-stream"
+        )
+        return filename, content_type, file_path.read_bytes()
+
+
+def _parse_uploaded_archive(
+    hass: HomeAssistant, file_id: str
+) -> tuple[dict, dict[str, bytes]]:
+    """Consume and validate a native Home Assistant backup upload."""
+    with process_uploaded_file(hass, file_id) as file_path:
+        return _parse_archive(file_path.read_bytes())
 
 
 @callback
@@ -97,15 +127,6 @@ def validate_task_schedule(
 async def ws_list(hass, connection, msg, store):
     result = store.snapshot()
     result["today"] = dt_util.now().date().isoformat()
-    result["signed_files"] = {
-        item["attachment_id"]: async_sign_path(
-            hass,
-            f"{DOWNLOAD_URL}/{item['attachment_id']}",
-            timedelta(hours=1),
-            refresh_token_id=connection.refresh_token_id,
-        )
-        for item in result["attachments"]
-    }
     result["users"] = [
         {"id": user.id, "name": user.name or user.id}
         for user in await hass.auth.async_get_users()
@@ -223,6 +244,88 @@ async def ws_history_delete(hass, connection, msg, store):
     )
 
 
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "home_tasker/archive/import",
+        vol.Required("file_id"): ARCHIVE_FILE_SELECTOR,
+    }
+)
+@websocket_api.async_response
+@require_store
+async def ws_archive_import(hass, connection, msg, store):
+    try:
+        data, files = await hass.async_add_executor_job(
+            _parse_uploaded_archive, hass, msg["file_id"]
+        )
+        await store.async_import_archive(data, files)
+    except (
+        ValueError,
+        KeyError,
+        json.JSONDecodeError,
+        zipfile.BadZipFile,
+    ) as err:
+        connection.send_error(msg["id"], "invalid_archive", str(err))
+        return
+    connection.send_result(msg["id"], {"imported": True})
+    updated(hass, connection, msg, "imported", "archive")
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "home_tasker/attachment/urls",
+        vol.Required("task_id"): str,
+    }
+)
+@websocket_api.async_response
+@require_store
+async def ws_attachment_urls(hass, connection, msg, store):
+    if store.task(msg["task_id"]) is None:
+        raise ValueError("unknown_task")
+    connection.send_result(
+        msg["id"],
+        {
+            "signed_files": {
+                item["attachment_id"]: async_sign_path(
+                    hass,
+                    f"{DOWNLOAD_URL}/{item['attachment_id']}",
+                    timedelta(hours=1),
+                    refresh_token_id=connection.refresh_token_id,
+                )
+                for item in store.snapshot()["attachments"]
+                if item["task_id"] == msg["task_id"]
+            }
+        },
+    )
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "home_tasker/attachment/create",
+        vol.Required("task_id"): str,
+        vol.Required("file_id"): ATTACHMENT_FILE_SELECTOR,
+    }
+)
+@websocket_api.async_response
+@require_store
+async def ws_attachment_create(hass, connection, msg, store):
+    filename, content_type, content = await hass.async_add_executor_job(
+        _read_uploaded_file, hass, msg["file_id"]
+    )
+    record = await store.async_add_attachment(
+        msg["task_id"], filename, content_type, content
+    )
+    connection.send_result(msg["id"], record)
+    updated(
+        hass,
+        connection,
+        msg,
+        "created",
+        "attachment",
+        record["attachment_id"],
+        task_id=msg["task_id"],
+    )
+
+
 @websocket_api.websocket_command({vol.Required("type"): "home_tasker/attachment/delete", vol.Required("attachment_id"): str})
 @websocket_api.async_response
 @require_store
@@ -236,4 +339,4 @@ async def ws_attachment_delete(hass, connection, msg, store):
     )
 
 
-COMMANDS = (ws_list, ws_task_create, ws_task_update, ws_task_delete, ws_task_preview_next_due, ws_task_complete, ws_history_list, ws_history_delete, ws_attachment_delete)
+COMMANDS = (ws_list, ws_task_create, ws_task_update, ws_task_delete, ws_task_preview_next_due, ws_task_complete, ws_history_list, ws_history_delete, ws_archive_import, ws_attachment_urls, ws_attachment_create, ws_attachment_delete)

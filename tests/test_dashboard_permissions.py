@@ -23,15 +23,23 @@ def test_dashboard_task_commands_allow_authenticated_users():
         "ws_task_complete",
         "ws_history_list",
         "ws_history_delete",
+        "ws_archive_import",
+        "ws_attachment_urls",
+        "ws_attachment_create",
         "ws_attachment_delete",
     ):
         assert "websocket_api.require_admin" not in _decorators(function_name)
 
 
-def test_upload_allows_authenticated_users():
-    source=(ROOT / "custom_components/home_tasker/http.py").read_text(encoding="utf-8")
-    assert 'request["hass_user"].is_admin' not in source
-    assert '"signed_url": async_sign_path(' in source
+def test_upload_uses_native_file_upload_and_file_selector():
+    http_source=(ROOT / "custom_components/home_tasker/http.py").read_text(encoding="utf-8")
+    websocket_source=(ROOT / "custom_components/home_tasker/websocket.py").read_text(encoding="utf-8")
+    assert "UploadView" not in http_source
+    assert '"/api/home_tasker/upload"' not in http_source
+    assert "process_uploaded_file" in websocket_source
+    assert "FileSelector(FileSelectorConfig(accept=\"*/*\"))" in websocket_source
+    assert 'result["signed_files"]' not in websocket_source
+    assert '"home_tasker/attachment/urls"' in websocket_source
 
 
 def test_only_sidepanel_requires_admin():
@@ -57,6 +65,7 @@ def test_native_tag_integration_is_loaded_as_a_dependency():
 
     manifest = json.loads((ROOT / "custom_components/home_tasker/manifest.json").read_text(encoding="utf-8"))
     assert "tag" in manifest["dependencies"]
+    assert "file_upload" in manifest["dependencies"]
 
 
 def test_frontend_and_consolidated_translations_are_registered_as_static_paths():
